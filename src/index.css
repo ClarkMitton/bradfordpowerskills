@@ -2,87 +2,117 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Educational teal/ocean palette */
+    --background: 200 20% 98%;
+    --foreground: 210 25% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 210 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 210 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Deep teal primary */
+    --primary: 192 70% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 192 70% 28%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Warm gray secondary */
+    --secondary: 210 15% 93%;
+    --secondary-foreground: 210 25% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted tones */
+    --muted: 200 15% 94%;
+    --muted-foreground: 210 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Amber accent */
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 38 70% 95%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Status colors */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 192 70% 35%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Highlight for names in transcript */
+    --highlight: 38 100% 70%;
+    --highlight-hover: 38 100% 60%;
+
+    /* Step indicator colors */
+    --step-complete: 152 60% 40%;
+    --step-active: 192 70% 35%;
+    --step-pending: 210 15% 80%;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(210 25% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(210 25% 15% / 0.1), 0 2px 4px -2px hsl(210 25% 15% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(210 25% 15% / 0.1), 0 4px 6px -4px hsl(210 25% 15% / 0.1);
+    --shadow-glow: 0 0 20px hsl(192 70% 35% / 0.15);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 210 25% 8%;
+    --foreground: 200 20% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 210 25% 12%;
+    --card-foreground: 200 20% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 210 25% 12%;
+    --popover-foreground: 200 20% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 192 70% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 192 70% 50%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 20% 18%;
+    --secondary-foreground: 200 20% 90%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 210 20% 18%;
+    --muted-foreground: 210 15% 55%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 38 92% 55%;
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 38 50% 15%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 50% 45%;
+    --success-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 210 20% 22%;
+    --input: 210 20% 22%;
+    --ring: 192 70% 45%;
+
+    --highlight: 38 90% 40%;
+    --highlight-hover: 38 90% 50%;
+
+    --step-complete: 152 50% 45%;
+    --step-active: 192 70% 45%;
+    --step-pending: 210 15% 35%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -100,6 +130,79 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .step-indicator {
+    @apply flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold transition-all duration-300;
+  }
+
+  .step-complete {
+    @apply bg-success text-success-foreground;
+  }
+
+  .step-active {
+    @apply bg-primary text-primary-foreground shadow-glow;
+  }
+
+  .step-pending {
+    @apply bg-step-pending text-muted-foreground;
+  }
+
+  .highlight-name {
+    @apply bg-highlight text-foreground px-1 py-0.5 rounded cursor-pointer transition-colors hover:bg-highlight-hover;
+  }
+
+  .card-elevated {
+    @apply bg-card rounded-xl border border-border shadow-md transition-shadow hover:shadow-lg;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary-hover transition-colors;
+  }
+
+  .btn-accent {
+    @apply bg-accent text-accent-foreground hover:opacity-90 transition-opacity;
+  }
+
+  .section-fade-in {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .pulse-recording {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
