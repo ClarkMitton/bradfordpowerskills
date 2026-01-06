@@ -3,6 +3,7 @@ import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { SessionCapture } from "@/components/SessionCapture";
 import { TranscriptEditor } from "@/components/TranscriptEditor";
+import { PhaseSelector } from "@/components/PhaseSelector";
 import { FeedbackReport } from "@/components/FeedbackReport";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 import { Button } from "@/components/ui/button";
@@ -14,19 +15,22 @@ const getStepsForMode = (mode: string | null) => {
       return [
         { id: 1, label: "Record Audio", shortLabel: "Audio" },
         { id: 2, label: "Review Transcript", shortLabel: "Review" },
-        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
+        { id: 3, label: "Select Phases", shortLabel: "Phases" },
+        { id: 4, label: "View Feedback", shortLabel: "Feedback" },
       ];
     case "deep-dive":
       return [
         { id: 1, label: "Capture Session", shortLabel: "Capture" },
         { id: 2, label: "Review Transcript", shortLabel: "Review" },
-        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
+        { id: 3, label: "Select Phases", shortLabel: "Phases" },
+        { id: 4, label: "View Feedback", shortLabel: "Feedback" },
       ];
     case "full-review":
       return [
         { id: 1, label: "Capture Session", shortLabel: "Capture" },
         { id: 2, label: "Review Transcript", shortLabel: "Review" },
-        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
+        { id: 3, label: "Select Phases", shortLabel: "Phases" },
+        { id: 4, label: "View Feedback", shortLabel: "Feedback" },
       ];
     default:
       return [];
@@ -40,6 +44,7 @@ const Index = () => {
     handleAudioReady,
     handleSessionCapture,
     confirmTranscript,
+    handlePhaseSelection,
     resetSession,
     goBack,
   } = useSessionAnalysis();
@@ -67,12 +72,20 @@ const Index = () => {
           );
         case 3:
           return (
+            <PhaseSelector
+              onConfirm={handlePhaseSelection}
+              isLoading={false}
+            />
+          );
+        case 4:
+          return (
             <FeedbackReport
               feedback={state.feedback}
               transcript={state.anonymizedTranscript}
               isLoading={state.isAnalyzing}
               onReset={resetSession}
               mode={state.mode}
+              selectedPhases={state.selectedPhases}
             />
           );
       }
@@ -99,12 +112,20 @@ const Index = () => {
           );
         case 3:
           return (
+            <PhaseSelector
+              onConfirm={handlePhaseSelection}
+              isLoading={false}
+            />
+          );
+        case 4:
+          return (
             <FeedbackReport
               feedback={state.feedback}
               transcript={state.anonymizedTranscript}
               isLoading={state.isAnalyzing}
               onReset={resetSession}
               mode={state.mode}
+              selectedPhases={state.selectedPhases}
             />
           );
       }
