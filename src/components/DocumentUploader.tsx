@@ -18,6 +18,8 @@ interface UploadedFile {
   preview?: string;
 }
 
+type DocumentMode = "deep-dive" | "full-review";
+
 interface DocumentUploaderProps {
   onDocumentsReady: (documents: {
     lessonPlan: File | null;
@@ -26,6 +28,7 @@ interface DocumentUploaderProps {
     middleAbility: File | null;
     higherAbility: File | null;
   }) => void;
+  mode: DocumentMode;
 }
 
 type DocumentKey = "lessonPlan" | "scaffolding" | "lowerAbility" | "middleAbility" | "higherAbility";
@@ -37,42 +40,53 @@ interface DocumentField {
   required: boolean;
 }
 
-const documentFields: DocumentField[] = [
-  {
-    key: "lessonPlan",
-    label: "LEAD Lesson Plan",
-    description: "Upload your completed lesson plan (.docx, .pdf, .pptx)",
-    required: true,
-  },
-  {
-    key: "scaffolding",
-    label: "Scaffolded Support Materials",
-    description: "Any support materials used in the session",
-    required: false,
-  },
-  {
-    key: "lowerAbility",
-    label: "Lower Ability Student Work",
-    description: "Work sample from a lower ability learner",
-    required: true,
-  },
-  {
-    key: "middleAbility",
-    label: "Middle Ability Student Work",
-    description: "Work sample from a middle ability learner",
-    required: true,
-  },
-  {
-    key: "higherAbility",
-    label: "Higher Ability Student Work",
-    description: "Work sample from a higher ability learner",
-    required: true,
-  },
-];
+const getDocumentFields = (mode: DocumentMode): DocumentField[] => {
+  const fields: DocumentField[] = [
+    {
+      key: "lessonPlan",
+      label: "Your Lesson Plan",
+      description: "Upload your lesson plan to compare against your delivery (.docx, .pdf, .pptx)",
+      required: true,
+    },
+  ];
+
+  if (mode === "full-review") {
+    fields.push(
+      {
+        key: "scaffolding",
+        label: "Delivery Resources",
+        description: "Any support materials you used or referenced during the session",
+        required: false,
+      },
+      {
+        key: "lowerAbility",
+        label: "Lower Ability Student Work",
+        description: "Work sample from a lower ability learner",
+        required: true,
+      },
+      {
+        key: "middleAbility",
+        label: "Middle Ability Student Work",
+        description: "Work sample from a middle ability learner",
+        required: true,
+      },
+      {
+        key: "higherAbility",
+        label: "Higher Ability Student Work",
+        description: "Work sample from a higher ability learner",
+        required: true,
+      }
+    );
+  }
+
+  return fields;
+};
 
 const acceptedTypes = ".docx,.pdf,.pptx,.doc,.ppt,.jpg,.jpeg,.png,.gif";
 
-export function DocumentUploader({ onDocumentsReady }: DocumentUploaderProps) {
+export function DocumentUploader({ onDocumentsReady, mode }: DocumentUploaderProps) {
+  const documentFields = getDocumentFields(mode);
+  
   const [files, setFiles] = useState<Record<DocumentKey, UploadedFile | null>>({
     lessonPlan: null,
     scaffolding: null,
@@ -144,14 +158,26 @@ export function DocumentUploader({ onDocumentsReady }: DocumentUploaderProps) {
     });
   };
 
+  const getTitle = () => {
+    return mode === "deep-dive" 
+      ? "Upload Your Lesson Plan" 
+      : "Upload Session Materials";
+  };
+
+  const getDescription = () => {
+    return mode === "deep-dive"
+      ? "We'll compare your lesson plan against what you delivered in the session"
+      : "Provide your lesson plan, resources, and student work for comprehensive analysis";
+  };
+
   return (
     <div className="section-fade-in space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-heading font-semibold text-foreground">
-          Upload Session Materials
+          {getTitle()}
         </h2>
         <p className="text-muted-foreground">
-          Provide your lesson plan and student work samples for comprehensive analysis
+          {getDescription()}
         </p>
       </div>
 

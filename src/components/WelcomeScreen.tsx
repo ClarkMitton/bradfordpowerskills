@@ -1,7 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Mic, FileText, Layers } from "lucide-react";
+import { Mic, FileText, Layers, Sparkles } from "lucide-react";
 
-export type AnalysisMode = "recording" | "resources" | "deep-dive";
+export type AnalysisMode = "quick" | "deep-dive" | "full-review";
 
 interface WelcomeScreenProps {
   onSelectMode: (mode: AnalysisMode) => void;
@@ -10,25 +9,26 @@ interface WelcomeScreenProps {
 export function WelcomeScreen({ onSelectMode }: WelcomeScreenProps) {
   const analysisOptions = [
     {
-      id: "recording" as const,
+      id: "quick" as const,
       icon: Mic,
-      title: "Lesson Recording Feedback",
-      description: "Get AI-powered feedback on your teaching session from an audio recording",
-      details: ["Record or upload audio", "Auto-transcription", "LEAD model analysis"],
-    },
-    {
-      id: "resources" as const,
-      icon: FileText,
-      title: "Delivery Resources Feedback",
-      description: "Receive feedback on your lesson plan and teaching materials",
-      details: ["Upload lesson plan", "Scaffolding materials", "Resource analysis"],
+      title: "Quick Feedback",
+      description: "Get instant feedback on any teaching moment — a full lesson, a short activity, or just a segment you want to reflect on.",
+      details: ["Record or upload audio", "Auto-transcription", "Delivery-focused feedback"],
+      encouragement: "Perfect for everyday practice — use it anytime you want a quick reflection on your delivery.",
     },
     {
       id: "deep-dive" as const,
+      icon: FileText,
+      title: "Delivery Deep Dive",
+      description: "Compare what you planned against what you actually delivered in the session.",
+      details: ["Audio recording", "Lesson plan upload", "Plan vs execution analysis"],
+    },
+    {
+      id: "full-review" as const,
       icon: Layers,
-      title: "Power Skills Deep Dive",
-      description: "Comprehensive analysis combining recording, resources, and student work",
-      details: ["Audio recording", "Lesson plan & resources", "3 pieces of student work"],
+      title: "Full Session Review",
+      description: "Comprehensive analysis of the complete teaching cycle — from planning through delivery to student outcomes.",
+      details: ["Audio recording", "Lesson plan & scaffolding", "3 pieces of student work"],
     },
   ];
 
@@ -67,10 +67,21 @@ export function WelcomeScreen({ onSelectMode }: WelcomeScreenProps) {
               <h3 className="font-heading font-semibold text-foreground text-lg mb-2">
                 {option.title}
               </h3>
-              <p className="text-muted-foreground text-sm mb-4 flex-grow">
+              <p className="text-muted-foreground text-sm mb-4">
                 {option.description}
               </p>
-              <ul className="space-y-1">
+              
+              {/* Encouragement message for Quick Feedback */}
+              {"encouragement" in option && option.encouragement && (
+                <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-success/10 border border-success/20">
+                  <Sparkles className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-success font-medium">
+                    {option.encouragement}
+                  </p>
+                </div>
+              )}
+              
+              <ul className="space-y-1 mt-auto">
                 {option.details.map((detail, i) => (
                   <li key={i} className="text-xs text-muted-foreground flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
