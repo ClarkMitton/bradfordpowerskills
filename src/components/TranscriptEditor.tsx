@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Loader2, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,20 @@ export function TranscriptEditor({
 }: TranscriptEditorProps) {
   const [names, setNames] = useState<HighlightedName[]>(highlightedNames);
   const [editedTranscript, setEditedTranscript] = useState(transcript);
+
+  // Sync transcript when prop changes (e.g., after transcription completes)
+  useEffect(() => {
+    if (transcript && transcript !== editedTranscript) {
+      setEditedTranscript(transcript);
+    }
+  }, [transcript]);
+
+  // Sync highlighted names when prop changes
+  useEffect(() => {
+    if (highlightedNames.length > 0) {
+      setNames(highlightedNames);
+    }
+  }, [highlightedNames]);
 
   const handleReplaceAll = useCallback(() => {
     let newTranscript = editedTranscript;
