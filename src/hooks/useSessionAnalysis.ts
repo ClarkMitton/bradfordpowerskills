@@ -30,8 +30,11 @@ interface FeedbackData {
   ebi: string[];
 }
 
+export type AnalysisMode = "recording" | "resources" | "deep-dive" | null;
+
 interface SessionState {
   step: number;
+  mode: AnalysisMode;
   audioBlob: Blob | null;
   audioFileName: string;
   transcript: string;
@@ -51,6 +54,7 @@ interface SessionState {
 
 const initialState: SessionState = {
   step: 0,
+  mode: null,
   audioBlob: null,
   audioFileName: "",
   transcript: "",
@@ -240,8 +244,8 @@ const mockGenerateFeedback = async (): Promise<FeedbackData> => {
 export function useSessionAnalysis() {
   const [state, setState] = useState<SessionState>(initialState);
 
-  const startSession = useCallback(() => {
-    setState((prev) => ({ ...prev, step: 1 }));
+  const selectMode = useCallback((mode: AnalysisMode) => {
+    setState((prev) => ({ ...prev, mode, step: 1 }));
   }, []);
 
   const handleAudioReady = useCallback(async (blob: Blob, fileName: string) => {
@@ -273,22 +277,44 @@ export function useSessionAnalysis() {
   }, []);
 
   const confirmTranscript = useCallback((anonymizedTranscript: string) => {
-    setState((prev) => ({
-      ...prev,
-      anonymizedTranscript,
-      audioBlob: null, // Delete audio after transcription
-      step: 3,
-    }));
+    setState((prev) => {
+      // For recording mode, go to feedback (step 3)
+      // For deep-dive mode, go to document upload (step 3)
+      const nextStep = prev.mode === "recording" ? 3 : 3;
+      return {
+        ...prev,
+        anonymizedTranscript,
+        audioBlob: null,
+        step: nextStep,
+        // For recording mode, start analysis immediately
+        isAnalyzing: prev.mode === "recording",
+      };
+    });
+    
+    // For recording mode, generate feedback after transcript confirmation
+    setState((prev) => {
+      if (prev.mode === "recording") {
+        mockGenerateFeedback().then((feedback) => {
+          setState((p) => ({ ...p, feedback, isAnalyzing: false }));
+        });
+      }
+      return prev;
+    });
   }, []);
 
   const handleDocumentsReady = useCallback(
     async (documents: SessionState["documents"]) => {
-      setState((prev) => ({
-        ...prev,
-        documents,
-        step: 4,
-        isAnalyzing: true,
-      }));
+      setState((prev) => {
+        // For resources mode, go to step 2 (feedback)
+        // For deep-dive mode, go to step 4 (feedback)
+        const nextStep = prev.mode === "resources" ? 2 : 4;
+        return {
+          ...prev,
+          documents,
+          step: nextStep,
+          isAnalyzing: true,
+        };
+      });
 
       try {
         const feedback = await mockGenerateFeedback();
@@ -315,7 +341,7 @@ export function useSessionAnalysis() {
 
   return {
     state,
-    startSession,
+    selectMode,
     handleAudioReady,
     confirmTranscript,
     handleDocumentsReady,

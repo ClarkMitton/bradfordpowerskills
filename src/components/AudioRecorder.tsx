@@ -1,14 +1,13 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Upload, Play, Pause, Trash2, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Mic, Square, Upload, Play, Pause, Trash2, Download, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AudioRecorderProps {
-  onAudioReady: (audioBlob: Blob, fileName: string) => void;
+  onFastFeedback: (audioBlob: Blob, fileName: string) => void;
 }
 
-export function AudioRecorder({ onAudioReady }: AudioRecorderProps) {
+export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -120,9 +119,24 @@ export function AudioRecorder({ onAudioReady }: AudioRecorderProps) {
     setRecordingTime(0);
   };
 
-  const confirmAudio = () => {
+  const downloadAudio = () => {
+    if (audioBlob && audioUrl) {
+      const link = document.createElement("a");
+      link.href = audioUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast({
+        title: "Download Started",
+        description: "Your recording is being saved to your device.",
+      });
+    }
+  };
+
+  const handleFastFeedback = () => {
     if (audioBlob) {
-      onAudioReady(audioBlob, fileName);
+      onFastFeedback(audioBlob, fileName);
     }
   };
 
@@ -226,14 +240,18 @@ export function AudioRecorder({ onAudioReady }: AudioRecorderProps) {
               />
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3 justify-center">
               <Button onClick={clearAudio} variant="outline">
                 <Trash2 className="w-4 h-4" />
                 Clear
               </Button>
-              <Button onClick={confirmAudio} variant="success">
-                <Check className="w-4 h-4" />
-                Continue to Transcription
+              <Button onClick={downloadAudio} variant="outline">
+                <Download className="w-4 h-4" />
+                Save to Desktop
+              </Button>
+              <Button onClick={handleFastFeedback} variant="success">
+                <Zap className="w-4 h-4" />
+                Get Fast Feedback
               </Button>
             </div>
           </div>
