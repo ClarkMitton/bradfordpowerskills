@@ -235,6 +235,23 @@
       opacity: 0.5;
     }
   }
+
+  /* Evidence highlighting styles for timestamps and quotes */
+  .timestamp-badge {
+    @apply inline-flex items-center bg-primary/15 text-primary px-2 py-0.5 rounded-md text-sm font-medium mx-0.5;
+  }
+
+  .quote-text {
+    @apply italic text-muted-foreground;
+  }
+
+  .evidence-text .timestamp-badge {
+    @apply bg-primary/15 text-primary;
+  }
+
+  .evidence-text .quote-text {
+    @apply not-italic border-l-2 border-primary/30 pl-2 ml-1;
+  }
 }
 
 @layer utilities {

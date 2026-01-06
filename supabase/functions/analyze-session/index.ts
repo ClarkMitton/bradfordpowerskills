@@ -54,16 +54,29 @@ You're building capacity in this area. With focused attention and practice, this
 ⭐ Emerging Focus
 This represents an important opportunity for development. Small adjustments here could unlock significant improvements in student engagement and learning.
 
+CRITICAL EVIDENCE REQUIREMENTS - YOU MUST FOLLOW THESE:
+Every piece of feedback MUST include EITHER:
+1. A timestamp in format [MM:SS] - e.g., "At [3:45], you asked..."
+2. A direct quote from the transcript in quotation marks - e.g., When you said "Can anyone build on that idea?"...
+
 Feedback Format for Each Category:
 
 What's Working:
-Specific moments or patterns that demonstrate strength. Evidence from the recording of positive impact.
+- MUST include at least one timestamp OR direct quote as evidence
+- Example: "At [3:45], your use of 'Can anyone build on that idea?' created excellent student dialogue"
+- Example: "When you said 'Let me show you another way to think about this...', you effectively scaffolded the concept"
+- Be specific about the positive impact observed
 
 Growth Edge:
-One specific, actionable next step to enhance this area. Framed as an opportunity rather than a deficit.
+- MUST reference a specific moment with timestamp OR quote
+- One specific, actionable next step to enhance this area
+- Framed as an opportunity rather than a deficit
+- Example: "Around [8:20], when explaining the concept, there's an opportunity to..."
 
 Try This:
-A concrete technique, phrase, or approach to experiment with. Audio-specific strategies that can be immediately implemented.
+- A concrete technique, phrase, or approach to experiment with
+- Audio-specific strategies that can be immediately implemented
+- Provide example phrases they could use
 `;
 
 serve(async (req) => {
@@ -120,13 +133,15 @@ ${studentWork}
       }
     }
 
-    const systemPrompt = `You are an expert teaching coach analyzing a classroom session transcript. You provide constructive, growth-oriented feedback.
+    const systemPrompt = `You are a supportive, encouraging teaching coach analyzing a classroom session transcript. Your feedback should feel like it comes from a trusted colleague who genuinely wants to help teachers grow.
 
 CRITICAL RULES:
 1. NEVER mention any student names - use "Student" or "a student" instead
 2. Only provide feedback for the phases the user selected
-3. Be specific with timestamps or quotes where possible
-4. Focus on growth and improvement, not criticism
+3. EVERY observation MUST include a specific timestamp [MM:SS] OR a direct quote from the transcript in quotation marks - this is NON-NEGOTIABLE
+4. Focus on growth and celebration of strengths, not criticism
+5. Use warm, encouraging language throughout - teachers work incredibly hard
+6. Be specific and actionable - vague feedback is not helpful
 
 ${FEEDBACK_CATEGORIES}
 
