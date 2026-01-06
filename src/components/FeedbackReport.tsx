@@ -10,20 +10,34 @@ import {
   Star,
   Sparkles,
   Heart,
-  TrendingUp
+  TrendingUp,
+  BookOpen,
+  AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SelectedPhase } from "./PhaseSelector";
-import { parsePedagogicalTerms } from "./PedagogicalTooltip";
+import { PedagogicalTooltip, PEDAGOGICAL_TERMS } from "./PedagogicalTooltip";
+
+interface ResearchSuggestion {
+  technique: string;
+  howToImplement: string;
+  whyItWorks: string;
+  example: string;
+}
 
 interface CategoryFeedback {
   name: string;
   rating: number;
+  summary?: string;
   whatsWorking: string;
+  evidenceStrengths?: string[];
   toMakeStronger?: string;
   growthEdge?: string; // Legacy support
+  areasForDevelopment?: string[];
+  missedOpportunities?: string[];
   tryThisNext?: string;
   tryThis?: string; // Legacy support
+  researchSuggestion?: ResearchSuggestion;
 }
 
 interface LEADPhaseFeedback {
@@ -53,10 +67,10 @@ interface FeedbackReportProps {
 }
 
 const ratingLabels: Record<string, string> = {
-  exemplary: "Exemplary Strength",
+  exemplary: "Exemplary Practice",
   solid: "Solid Foundation",
-  developing: "Developing Skill",
-  emerging: "Emerging Focus",
+  developing: "Developing Practice",
+  emerging: "Emerging Practice",
 };
 
 const ratingColors: Record<string, string> = {
@@ -67,10 +81,10 @@ const ratingColors: Record<string, string> = {
 };
 
 const starRatingLabels: Record<number, string> = {
-  4: "Exemplary Strength",
+  4: "Exemplary Practice",
   3: "Solid Foundation",
-  2: "Developing Skill",
-  1: "Emerging Focus",
+  2: "Developing Practice",
+  1: "Emerging Practice",
 };
 
 const starRatingColors: Record<number, string> = {
@@ -86,6 +100,8 @@ const formatTextWithEvidence = (text: string) => {
   const timestampRegex = /\[(\d{1,2}:\d{2})\]/g;
   // Match quoted text
   const quoteRegex = /"([^"]+)"/g;
+  // Match italic text with asterisks
+  const italicRegex = /\*([^*]+)\*/g;
   
   let result = text;
   
@@ -95,22 +111,59 @@ const formatTextWithEvidence = (text: string) => {
   // Replace quotes with styled text
   result = result.replace(quoteRegex, '<span class="quote-text">"$1"</span>');
   
+  // Replace italic markers with actual italics
+  result = result.replace(italicRegex, '<em class="text-primary/80">$1</em>');
+  
   return result;
 };
 
-// Render text with both formatting and pedagogical tooltips
+// Render text with formatting and check for pedagogical terms
 const renderFormattedText = (text: string) => {
-  // First apply timestamp/quote formatting
   const formattedHtml = formatTextWithEvidence(text);
   
-  // For pedagogical terms, we need to render as React components
-  // Split by HTML tags to preserve formatting
   return (
     <span 
       className="evidence-text"
       dangerouslySetInnerHTML={{ __html: formattedHtml }}
     />
   );
+};
+
+// Render text with pedagogical tooltips for standalone terms
+const renderWithTooltips = (text: string) => {
+  const terms = Object.keys(PEDAGOGICAL_TERMS);
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let key = 0;
+  
+  const pattern = new RegExp(
+    `\\b(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
+    'gi'
+  );
+  
+  let match;
+  const formattedText = formatTextWithEvidence(text);
+  
+  // For simple text without HTML, add tooltips
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(<span key={key++} dangerouslySetInnerHTML={{ __html: formatTextWithEvidence(text.slice(lastIndex, match.index)) }} />);
+    }
+    
+    parts.push(
+      <PedagogicalTooltip key={key++} term={match[1]}>
+        {match[0]}
+      </PedagogicalTooltip>
+    );
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  if (lastIndex < text.length) {
+    parts.push(<span key={key++} dangerouslySetInnerHTML={{ __html: formatTextWithEvidence(text.slice(lastIndex)) }} />);
+  }
+  
+  return parts.length > 0 ? parts : <span dangerouslySetInnerHTML={{ __html: formattedText }} />;
 };
 
 export function FeedbackReport({
@@ -177,7 +230,7 @@ export function FeedbackReport({
 
     const htmlContent = `
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -294,6 +347,12 @@ export function FeedbackReport({
       font-weight: 600; 
       color: #1a1a2e; 
     }
+    .category-summary {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 8px;
+      font-style: italic;
+    }
     .stars { 
       color: #eab308; 
       font-size: 16px;
@@ -316,6 +375,8 @@ export function FeedbackReport({
     .feedback-section.working { background: #f0fdf4; }
     .feedback-section.stronger { background: #fef3c7; }
     .feedback-section.try { background: #eff6ff; }
+    .feedback-section.evidence { background: #f8fafc; }
+    .feedback-section.research { background: #faf5ff; border: 1px solid #e9d5ff; }
     .feedback-section h5 { 
       font-size: 13px; 
       font-weight: 600; 
@@ -324,9 +385,18 @@ export function FeedbackReport({
     .feedback-section.working h5 { color: #16a34a; }
     .feedback-section.stronger h5 { color: #d97706; }
     .feedback-section.try h5 { color: #2563eb; }
-    .feedback-section p { 
+    .feedback-section.evidence h5 { color: #475569; }
+    .feedback-section.research h5 { color: #7c3aed; }
+    .feedback-section p, .feedback-section li { 
       font-size: 14px; 
       color: #334155;
+    }
+    .feedback-section ul {
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+    .feedback-section li {
+      margin-bottom: 6px;
     }
     .timestamp { 
       display: inline-block;
@@ -420,20 +490,45 @@ export function FeedbackReport({
         <div class="category-name">${cat.name}</div>
         <div class="stars">${'★'.repeat(cat.rating)}${'☆'.repeat(4 - cat.rating)}</div>
         <div class="rating-label">${starRatingLabels[cat.rating]}</div>
+        ${cat.summary ? `<div class="category-summary">${cat.summary}</div>` : ''}
       </div>
       <div class="category-content">
         <div class="feedback-section working">
           <h5>✓ What's Working Well</h5>
           <p>${cat.whatsWorking}</p>
+          ${cat.evidenceStrengths && cat.evidenceStrengths.length > 0 ? `
+          <ul>
+            ${cat.evidenceStrengths.map(e => `<li>${e}</li>`).join('')}
+          </ul>
+          ` : ''}
         </div>
         <div class="feedback-section stronger">
           <h5>→ To Make It Even Stronger</h5>
           <p>${cat.toMakeStronger || cat.growthEdge || ""}</p>
+          ${cat.areasForDevelopment && cat.areasForDevelopment.length > 0 ? `
+          <ul>
+            ${cat.areasForDevelopment.map(a => `<li>${a}</li>`).join('')}
+          </ul>
+          ` : ''}
+          ${cat.missedOpportunities && cat.missedOpportunities.length > 0 ? `
+          <p style="margin-top: 12px; font-weight: 600; font-size: 12px; color: #92400e;">Missed Opportunities:</p>
+          <ul>
+            ${cat.missedOpportunities.map(m => `<li>${m}</li>`).join('')}
+          </ul>
+          ` : ''}
         </div>
         <div class="feedback-section try">
           <h5>💡 Try This Next Time</h5>
           <p>${cat.tryThisNext || cat.tryThis || ""}</p>
         </div>
+        ${cat.researchSuggestion ? `
+        <div class="feedback-section research">
+          <h5>📚 Research-Informed Suggestion: ${cat.researchSuggestion.technique}</h5>
+          <p><strong>How to implement:</strong> ${cat.researchSuggestion.howToImplement}</p>
+          <p><strong>Why it works:</strong> ${cat.researchSuggestion.whyItWorks}</p>
+          <p><strong>Example:</strong> <em>"${cat.researchSuggestion.example}"</em></p>
+        </div>
+        ` : ''}
       </div>
     </div>
     `).join('')}
@@ -466,7 +561,7 @@ export function FeedbackReport({
 
   <div class="footer">
     <p>Generated by Power Skills Session Analysis</p>
-    <p style="margin-top: 8px; font-size: 12px; color: #94a3b8;">This report was generated using AI analysis. All student names have been anonymized for privacy.</p>
+    <p style="margin-top: 8px; font-size: 12px; color: #94a3b8;">This report was generated using AI analysis. All student names have been anonymised for privacy.</p>
   </div>
 </body>
 </html>
@@ -551,8 +646,8 @@ export function FeedbackReport({
               <Star className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-lg">Your Teaching Strengths & Growth Areas</h3>
-              <p className="text-sm text-muted-foreground">Click each category to see detailed feedback with specific moments</p>
+              <h3 className="font-semibold text-foreground text-lg">Your Teaching Practice Analysis</h3>
+              <p className="text-sm text-muted-foreground">Click each domain to see detailed feedback with specific moments</p>
             </div>
           </div>
         </div>
@@ -563,14 +658,19 @@ export function FeedbackReport({
                 onClick={() => toggleCategory(category.name)}
                 className="w-full flex items-center justify-between p-5 hover:bg-secondary/30 transition-colors"
               >
-                <div className="flex items-center gap-4">
-                  <span className="font-semibold text-foreground text-left">{category.name}</span>
-                  <div className="flex items-center gap-2">
-                    {renderStars(category.rating)}
-                    <span className={cn("text-sm font-medium", starRatingColors[category.rating])}>
-                      {starRatingLabels[category.rating]}
-                    </span>
+                <div className="flex flex-col items-start gap-2">
+                  <div className="flex items-center gap-4">
+                    <span className="font-semibold text-foreground text-left">{category.name}</span>
+                    <div className="flex items-center gap-2">
+                      {renderStars(category.rating)}
+                      <span className={cn("text-sm font-medium", starRatingColors[category.rating])}>
+                        {starRatingLabels[category.rating]}
+                      </span>
+                    </div>
                   </div>
+                  {category.summary && (
+                    <p className="text-sm text-muted-foreground text-left italic">{category.summary}</p>
+                  )}
                 </div>
                 {expandedCategories.includes(category.name) ? (
                   <ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0" />
@@ -580,30 +680,92 @@ export function FeedbackReport({
               </button>
               {expandedCategories.includes(category.name) && (
                 <div className="px-5 pb-6 space-y-4 animate-fade-in">
+                  {/* What's Working Well */}
                   <div className="p-4 bg-success/5 rounded-xl border border-success/15">
                     <h4 className="text-sm font-semibold text-success mb-3 flex items-center gap-2">
                       <span className="text-base">✓</span> What's Working Well
                     </h4>
-                    <p className="text-foreground leading-relaxed">
-                      {renderFormattedText(category.whatsWorking)}
+                    <p className="text-foreground leading-relaxed mb-3">
+                      {renderWithTooltips(category.whatsWorking)}
                     </p>
+                    {category.evidenceStrengths && category.evidenceStrengths.length > 0 && (
+                      <ul className="space-y-2 mt-3 border-t border-success/10 pt-3">
+                        {category.evidenceStrengths.map((evidence, i) => (
+                          <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                            <span className="text-success mt-0.5">•</span>
+                            {renderFormattedText(evidence)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
+
+                  {/* To Make It Even Stronger */}
                   <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/15">
                     <h4 className="text-sm font-semibold text-amber-600 mb-3 flex items-center gap-2">
                       <span className="text-base">→</span> To Make It Even Stronger
                     </h4>
-                    <p className="text-foreground leading-relaxed">
-                      {renderFormattedText(category.toMakeStronger || category.growthEdge || "")}
+                    <p className="text-foreground leading-relaxed mb-3">
+                      {renderWithTooltips(category.toMakeStronger || category.growthEdge || "")}
                     </p>
+                    {category.areasForDevelopment && category.areasForDevelopment.length > 0 && (
+                      <ul className="space-y-2 mt-3 border-t border-amber-500/10 pt-3">
+                        {category.areasForDevelopment.map((area, i) => (
+                          <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                            {renderFormattedText(area)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {category.missedOpportunities && category.missedOpportunities.length > 0 && (
+                      <div className="mt-3 border-t border-amber-500/10 pt-3">
+                        <p className="text-xs font-semibold text-amber-700 mb-2">Missed Opportunities:</p>
+                        <ul className="space-y-1">
+                          {category.missedOpportunities.map((missed, i) => (
+                            <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                              <span className="text-amber-400">–</span>
+                              {missed}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Try This Next Time */}
                   <div className="p-4 bg-primary/5 rounded-xl border border-primary/15">
                     <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                       <span className="text-base">💡</span> Try This Next Time
                     </h4>
                     <p className="text-foreground leading-relaxed">
-                      {renderFormattedText(category.tryThisNext || category.tryThis || "")}
+                      {renderWithTooltips(category.tryThisNext || category.tryThis || "")}
                     </p>
                   </div>
+
+                  {/* Research-Informed Suggestion */}
+                  {category.researchSuggestion && (
+                    <div className="p-4 bg-purple-500/5 rounded-xl border border-purple-500/15">
+                      <h4 className="text-sm font-semibold text-purple-600 mb-3 flex items-center gap-2">
+                        <BookOpen className="w-4 h-4" />
+                        Research-Informed Suggestion: {category.researchSuggestion.technique}
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <p className="text-foreground">
+                          <span className="font-medium text-purple-700">How to implement:</span>{" "}
+                          {category.researchSuggestion.howToImplement}
+                        </p>
+                        <p className="text-foreground">
+                          <span className="font-medium text-purple-700">Why it works:</span>{" "}
+                          {category.researchSuggestion.whyItWorks}
+                        </p>
+                        <p className="text-foreground italic">
+                          <span className="font-medium text-purple-700 not-italic">Example:</span>{" "}
+                          "{category.researchSuggestion.example}"
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
