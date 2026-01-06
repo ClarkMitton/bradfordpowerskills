@@ -63,10 +63,21 @@ interface LEADPhaseFeedback {
   suggestions: string[];
 }
 
+type OfstedGradeType = "exceptional" | "strong_standard" | "expected_standard" | "needs_attention" | "urgent_improvement";
+
+interface OfstedGrade {
+  grade: OfstedGradeType;
+  summary: string;
+  strengths: string[];
+  areasForDevelopment?: string[];
+  caveat?: string;
+}
+
 interface FeedbackData {
   sessionMvp?: SessionMvp;
   categories: CategoryFeedback[];
   leadPhases: LEADPhaseFeedback[];
+  ofstedGrade?: OfstedGrade;
   overallSummary: string;
   topStrength: string;
   priorityGrowthArea: string;
@@ -625,6 +636,51 @@ export function FeedbackReport({
   </div>
   ` : ''}
 
+  ${feedback.ofstedGrade ? `
+  <div class="section">
+    <h3 class="section-title">🎓 How Would Ofsted Rate This?</h3>
+    <div style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-radius: 12px; padding: 24px; border: 2px solid #818cf8;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span style="display: inline-block; padding: 12px 24px; border-radius: 50px; font-size: 18px; font-weight: bold; ${
+          feedback.ofstedGrade.grade === 'exceptional' ? 'background: #d1fae5; color: #047857; border: 2px solid #34d399;' :
+          feedback.ofstedGrade.grade === 'strong_standard' ? 'background: #dbeafe; color: #1d4ed8; border: 2px solid #60a5fa;' :
+          feedback.ofstedGrade.grade === 'expected_standard' ? 'background: #fef3c7; color: #b45309; border: 2px solid #fbbf24;' :
+          feedback.ofstedGrade.grade === 'needs_attention' ? 'background: #ffedd5; color: #c2410c; border: 2px solid #fb923c;' :
+          'background: #fee2e2; color: #b91c1c; border: 2px solid #f87171;'
+        }">
+          ${feedback.ofstedGrade.grade === 'exceptional' ? '✨ Exceptional' :
+            feedback.ofstedGrade.grade === 'strong_standard' ? '⭐ Strong Standard' :
+            feedback.ofstedGrade.grade === 'expected_standard' ? '✓ Expected Standard' :
+            feedback.ofstedGrade.grade === 'needs_attention' ? '⚠ Needs Attention' :
+            '🚨 Urgent Improvement'}
+        </span>
+      </div>
+      <p style="color: #334155; font-size: 15px; margin-bottom: 16px;">${feedback.ofstedGrade.summary}</p>
+      ${feedback.ofstedGrade.strengths && feedback.ofstedGrade.strengths.length > 0 ? `
+      <div style="background: #f0fdf4; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+        <h5 style="color: #16a34a; font-size: 13px; font-weight: 600; margin-bottom: 8px;">✓ Observable Strengths</h5>
+        <ul style="padding-left: 20px;">
+          ${feedback.ofstedGrade.strengths.map(s => `<li style="color: #334155; font-size: 14px; margin-bottom: 4px;">${s}</li>`).join('')}
+        </ul>
+      </div>
+      ` : ''}
+      ${feedback.ofstedGrade.areasForDevelopment && feedback.ofstedGrade.areasForDevelopment.length > 0 ? `
+      <div style="background: #fef3c7; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+        <h5 style="color: #b45309; font-size: 13px; font-weight: 600; margin-bottom: 8px;">→ Areas for Development</h5>
+        <ul style="padding-left: 20px;">
+          ${feedback.ofstedGrade.areasForDevelopment.map(a => `<li style="color: #334155; font-size: 14px; margin-bottom: 4px;">${a}</li>`).join('')}
+        </ul>
+      </div>
+      ` : ''}
+      ${feedback.ofstedGrade.caveat ? `
+      <p style="color: #64748b; font-size: 13px; font-style: italic; padding: 10px; background: #f8fafc; border-radius: 6px;">
+        <strong style="font-style: normal;">Note:</strong> ${feedback.ofstedGrade.caveat}
+      </p>
+      ` : ''}
+    </div>
+  </div>
+  ` : ''}
+
   <div class="encouragement">
     <p>Remember: Great teaching is a journey, not a destination. Every lesson is an opportunity to grow! 💪</p>
   </div>
@@ -954,6 +1010,90 @@ export function FeedbackReport({
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ofsted Grade Section */}
+      {feedback.ofstedGrade && (
+        <div className="card-elevated overflow-hidden border-2 border-indigo-500/30">
+          <div className="p-5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                <span className="text-xl">🎓</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground text-lg">How Would Ofsted Rate This?</h3>
+                <p className="text-sm text-muted-foreground">Based on the "Developing Teaching" criteria (November 2025 Framework)</p>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 space-y-6">
+            {/* Grade Badge */}
+            <div className="flex items-center justify-center">
+              <div className={cn(
+                "px-6 py-3 rounded-full text-lg font-bold border-2",
+                feedback.ofstedGrade.grade === "exceptional" && "bg-emerald-500/20 text-emerald-700 border-emerald-500/40",
+                feedback.ofstedGrade.grade === "strong_standard" && "bg-blue-500/20 text-blue-700 border-blue-500/40",
+                feedback.ofstedGrade.grade === "expected_standard" && "bg-amber-500/20 text-amber-700 border-amber-500/40",
+                feedback.ofstedGrade.grade === "needs_attention" && "bg-orange-500/20 text-orange-700 border-orange-500/40",
+                feedback.ofstedGrade.grade === "urgent_improvement" && "bg-red-500/20 text-red-700 border-red-500/40"
+              )}>
+                {feedback.ofstedGrade.grade === "exceptional" && "✨ Exceptional"}
+                {feedback.ofstedGrade.grade === "strong_standard" && "⭐ Strong Standard"}
+                {feedback.ofstedGrade.grade === "expected_standard" && "✓ Expected Standard"}
+                {feedback.ofstedGrade.grade === "needs_attention" && "⚠ Needs Attention"}
+                {feedback.ofstedGrade.grade === "urgent_improvement" && "🚨 Urgent Improvement"}
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className="p-4 bg-secondary/30 rounded-xl">
+              <p className="text-foreground leading-relaxed">{renderWithTooltips(feedback.ofstedGrade.summary)}</p>
+            </div>
+
+            {/* Strengths */}
+            {feedback.ofstedGrade.strengths && feedback.ofstedGrade.strengths.length > 0 && (
+              <div className="p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/15">
+                <h4 className="text-sm font-semibold text-emerald-600 mb-3 flex items-center gap-2">
+                  <span className="text-base">✓</span> Observable Strengths
+                </h4>
+                <ul className="space-y-2">
+                  {feedback.ofstedGrade.strengths.map((strength, i) => (
+                    <li key={i} className="text-foreground flex items-start gap-2">
+                      <span className="text-emerald-500 mt-0.5">•</span>
+                      {renderWithTooltips(strength)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Areas for Development */}
+            {feedback.ofstedGrade.areasForDevelopment && feedback.ofstedGrade.areasForDevelopment.length > 0 && (
+              <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/15">
+                <h4 className="text-sm font-semibold text-amber-600 mb-3 flex items-center gap-2">
+                  <span className="text-base">→</span> Areas for Development
+                </h4>
+                <ul className="space-y-2">
+                  {feedback.ofstedGrade.areasForDevelopment.map((area, i) => (
+                    <li key={i} className="text-foreground flex items-start gap-2">
+                      <span className="text-amber-500 mt-0.5">•</span>
+                      {renderWithTooltips(area)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Caveat */}
+            {feedback.ofstedGrade.caveat && (
+              <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                <p className="text-sm text-muted-foreground italic">
+                  <strong className="not-italic">Note:</strong> {feedback.ofstedGrade.caveat}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
