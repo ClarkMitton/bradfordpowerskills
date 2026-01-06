@@ -7,7 +7,7 @@ import {
 import { HelpCircle } from "lucide-react";
 
 // Pedagogical terms with detailed explanations
-const PEDAGOGICAL_TERMS: Record<string, { short: string; detailed: string }> = {
+export const PEDAGOGICAL_TERMS: Record<string, { short: string; detailed: string }> = {
   "wait time": {
     short: "The pause after asking a question",
     detailed: "Wait time is the duration a teacher pauses after asking a question before calling on a student or rephrasing. Research by Mary Budd Rowe found that extending wait time to 3-5 seconds increases both the length and quality of student responses, encourages more students to participate, and promotes higher-order thinking."
@@ -26,11 +26,11 @@ const PEDAGOGICAL_TERMS: Record<string, { short: string; detailed: string }> = {
   },
   "bloom's taxonomy": {
     short: "Hierarchy of thinking skills",
-    detailed: "Bloom's Taxonomy is a framework classifying educational learning objectives into levels of complexity: Remember, Understand, Apply, Analyze, Evaluate, and Create. Lower-order skills (Remember, Understand) involve recalling facts, while higher-order skills (Analyze, Evaluate, Create) require deeper cognitive processing and critical thinking."
+    detailed: "Bloom's Taxonomy is a framework classifying educational learning objectives into levels of complexity: Remember, Understand, Apply, Analyse, Evaluate, and Create. Lower-order skills (Remember, Understand) involve recalling facts, whilst higher-order skills (Analyse, Evaluate, Create) require deeper cognitive processing and critical thinking."
   },
   "multiple entry points": {
     short: "Different ways to access the same content",
-    detailed: "Multiple entry points is a differentiation strategy providing various ways for students to engage with content based on their readiness, interests, or learning preferences. This might include visual, auditory, or kinesthetic approaches, or varying complexity levels while maintaining the same core learning objective."
+    detailed: "Multiple entry points is a differentiation strategy providing various ways for students to engage with content based on their readiness, interests, or learning preferences. This might include visual, auditory, or kinaesthetic approaches, or varying complexity levels whilst maintaining the same core learning objective."
   },
   "cognitive load": {
     short: "Mental effort required to process information",
@@ -42,7 +42,7 @@ const PEDAGOGICAL_TERMS: Record<string, { short: string; detailed: string }> = {
   },
   "higher-order questioning": {
     short: "Questions requiring analysis, evaluation, or creation",
-    detailed: "Higher-order questions require students to think beyond simple recall. Based on Bloom's Taxonomy, these questions ask students to analyze (break down information), evaluate (make judgments), or create (produce new ideas). Examples include 'Why do you think...?', 'What evidence supports...?', and 'How would you improve...?'"
+    detailed: "Higher-order questions require students to think beyond simple recall. Based on Bloom's Taxonomy, these questions ask students to analyse (break down information), evaluate (make judgements), or create (produce new ideas). Examples include 'Why do you think...?', 'What evidence supports...?', and 'How would you improve...?'"
   },
   "distributed practice": {
     short: "Spreading learning over time",
@@ -67,6 +67,26 @@ const PEDAGOGICAL_TERMS: Record<string, { short: string; detailed: string }> = {
   "zone of proximal development": {
     short: "The gap between what students can do alone vs. with help",
     detailed: "Vygotsky's Zone of Proximal Development (ZPD) describes the space between what a learner can accomplish independently and what they can achieve with guidance. Effective instruction targets this zone, providing appropriate challenge with sufficient support to promote growth."
+  },
+  "pose-pause-pounce-bounce": {
+    short: "Strategic questioning technique for deeper engagement",
+    detailed: "Pose-Pause-Pounce-Bounce is a questioning strategy: Pose a question to the class, Pause to allow thinking time, Pounce on a student to answer, then Bounce that answer to another student for comment or extension. This technique increases engagement, promotes active listening, and develops collaborative dialogue."
+  },
+  "no-hands-up": {
+    short: "Teacher selects who answers rather than volunteers",
+    detailed: "No-hands-up is a classroom management strategy where students don't raise hands to volunteer answers. Instead, the teacher selects who responds. This ensures all students stay engaged and prepared, prevents the same students from dominating, and allows the teacher to strategically target questions."
+  },
+  "exit ticket": {
+    short: "Quick end-of-lesson check of understanding",
+    detailed: "Exit tickets are brief formative assessments completed at the end of a lesson. Students respond to a prompt or question, allowing teachers to quickly gauge understanding and identify misconceptions. This data informs planning for the next lesson and helps identify students who need additional support."
+  },
+  "modelling": {
+    short: "Demonstrating thinking or skills explicitly",
+    detailed: "Modelling involves the teacher explicitly demonstrating a skill, process, or way of thinking. This might include 'thinking aloud' to make cognitive processes visible, or showing step-by-step how to complete a task. Effective modelling makes expert thinking accessible to learners."
+  },
+  "retrieval practice": {
+    short: "Actively recalling information from memory",
+    detailed: "Retrieval practice involves actively recalling information from memory rather than passively reviewing it. Research shows that the act of retrieval strengthens memory more than re-reading or highlighting. Techniques include low-stakes quizzes, flashcards, and asking students to write what they remember."
   }
 };
 
@@ -144,5 +164,3 @@ export function parsePedagogicalTerms(text: string): React.ReactNode[] {
   
   return parts;
 }
-
-export { PEDAGOGICAL_TERMS };
