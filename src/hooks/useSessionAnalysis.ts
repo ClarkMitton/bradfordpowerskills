@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { SelectedPhase } from "@/components/PhaseSelector";
 
 interface HighlightedName {
@@ -250,6 +251,11 @@ export function useSessionAnalysis() {
 
     try {
       const transcript = await transcribeAudio(blob);
+      
+      if (!transcript || transcript.trim().length === 0) {
+        throw new Error("Transcription returned empty. Please try recording again.");
+      }
+      
       const names = detectNames(transcript);
       
       setState((prev) => ({
@@ -258,11 +264,16 @@ export function useSessionAnalysis() {
         highlightedNames: names,
         isTranscribing: false,
       }));
+      
+      toast.success("Audio transcribed successfully");
     } catch (error) {
       console.error("Transcription failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Transcription failed. Please try again.";
+      toast.error(errorMessage);
       setState((prev) => ({
         ...prev,
         isTranscribing: false,
+        step: 1, // Go back to recording step
       }));
     }
   }, []);
@@ -284,6 +295,11 @@ export function useSessionAnalysis() {
 
     try {
       const transcript = await transcribeAudio(blob);
+      
+      if (!transcript || transcript.trim().length === 0) {
+        throw new Error("Transcription returned empty. Please try recording again.");
+      }
+      
       const names = detectNames(transcript);
       
       setState((prev) => ({
@@ -292,11 +308,16 @@ export function useSessionAnalysis() {
         highlightedNames: names,
         isTranscribing: false,
       }));
+      
+      toast.success("Audio transcribed successfully");
     } catch (error) {
       console.error("Transcription failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Transcription failed. Please try again.";
+      toast.error(errorMessage);
       setState((prev) => ({
         ...prev,
         isTranscribing: false,
+        step: 1, // Go back to recording step
       }));
     }
   }, []);
