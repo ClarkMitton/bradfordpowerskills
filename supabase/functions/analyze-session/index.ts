@@ -427,12 +427,7 @@ ${categoryContext}
 ${learnerContext}
 ${additionalContext}
 
-IMPORTANT RULES FOR HIGHLIGHTING PEDAGOGICAL TERMS:
-- When you use *italic text* to mark pedagogical terms, ALWAYS include a brief explanation in parentheses immediately after
-- Example: "*wait time* (the deliberate pause after asking a question to allow thinking)"
-- Example: "*cold calling* (randomly selecting students rather than asking for volunteers)"
-- Example: "*scaffolding* (breaking complex tasks into manageable steps with support)"
-- NEVER highlight a term without explaining what it means and why it matters
+CRITICAL: Return ONLY valid JSON. No text before or after. No markdown code blocks. Start directly with { and end with }.
 
 Respond with valid JSON matching this exact structure:
 {
@@ -522,13 +517,26 @@ Respond with valid JSON matching this exact structure:
     // Parse the JSON from the response
     let feedback;
     try {
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
+      // Try multiple extraction strategies
+      let jsonStr = content.trim();
+      
+      // Strategy 1: Extract from markdown code blocks
+      const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (codeBlockMatch) {
+        jsonStr = codeBlockMatch[1].trim();
+      } else {
+        // Strategy 2: Find the first { and last } to extract JSON
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace > firstBrace) {
+          jsonStr = content.slice(firstBrace, lastBrace + 1);
+        }
+      }
+      
       feedback = JSON.parse(jsonStr);
     } catch (parseError) {
-      console.error("Failed to parse AI response:", content);
-      return new Response(JSON.stringify({ error: "Failed to parse AI response" }), {
+      console.error("Failed to parse AI response:", content?.slice(0, 500));
+      return new Response(JSON.stringify({ error: "Failed to parse AI response. Please try again." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
