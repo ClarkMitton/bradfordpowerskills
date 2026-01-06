@@ -52,6 +52,7 @@ const Index = () => {
     handleSessionCapture,
     handleTranscriptSubmit,
     handlePhaseSelection,
+    retryAnalysis,
     resetSession,
     goBack,
   } = useSessionAnalysis();
@@ -136,6 +137,8 @@ const Index = () => {
               transcript={state.anonymizedTranscript}
               isLoading={state.isAnalyzing}
               onReset={handleReset}
+              onRetry={retryAnalysis}
+              error={state.analysisError}
               mode={state.mode}
               selectedPhases={state.selectedPhases}
             />
@@ -171,6 +174,8 @@ const Index = () => {
               transcript={state.anonymizedTranscript}
               isLoading={state.isAnalyzing}
               onReset={handleReset}
+              onRetry={retryAnalysis}
+              error={state.analysisError}
               mode={state.mode}
               selectedPhases={state.selectedPhases}
             />
