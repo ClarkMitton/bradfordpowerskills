@@ -1,10 +1,43 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Mic, Square, Upload, Play, Pause, Trash2, Download, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+const FEEDBACK_CATEGORIES = [
+  { id: "questioning", label: "Questioning Techniques" },
+  { id: "clarity", label: "Clarity of Explanation" },
+  { id: "tone", label: "Tone and Emotional Climate" },
+  { id: "participation", label: "Student Participation and Voice Distribution" },
+  { id: "listening", label: "Responsive Listening and Feedback" },
+];
+
+const LEARNER_LEVELS = [
+  { value: "ks3", label: "KS3 (Years 7-9)" },
+  { value: "ks4", label: "KS4 (Years 10-11 / GCSE)" },
+  { value: "ks5", label: "KS5 (Years 12-13 / A-Level)" },
+  { value: "fe", label: "Further Education" },
+  { value: "he", label: "Higher Education" },
+  { value: "adult", label: "Adult Learners" },
+];
+
+export interface SessionDetails {
+  learnerLevel: string;
+  subject: string;
+  selectedCategories: string[];
+}
+
 interface AudioRecorderProps {
-  onFastFeedback: (audioBlob: Blob, fileName: string) => void;
+  onFastFeedback: (audioBlob: Blob, fileName: string, sessionDetails: SessionDetails) => void;
 }
 
 export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
@@ -14,6 +47,12 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Session details
+  const [learnerLevel, setLearnerLevel] = useState<string>("");
+  const [subject, setSubject] = useState<string>("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [allCategoriesSelected, setAllCategoriesSelected] = useState(true);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -134,9 +173,37 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
     }
   };
 
+  const handleCategoryToggle = (categoryId: string) => {
+    if (allCategoriesSelected) {
+      // Switching from "all" to specific selection
+      setAllCategoriesSelected(false);
+      setSelectedCategories([categoryId]);
+    } else {
+      setSelectedCategories(prev => 
+        prev.includes(categoryId)
+          ? prev.filter(id => id !== categoryId)
+          : [...prev, categoryId]
+      );
+    }
+  };
+
+  const handleAllCategoriesToggle = () => {
+    setAllCategoriesSelected(!allCategoriesSelected);
+    if (!allCategoriesSelected) {
+      setSelectedCategories([]);
+    }
+  };
+
   const handleFastFeedback = () => {
     if (audioBlob) {
-      onFastFeedback(audioBlob, fileName);
+      const sessionDetails: SessionDetails = {
+        learnerLevel,
+        subject,
+        selectedCategories: allCategoriesSelected 
+          ? FEEDBACK_CATEGORIES.map(c => c.label)
+          : selectedCategories.map(id => FEEDBACK_CATEGORIES.find(c => c.id === id)?.label || ""),
+      };
+      onFastFeedback(audioBlob, fileName, sessionDetails);
     }
   };
 
@@ -228,7 +295,7 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground truncate">{fileName}</p>
                   <p className="text-sm text-muted-foreground">
-                    Ready for transcription
+                    Ready for analysis
                   </p>
                 </div>
               </div>
@@ -240,7 +307,83 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
               />
             </div>
 
-            <div className="flex flex-wrap gap-3 justify-center">
+            {/* Session Details Form */}
+            <div className="w-full max-w-md space-y-5 pt-4 border-t border-border">
+              <h3 className="font-semibold text-foreground text-center">Session Details (Optional)</h3>
+              
+              {/* Learner Level */}
+              <div className="space-y-2">
+                <Label htmlFor="learner-level">Learner Level</Label>
+                <Select value={learnerLevel} onValueChange={setLearnerLevel}>
+                  <SelectTrigger id="learner-level">
+                    <SelectValue placeholder="Select learner level..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LEARNER_LEVELS.map(level => (
+                      <SelectItem key={level.value} value={level.value}>
+                        {level.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Subject */}
+              <div className="space-y-2">
+                <Label htmlFor="subject">Subject or Topic</Label>
+                <Input
+                  id="subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="e.g., Introduction to Algebra, Creative Writing..."
+                />
+              </div>
+
+              {/* Feedback Categories */}
+              <div className="space-y-3">
+                <Label>Feedback Focus Areas</Label>
+                <p className="text-sm text-muted-foreground">
+                  Select specific areas for feedback, or leave as "All" for comprehensive analysis
+                </p>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="all-categories" 
+                      checked={allCategoriesSelected}
+                      onCheckedChange={handleAllCategoriesToggle}
+                    />
+                    <label 
+                      htmlFor="all-categories" 
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      All Categories (Comprehensive Feedback)
+                    </label>
+                  </div>
+                  
+                  <div className="pl-6 space-y-2 border-l-2 border-border ml-2">
+                    {FEEDBACK_CATEGORIES.map(category => (
+                      <div key={category.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={category.id}
+                          checked={allCategoriesSelected || selectedCategories.includes(category.id)}
+                          disabled={allCategoriesSelected}
+                          onCheckedChange={() => handleCategoryToggle(category.id)}
+                        />
+                        <label 
+                          htmlFor={category.id} 
+                          className={`text-sm cursor-pointer ${allCategoriesSelected ? 'text-muted-foreground' : ''}`}
+                        >
+                          {category.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3 justify-center pt-4">
               <Button onClick={clearAudio} variant="outline">
                 <Trash2 className="w-4 h-4" />
                 Clear

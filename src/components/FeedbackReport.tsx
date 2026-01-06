@@ -6,24 +6,24 @@ import {
   ChevronDown, 
   ChevronUp,
   Loader2,
-  FileText,
   Target,
   Star,
   Sparkles,
   Heart,
-  TrendingUp,
-  BookOpen
+  TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SelectedPhase } from "./PhaseSelector";
-import { TranscriptViewer } from "./TranscriptViewer";
+import { parsePedagogicalTerms } from "./PedagogicalTooltip";
 
 interface CategoryFeedback {
   name: string;
   rating: number;
   whatsWorking: string;
-  growthEdge: string;
-  tryThis: string;
+  toMakeStronger?: string;
+  growthEdge?: string; // Legacy support
+  tryThisNext?: string;
+  tryThis?: string; // Legacy support
 }
 
 interface LEADPhaseFeedback {
@@ -98,6 +98,21 @@ const formatTextWithEvidence = (text: string) => {
   return result;
 };
 
+// Render text with both formatting and pedagogical tooltips
+const renderFormattedText = (text: string) => {
+  // First apply timestamp/quote formatting
+  const formattedHtml = formatTextWithEvidence(text);
+  
+  // For pedagogical terms, we need to render as React components
+  // Split by HTML tags to preserve formatting
+  return (
+    <span 
+      className="evidence-text"
+      dangerouslySetInnerHTML={{ __html: formattedHtml }}
+    />
+  );
+};
+
 export function FeedbackReport({
   feedback,
   transcript,
@@ -106,8 +121,6 @@ export function FeedbackReport({
   mode,
   selectedPhases,
 }: FeedbackReportProps) {
-  const [showTranscript, setShowTranscript] = useState(false);
-  const [showTranscriptViewer, setShowTranscriptViewer] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [expandedPhases, setExpandedPhases] = useState<string[]>([]);
 
@@ -208,10 +221,6 @@ export function FeedbackReport({
       color: #16a34a; 
       font-size: 18px; 
       margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
     }
     .celebration p { 
       color: #166534; 
@@ -267,9 +276,6 @@ export function FeedbackReport({
       margin-bottom: 16px;
       padding-bottom: 8px;
       border-bottom: 2px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
     .category { 
       background: #fff; 
@@ -308,7 +314,7 @@ export function FeedbackReport({
     }
     .feedback-section:last-child { margin-bottom: 0; }
     .feedback-section.working { background: #f0fdf4; }
-    .feedback-section.growth { background: #fef3c7; }
+    .feedback-section.stronger { background: #fef3c7; }
     .feedback-section.try { background: #eff6ff; }
     .feedback-section h5 { 
       font-size: 13px; 
@@ -316,7 +322,7 @@ export function FeedbackReport({
       margin-bottom: 8px;
     }
     .feedback-section.working h5 { color: #16a34a; }
-    .feedback-section.growth h5 { color: #d97706; }
+    .feedback-section.stronger h5 { color: #d97706; }
     .feedback-section.try h5 { color: #2563eb; }
     .feedback-section p { 
       font-size: 14px; 
@@ -330,14 +336,6 @@ export function FeedbackReport({
       border-radius: 4px; 
       font-size: 13px;
       font-weight: 500;
-    }
-    .quote { 
-      font-style: italic; 
-      color: #4b5563;
-      border-left: 3px solid #6366f1;
-      padding-left: 12px;
-      margin: 8px 0;
-      display: block;
     }
     .lead-phase { 
       background: #fff; 
@@ -361,34 +359,6 @@ export function FeedbackReport({
       color: #334155;
       margin-bottom: 6px;
     }
-    .transcript { 
-      background: #f8fafc; 
-      border: 1px solid #e2e8f0; 
-      border-radius: 10px; 
-      padding: 20px;
-    }
-    .transcript h4 { 
-      font-size: 14px; 
-      font-weight: 600; 
-      color: #64748b;
-      margin-bottom: 12px;
-    }
-    .transcript-content { 
-      font-size: 13px; 
-      color: #475569;
-      white-space: pre-wrap;
-      line-height: 1.7;
-    }
-    .footer { 
-      margin-top: 40px; 
-      padding-top: 20px;
-      border-top: 1px solid #e2e8f0;
-      text-align: center;
-    }
-    .footer p { 
-      font-size: 13px; 
-      color: #64748b;
-    }
     .encouragement { 
       background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
       border-radius: 10px;
@@ -400,6 +370,16 @@ export function FeedbackReport({
       font-size: 15px; 
       color: #4338ca;
       font-weight: 500;
+    }
+    .footer { 
+      margin-top: 40px; 
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+    }
+    .footer p { 
+      font-size: 13px; 
+      color: #64748b;
     }
     @media print {
       body { padding: 20px; }
@@ -446,13 +426,13 @@ export function FeedbackReport({
           <h5>✓ What's Working Well</h5>
           <p>${cat.whatsWorking}</p>
         </div>
-        <div class="feedback-section growth">
-          <h5>→ Your Growth Edge</h5>
-          <p>${cat.growthEdge}</p>
+        <div class="feedback-section stronger">
+          <h5>→ To Make It Even Stronger</h5>
+          <p>${cat.toMakeStronger || cat.growthEdge || ""}</p>
         </div>
         <div class="feedback-section try">
           <h5>💡 Try This Next Time</h5>
-          <p>${cat.tryThis}</p>
+          <p>${cat.tryThisNext || cat.tryThis || ""}</p>
         </div>
       </div>
     </div>
@@ -477,15 +457,6 @@ export function FeedbackReport({
       ` : ''}
     </div>
     `).join('')}
-  </div>
-  ` : ''}
-
-  ${transcript ? `
-  <div class="section">
-    <div class="transcript">
-      <h4>📝 Anonymized Transcript</h4>
-      <div class="transcript-content">${transcript}</div>
-    </div>
   </div>
   ` : ''}
 
@@ -613,28 +584,25 @@ export function FeedbackReport({
                     <h4 className="text-sm font-semibold text-success mb-3 flex items-center gap-2">
                       <span className="text-base">✓</span> What's Working Well
                     </h4>
-                    <p 
-                      className="text-foreground leading-relaxed evidence-text"
-                      dangerouslySetInnerHTML={{ __html: formatTextWithEvidence(category.whatsWorking) }}
-                    />
+                    <p className="text-foreground leading-relaxed">
+                      {renderFormattedText(category.whatsWorking)}
+                    </p>
                   </div>
                   <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/15">
                     <h4 className="text-sm font-semibold text-amber-600 mb-3 flex items-center gap-2">
-                      <span className="text-base">→</span> Your Growth Edge
+                      <span className="text-base">→</span> To Make It Even Stronger
                     </h4>
-                    <p 
-                      className="text-foreground leading-relaxed evidence-text"
-                      dangerouslySetInnerHTML={{ __html: formatTextWithEvidence(category.growthEdge) }}
-                    />
+                    <p className="text-foreground leading-relaxed">
+                      {renderFormattedText(category.toMakeStronger || category.growthEdge || "")}
+                    </p>
                   </div>
                   <div className="p-4 bg-primary/5 rounded-xl border border-primary/15">
                     <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                       <span className="text-base">💡</span> Try This Next Time
                     </h4>
-                    <p 
-                      className="text-foreground leading-relaxed evidence-text"
-                      dangerouslySetInnerHTML={{ __html: formatTextWithEvidence(category.tryThis) }}
-                    />
+                    <p className="text-foreground leading-relaxed">
+                      {renderFormattedText(category.tryThisNext || category.tryThis || "")}
+                    </p>
                   </div>
                 </div>
               )}
@@ -694,10 +662,10 @@ export function FeedbackReport({
                         {phase.observations.map((obs, i) => (
                           <li 
                             key={i} 
-                            className="text-foreground flex items-start gap-3 evidence-text"
+                            className="text-foreground flex items-start gap-3"
                           >
                             <span className="text-primary mt-1">•</span>
-                            <span dangerouslySetInnerHTML={{ __html: formatTextWithEvidence(obs) }} />
+                            {renderFormattedText(obs)}
                           </li>
                         ))}
                       </ul>
@@ -711,10 +679,10 @@ export function FeedbackReport({
                           {phase.suggestions.map((sug, i) => (
                             <li 
                               key={i} 
-                              className="text-foreground flex items-start gap-3 evidence-text"
+                              className="text-foreground flex items-start gap-3"
                             >
                               <span className="text-accent mt-1">→</span>
-                              <span dangerouslySetInnerHTML={{ __html: formatTextWithEvidence(sug) }} />
+                              {renderFormattedText(sug)}
                             </li>
                           ))}
                         </ul>
@@ -726,65 +694,6 @@ export function FeedbackReport({
             ))}
           </div>
         </div>
-      )}
-
-      {/* Interactive Transcript Viewer */}
-      {transcript && feedback && (
-        <>
-          <div className="card-elevated overflow-hidden">
-            <div className="p-5 bg-gradient-to-r from-accent/10 to-primary/5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">View Full Transcript</h3>
-                    <p className="text-sm text-muted-foreground">
-                      See highlighted sections that correspond to your feedback
-                    </p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => setShowTranscriptViewer(true)}
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  Open Transcript
-                </Button>
-              </div>
-            </div>
-            
-            {/* Quick preview toggle */}
-            <button
-              onClick={() => setShowTranscript(!showTranscript)}
-              className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors border-t border-border"
-            >
-              <span className="text-sm text-muted-foreground">Quick Preview (text only)</span>
-              {showTranscript ? (
-                <ChevronUp className="w-4 h-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              )}
-            </button>
-            {showTranscript && (
-              <div className="p-5 border-t border-border animate-fade-in">
-                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto bg-secondary/20 p-4 rounded-lg">
-                  {transcript}
-                </p>
-              </div>
-            )}
-          </div>
-          
-          {/* Full Transcript Viewer Modal */}
-          <TranscriptViewer
-            transcript={transcript}
-            feedback={feedback}
-            isOpen={showTranscriptViewer}
-            onClose={() => setShowTranscriptViewer(false)}
-          />
-        </>
       )}
 
       {/* Action Buttons */}
