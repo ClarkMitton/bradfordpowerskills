@@ -213,9 +213,9 @@ For EACH domain, provide feedback in these THREE sections:
 ### Section 1: What's Working Well (marked with ✓)
 - Start with specific observable behaviour with timestamp [MM:SS]
 - Explain the pedagogical principle behind why this is effective
-- Use pedagogical terms with explanations in italics when first introduced
+- Wrap pedagogical terms in *asterisks* (e.g., *wait time*) - the system adds tooltips automatically, do NOT add explanations in brackets
 - Maximum 4-5 sentences
-- Example: "At [3:45], you paused for 5 seconds after asking 'What patterns do you notice?' This demonstrates excellent *wait time* (the pause after asking a question that allows students to think). Research shows this increases both response quality and participation by up to 40%."
+- Example: "At [3:45], you paused for 5 seconds after asking 'What patterns do you notice?' This demonstrates excellent *wait time*. Research shows this increases both response quality and participation by up to 40%."
 
 ### Section 2: To Make It Even Stronger (marked with →)
 - Identify specific moment with timestamp [MM:SS] where enhancement could occur
@@ -223,14 +223,14 @@ For EACH domain, provide feedback in these THREE sections:
 - Include research-based reasoning where relevant
 - Focus on ONE clear action only
 - Maximum 4-5 sentences
-- Example: "At [8:20], when three students answered consecutively, consider using *cold calling* (randomly selecting students to respond) to distribute participation more equitably. Research by Dylan Wiliam shows this increases overall engagement significantly compared to relying on volunteers."
+- Example: "At [8:20], when three students answered consecutively, consider using *cold calling* to distribute participation more equitably. Research by Dylan Wiliam shows this increases overall engagement significantly compared to relying on volunteers."
 
 ### Section 3: Try This Next Time (marked with 💡)
 - Provide a concrete, practical strategy they can implement immediately
 - Make it specific enough that they know exactly what to do
 - Frame as building on existing strength, not fixing a deficit
 - Maximum 4-5 sentences
-- Example: "Build on your strong questioning by adding *think-pair-share* (students think alone, discuss with a partner, then share with class) before whole-class discussion. This gives every student processing time and ensures quieter voices are heard."
+- Example: "Build on your strong questioning by adding *think-pair-share* before whole-class discussion. This gives every student processing time and ensures quieter voices are heard."
 
 ### Evidence of Strengths (bullet points)
 - ✓ [timestamp] - "Exact quote" - Why this demonstrates strong practice with pedagogical reference
@@ -316,7 +316,7 @@ const ANALYSIS_RULES = `
 4. Focus on growth and celebration of strengths, not criticism
 5. Use warm, encouraging, developmental language throughout
 6. Be specific and actionable - vague feedback is not helpful
-7. When using pedagogical terms, add an explanation in italics when first introduced
+7. When using pedagogical terms, wrap them in *asterisks* (e.g., *wait time*, *cold calling*) - DO NOT add explanations in brackets after them as the system will show tooltips automatically
 8. One good example ≠ exceptional practice (need patterns, not isolated incidents)
 9. Absence of best practice is feedback-worthy even if nothing "wrong" occurred
 10. Quality matters more than quantity (one sophisticated question > five basic ones)
