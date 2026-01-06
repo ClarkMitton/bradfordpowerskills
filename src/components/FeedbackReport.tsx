@@ -5,47 +5,35 @@ import {
   RotateCcw, 
   ChevronDown, 
   ChevronUp,
-  CheckCircle2,
   Loader2,
   FileText,
   Target,
-  Users,
-  Lightbulb,
-  GitCompare,
-  BookOpen
+  Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { SelectedPhase } from "./PhaseSelector";
+
+interface CategoryFeedback {
+  name: string;
+  rating: number;
+  whatsWorking: string;
+  growthEdge: string;
+  tryThis: string;
+}
 
 interface LEADPhaseFeedback {
   phase: string;
-  rating: "excellent" | "good" | "developing" | "needs-improvement";
+  rating: "exemplary" | "solid" | "developing" | "emerging";
   observations: string[];
   suggestions: string[];
 }
 
 interface FeedbackData {
+  categories: CategoryFeedback[];
   leadPhases: LEADPhaseFeedback[];
-  teachingDelivery: {
-    strengths: string[];
-    areasForDevelopment: string[];
-  };
-  planVsDelivery?: {
-    alignment: "strong" | "moderate" | "weak";
-    observations: string[];
-    deviations: string[];
-  };
-  resourceUtilization?: {
-    summary: string;
-    effectiveUses: string[];
-    missedOpportunities: string[];
-  };
-  studentWorkAnalysis?: {
-    summary: string;
-    differentiationEvidence: string[];
-    objectivesReached: boolean;
-  };
-  www: string[];
-  ebi: string[];
+  overallSummary: string;
+  topStrength: string;
+  priorityGrowthArea: string;
 }
 
 type AnalysisMode = "quick" | "deep-dive" | "full-review";
@@ -56,32 +44,35 @@ interface FeedbackReportProps {
   isLoading: boolean;
   onReset: () => void;
   mode: AnalysisMode;
+  selectedPhases: SelectedPhase[];
 }
 
-const ratingColors = {
-  excellent: "bg-success text-success-foreground",
-  good: "bg-primary text-primary-foreground",
-  developing: "bg-warning text-warning-foreground",
-  "needs-improvement": "bg-destructive text-destructive-foreground",
+const ratingLabels: Record<string, string> = {
+  exemplary: "⭐⭐⭐⭐ Exemplary Strength",
+  solid: "⭐⭐⭐ Solid Foundation",
+  developing: "⭐⭐ Developing Skill",
+  emerging: "⭐ Emerging Focus",
 };
 
-const ratingLabels = {
-  excellent: "Excellent",
-  good: "Good",
-  developing: "Developing",
-  "needs-improvement": "Needs Improvement",
+const ratingColors: Record<string, string> = {
+  exemplary: "bg-success/10 text-success border-success/30",
+  solid: "bg-primary/10 text-primary border-primary/30",
+  developing: "bg-warning/10 text-warning border-warning/30",
+  emerging: "bg-accent/10 text-accent border-accent/30",
 };
 
-const alignmentColors = {
-  strong: "bg-success/10 text-success border-success/20",
-  moderate: "bg-warning/10 text-warning border-warning/20",
-  weak: "bg-destructive/10 text-destructive border-destructive/20",
+const starRatingLabels: Record<number, string> = {
+  4: "Exemplary Strength",
+  3: "Solid Foundation",
+  2: "Developing Skill",
+  1: "Emerging Focus",
 };
 
-const alignmentLabels = {
-  strong: "Strong Alignment",
-  moderate: "Moderate Alignment", 
-  weak: "Needs Attention",
+const starRatingColors: Record<number, string> = {
+  4: "text-success",
+  3: "text-primary",
+  2: "text-warning",
+  1: "text-accent",
 };
 
 export function FeedbackReport({
@@ -90,9 +81,19 @@ export function FeedbackReport({
   isLoading,
   onReset,
   mode,
+  selectedPhases,
 }: FeedbackReportProps) {
   const [showTranscript, setShowTranscript] = useState(false);
-  const [expandedPhases, setExpandedPhases] = useState<string[]>(["Launch"]);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [expandedPhases, setExpandedPhases] = useState<string[]>([]);
+
+  const toggleCategory = (name: string) => {
+    setExpandedCategories((prev) =>
+      prev.includes(name)
+        ? prev.filter((n) => n !== name)
+        : [...prev, name]
+    );
+  };
 
   const togglePhase = (phase: string) => {
     setExpandedPhases((prev) =>
@@ -102,15 +103,28 @@ export function FeedbackReport({
     );
   };
 
+  const renderStars = (count: number) => {
+    return (
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4].map((i) => (
+          <Star
+            key={i}
+            className={cn(
+              "w-4 h-4",
+              i <= count ? starRatingColors[count] : "text-muted-foreground/30"
+            )}
+            fill={i <= count ? "currentColor" : "none"}
+          />
+        ))}
+      </div>
+    );
+  };
+
   const getLoadingMessage = () => {
-    switch (mode) {
-      case "quick":
-        return "The AI is reviewing your transcript against the LEAD model framework...";
-      case "deep-dive":
-        return "The AI is comparing your lesson plan against your actual delivery...";
-      case "full-review":
-        return "The AI is analyzing your complete teaching cycle — plan, delivery, and student outcomes...";
-    }
+    const phaseText = selectedPhases.includes("full")
+      ? "all LEAD phases"
+      : selectedPhases.join(", ");
+    return `The AI is analyzing your session focusing on ${phaseText} using the STAR framework...`;
   };
 
   const handleDownload = () => {
@@ -122,83 +136,42 @@ Generated: ${new Date().toLocaleDateString()}
 Mode: ${mode === "quick" ? "Quick Feedback" : mode === "deep-dive" ? "Delivery Deep Dive" : "Full Session Review"}
 
 =====================================
-WHAT WENT WELL (WWW)
+OVERALL SUMMARY
 =====================================
-${feedback.www.map((item) => `• ${item}`).join("\n")}
+${feedback.overallSummary}
+
+Top Strength: ${feedback.topStrength}
+Priority Growth Area: ${feedback.priorityGrowthArea}
 
 =====================================
-EVEN BETTER IF (EBI)
+CATEGORY ANALYSIS (STAR Framework)
 =====================================
-${feedback.ebi.map((item) => `• ${item}`).join("\n")}
+${feedback.categories.map((cat) => `
+${cat.name} - ${starRatingLabels[cat.rating]} ${"⭐".repeat(cat.rating)}
+
+What's Working:
+${cat.whatsWorking}
+
+Growth Edge:
+${cat.growthEdge}
+
+Try This:
+${cat.tryThis}
+`).join("\n")}
 
 =====================================
-LEAD MODEL ANALYSIS
+LEAD PHASE ANALYSIS
 =====================================
-${feedback.leadPhases
-  .map(
-    (phase) => `
+${feedback.leadPhases.map((phase) => `
 ${phase.phase.toUpperCase()} - ${ratingLabels[phase.rating]}
+
 Observations:
 ${phase.observations.map((o) => `• ${o}`).join("\n")}
+
 Suggestions:
 ${phase.suggestions.map((s) => `• ${s}`).join("\n")}
-`
-  )
-  .join("\n")}
-
-=====================================
-TEACHING DELIVERY
-=====================================
-Strengths:
-${feedback.teachingDelivery.strengths.map((s) => `• ${s}`).join("\n")}
-
-Areas for Development:
-${feedback.teachingDelivery.areasForDevelopment.map((a) => `• ${a}`).join("\n")}
+`).join("\n")}
 `;
-
-    if (feedback.planVsDelivery) {
-      reportContent += `
-=====================================
-PLAN VS DELIVERY COMPARISON
-=====================================
-Alignment: ${alignmentLabels[feedback.planVsDelivery.alignment]}
-
-Observations:
-${feedback.planVsDelivery.observations.map((o) => `• ${o}`).join("\n")}
-
-Notable Deviations:
-${feedback.planVsDelivery.deviations.map((d) => `• ${d}`).join("\n")}
-`;
-    }
-
-    if (feedback.resourceUtilization) {
-      reportContent += `
-=====================================
-RESOURCE UTILIZATION
-=====================================
-${feedback.resourceUtilization.summary}
-
-Effective Uses:
-${feedback.resourceUtilization.effectiveUses.map((e) => `• ${e}`).join("\n")}
-
-Missed Opportunities:
-${feedback.resourceUtilization.missedOpportunities.map((m) => `• ${m}`).join("\n")}
-`;
-    }
-
-    if (feedback.studentWorkAnalysis) {
-      reportContent += `
-=====================================
-STUDENT WORK ANALYSIS
-=====================================
-${feedback.studentWorkAnalysis.summary}
-
-Differentiation Evidence:
-${feedback.studentWorkAnalysis.differentiationEvidence.map((d) => `• ${d}`).join("\n")}
-
-Learning Objectives Reached: ${feedback.studentWorkAnalysis.objectivesReached ? "Yes" : "Partially"}
-`;
-    }
 
     if (transcript) {
       reportContent += `
@@ -247,208 +220,73 @@ ${transcript}
           Session Analysis Complete
         </h2>
         <p className="text-muted-foreground">
-          Here's your comprehensive feedback based on the LEAD model
+          Your personalized feedback using the STAR framework
         </p>
       </div>
 
-      {/* WWW & EBI Summary */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* What Went Well */}
-        <div className="card-elevated p-6 border-l-4 border-l-success">
-          <div className="flex items-center gap-2 mb-4">
-            <CheckCircle2 className="w-6 h-6 text-success" />
-            <h3 className="text-lg font-semibold text-foreground">What Went Well</h3>
+      {/* Overall Summary */}
+      <div className="card-elevated p-6 bg-gradient-to-br from-primary/5 to-accent/5">
+        <p className="text-foreground mb-4">{feedback.overallSummary}</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="p-4 bg-success/10 rounded-lg border border-success/20">
+            <p className="text-sm font-medium text-success mb-1">Top Strength</p>
+            <p className="text-sm text-foreground">{feedback.topStrength}</p>
           </div>
-          <ul className="space-y-2">
-            {feedback.www.map((item, index) => (
-              <li
-                key={index}
-                className="flex items-start gap-2 text-sm text-foreground animate-slide-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <span className="text-success mt-1">•</span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Even Better If */}
-        <div className="card-elevated p-6 border-l-4 border-l-accent">
-          <div className="flex items-center gap-2 mb-4">
-            <Lightbulb className="w-6 h-6 text-accent" />
-            <h3 className="text-lg font-semibold text-foreground">Even Better If</h3>
+          <div className="p-4 bg-accent/10 rounded-lg border border-accent/20">
+            <p className="text-sm font-medium text-accent mb-1">Priority Growth Area</p>
+            <p className="text-sm text-foreground">{feedback.priorityGrowthArea}</p>
           </div>
-          <ul className="space-y-2">
-            {feedback.ebi.map((item, index) => (
-              <li
-                key={index}
-                className="flex items-start gap-2 text-sm text-foreground animate-slide-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <span className="text-accent mt-1">•</span>
-                {item}
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
 
-      {/* Plan vs Delivery Comparison - for deep-dive and full-review */}
-      {feedback.planVsDelivery && (
-        <div className="card-elevated p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <GitCompare className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Plan vs Delivery Comparison</h3>
-            </div>
-            <span className={cn(
-              "text-xs px-3 py-1 rounded-full border",
-              alignmentColors[feedback.planVsDelivery.alignment]
-            )}>
-              {alignmentLabels[feedback.planVsDelivery.alignment]}
-            </span>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                What We Observed
-              </h4>
-              <ul className="space-y-1">
-                {feedback.planVsDelivery.observations.map((obs, i) => (
-                  <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                    <span className="text-primary">•</span>
-                    {obs}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                Notable Deviations
-              </h4>
-              <ul className="space-y-1">
-                {feedback.planVsDelivery.deviations.map((dev, i) => (
-                  <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                    <span className="text-accent">→</span>
-                    {dev}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Resource Utilization - for full-review only */}
-      {feedback.resourceUtilization && (
-        <div className="card-elevated p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-foreground">Resource Utilization</h3>
-          </div>
-          
-          <p className="text-foreground mb-4">{feedback.resourceUtilization.summary}</p>
-          
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                Effective Uses
-              </h4>
-              <ul className="space-y-1">
-                {feedback.resourceUtilization.effectiveUses.map((use, i) => (
-                  <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                    <span className="text-success">✓</span>
-                    {use}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                Missed Opportunities
-              </h4>
-              <ul className="space-y-1">
-                {feedback.resourceUtilization.missedOpportunities.map((opp, i) => (
-                  <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                    <span className="text-accent">○</span>
-                    {opp}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* LEAD Phase Analysis */}
+      {/* Category Analysis */}
       <div className="card-elevated overflow-hidden">
         <div className="p-4 bg-secondary/50 border-b border-border">
           <div className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-foreground">LEAD Model Analysis</h3>
+            <Star className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-foreground">Teaching Practice Analysis</h3>
           </div>
         </div>
         <div className="divide-y divide-border">
-          {feedback.leadPhases.map((phase) => (
-            <div key={phase.phase}>
+          {feedback.categories.map((category) => (
+            <div key={category.name}>
               <button
-                onClick={() => togglePhase(phase.phase)}
+                onClick={() => toggleCategory(category.name)}
                 className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                    {phase.phase[0]}
-                  </span>
-                  <span className="font-medium text-foreground">{phase.phase}</span>
-                  <span
-                    className={cn(
-                      "text-xs px-2 py-1 rounded-full",
-                      ratingColors[phase.rating]
-                    )}
-                  >
-                    {ratingLabels[phase.rating]}
+                  <span className="font-medium text-foreground">{category.name}</span>
+                  {renderStars(category.rating)}
+                  <span className={cn("text-xs", starRatingColors[category.rating])}>
+                    {starRatingLabels[category.rating]}
                   </span>
                 </div>
-                {expandedPhases.includes(phase.phase) ? (
+                {expandedCategories.includes(category.name) ? (
                   <ChevronUp className="w-5 h-5 text-muted-foreground" />
                 ) : (
                   <ChevronDown className="w-5 h-5 text-muted-foreground" />
                 )}
               </button>
-              {expandedPhases.includes(phase.phase) && (
-                <div className="px-4 pb-4 pl-16 space-y-4 animate-fade-in">
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                      Observations
+              {expandedCategories.includes(category.name) && (
+                <div className="px-4 pb-4 space-y-4 animate-fade-in">
+                  <div className="p-3 bg-success/5 rounded-lg border border-success/10">
+                    <h4 className="text-sm font-medium text-success mb-2">
+                      What's Working
                     </h4>
-                    <ul className="space-y-1">
-                      {phase.observations.map((obs, i) => (
-                        <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                          <span className="text-primary">•</span>
-                          {obs}
-                        </li>
-                      ))}
-                    </ul>
+                    <p className="text-sm text-foreground">{category.whatsWorking}</p>
                   </div>
-                  {phase.suggestions.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                        Suggestions
-                      </h4>
-                      <ul className="space-y-1">
-                        {phase.suggestions.map((sug, i) => (
-                          <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                            <span className="text-accent">→</span>
-                            {sug}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <div className="p-3 bg-accent/5 rounded-lg border border-accent/10">
+                    <h4 className="text-sm font-medium text-accent mb-2">
+                      Growth Edge
+                    </h4>
+                    <p className="text-sm text-foreground">{category.growthEdge}</p>
+                  </div>
+                  <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
+                    <h4 className="text-sm font-medium text-primary mb-2">
+                      Try This
+                    </h4>
+                    <p className="text-sm text-foreground">{category.tryThis}</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -456,46 +294,81 @@ ${transcript}
         </div>
       </div>
 
-      {/* Student Work Analysis - for full-review only */}
-      {feedback.studentWorkAnalysis && (
-        <div className="card-elevated p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-foreground">Student Work Analysis</h3>
+      {/* LEAD Phase Analysis */}
+      {feedback.leadPhases.length > 0 && (
+        <div className="card-elevated overflow-hidden">
+          <div className="p-4 bg-secondary/50 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-foreground">LEAD Phase Analysis</h3>
+            </div>
           </div>
-          <p className="text-foreground mb-4">{feedback.studentWorkAnalysis.summary}</p>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm font-medium text-muted-foreground">
-              Learning Objectives Reached:
-            </span>
-            <span
-              className={cn(
-                "text-sm px-2 py-1 rounded-full",
-                feedback.studentWorkAnalysis.objectivesReached
-                  ? "bg-success/10 text-success"
-                  : "bg-warning/10 text-warning"
-              )}
-            >
-              {feedback.studentWorkAnalysis.objectivesReached ? "Yes" : "Partially"}
-            </span>
-          </div>
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-              Differentiation Evidence
-            </h4>
-            <ul className="space-y-1">
-              {feedback.studentWorkAnalysis.differentiationEvidence.map((item, i) => (
-                <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                  <span className="text-primary">•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
+          <div className="divide-y divide-border">
+            {feedback.leadPhases.map((phase) => (
+              <div key={phase.phase}>
+                <button
+                  onClick={() => togglePhase(phase.phase)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                      {phase.phase[0]}
+                    </span>
+                    <span className="font-medium text-foreground">{phase.phase}</span>
+                    <span
+                      className={cn(
+                        "text-xs px-2 py-1 rounded-full border",
+                        ratingColors[phase.rating]
+                      )}
+                    >
+                      {ratingLabels[phase.rating]}
+                    </span>
+                  </div>
+                  {expandedPhases.includes(phase.phase) ? (
+                    <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </button>
+                {expandedPhases.includes(phase.phase) && (
+                  <div className="px-4 pb-4 pl-16 space-y-4 animate-fade-in">
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                        Observations
+                      </h4>
+                      <ul className="space-y-1">
+                        {phase.observations.map((obs, i) => (
+                          <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                            <span className="text-primary">•</span>
+                            {obs}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {phase.suggestions.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                          Suggestions
+                        </h4>
+                        <ul className="space-y-1">
+                          {phase.suggestions.map((sug, i) => (
+                            <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                              <span className="text-accent">→</span>
+                              {sug}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Transcript Toggle - only show if we have a transcript */}
+      {/* Transcript Toggle */}
       {transcript && (
         <div className="card-elevated overflow-hidden">
           <button
