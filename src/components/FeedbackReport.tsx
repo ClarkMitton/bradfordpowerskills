@@ -94,19 +94,14 @@ const starRatingColors: Record<number, string> = {
   1: "text-accent",
 };
 
-// Helper to highlight timestamps and quotes in text
+// Helper to highlight quotes and italics in text
 const formatTextWithEvidence = (text: string) => {
-  // Match timestamps like [MM:SS] or [M:SS]
-  const timestampRegex = /\[(\d{1,2}:\d{2})\]/g;
   // Match quoted text
   const quoteRegex = /"([^"]+)"/g;
   // Match italic text with asterisks
   const italicRegex = /\*([^*]+)\*/g;
   
   let result = text;
-  
-  // Replace timestamps with styled badges
-  result = result.replace(timestampRegex, '<span class="timestamp-badge">[$1]</span>');
   
   // Replace quotes with styled text
   result = result.replace(quoteRegex, '<span class="quote-text">"$1"</span>');
