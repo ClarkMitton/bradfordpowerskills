@@ -104,41 +104,86 @@ const detectNames = (text: string): HighlightedName[] => {
   return names.sort((a, b) => a.startIndex - b.startIndex);
 };
 
-// Mock transcription function - In production, use AI transcription
-const mockTranscribe = async (): Promise<string> => {
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+// Real transcription using ElevenLabs Speech-to-Text
+const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
+  const formData = new FormData();
+  formData.append("audio", audioBlob, "recording.webm");
+
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Transcription failed");
+  }
+
+  const data = await response.json();
   
-  return `Good morning everyone. Let's begin today's session on creative writing.
+  // Format transcript with timestamps from word data
+  if (data.words && data.words.length > 0) {
+    return formatTranscriptWithTimestamps(data.text, data.words);
+  }
+  
+  return data.text;
+};
 
-Can you tell me what you remember from last week's lesson about narrative structure?
+// Format transcript with timestamps at natural break points
+const formatTranscriptWithTimestamps = (
+  text: string,
+  words: Array<{ text: string; start: number; end: number; speaker?: string }>
+): string => {
+  if (!words.length) return text;
 
-Excellent point. And what about the importance of character development?
-
-Great insights from both of you. Today we're going to explore how to create compelling dialogue that brings characters to life.
-
-Let's start with a quick activity. I want you to work in pairs.
-
-Look at the handout I'm passing around now. You have five minutes to identify three techniques the author uses to make the dialogue feel authentic.
-
-[pause for activity]
-
-Okay, let's hear some feedback. What did your pair notice?
-
-That's a really perceptive observation about the use of interruptions to show conflict. Anything to add from your discussion?
-
-Wonderful. Now I want to challenge you further. Can anyone think of a situation where formal dialogue might actually create tension rather than formality?
-
-Go ahead.
-
-Interesting perspective. Let's explore that idea in our next activity.
-
-For the main task today, you're going to write a short scene - about 200 words - that demonstrates at least two of the dialogue techniques we've discussed.
-
-Remember to think about your character's voice. What questions do you have before we start?
-
-Good question about punctuation. Everyone, remember that dialogue tags go inside the quotation marks in British English.
-
-You have 20 minutes. I'll be circulating to offer support. I'll check in with those who mentioned wanting help with this last week.`;
+  const lines: string[] = [];
+  let currentLine = "";
+  let lastTimestamp = 0;
+  let lastSpeaker = "";
+  
+  words.forEach((word, index) => {
+    const currentTime = word.start;
+    const speaker = word.speaker || "";
+    
+    // Add timestamp every ~30 seconds or on speaker change
+    const shouldAddTimestamp = 
+      currentTime - lastTimestamp >= 30 || 
+      (speaker && speaker !== lastSpeaker && lastSpeaker !== "");
+    
+    if (shouldAddTimestamp && currentLine.trim()) {
+      const minutes = Math.floor(currentTime / 60);
+      const seconds = Math.floor(currentTime % 60);
+      const timestamp = `[${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}]`;
+      
+      lines.push(currentLine.trim());
+      currentLine = `${timestamp} `;
+      lastTimestamp = currentTime;
+    }
+    
+    if (speaker && speaker !== lastSpeaker) {
+      lastSpeaker = speaker;
+    }
+    
+    currentLine += word.text + " ";
+    
+    // Break on sentence endings
+    if (word.text.match(/[.!?]$/) && index < words.length - 1) {
+      lines.push(currentLine.trim());
+      currentLine = "";
+    }
+  });
+  
+  if (currentLine.trim()) {
+    lines.push(currentLine.trim());
+  }
+  
+  return lines.join("\n\n");
 };
 
 // Real AI feedback generation
@@ -204,7 +249,7 @@ export function useSessionAnalysis() {
     }));
 
     try {
-      const transcript = await mockTranscribe();
+      const transcript = await transcribeAudio(blob);
       const names = detectNames(transcript);
       
       setState((prev) => ({
@@ -238,7 +283,7 @@ export function useSessionAnalysis() {
     }));
 
     try {
-      const transcript = await mockTranscribe();
+      const transcript = await transcribeAudio(blob);
       const names = detectNames(transcript);
       
       setState((prev) => ({
