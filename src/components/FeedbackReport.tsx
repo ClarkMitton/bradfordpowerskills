@@ -11,10 +11,12 @@ import {
   Star,
   Sparkles,
   Heart,
-  TrendingUp
+  TrendingUp,
+  BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SelectedPhase } from "./PhaseSelector";
+import { TranscriptViewer } from "./TranscriptViewer";
 
 interface CategoryFeedback {
   name: string;
@@ -105,6 +107,7 @@ export function FeedbackReport({
   selectedPhases,
 }: FeedbackReportProps) {
   const [showTranscript, setShowTranscript] = useState(false);
+  const [showTranscriptViewer, setShowTranscriptViewer] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [expandedPhases, setExpandedPhases] = useState<string[]>([]);
 
@@ -725,31 +728,63 @@ export function FeedbackReport({
         </div>
       )}
 
-      {/* Transcript Toggle */}
-      {transcript && (
-        <div className="card-elevated overflow-hidden">
-          <button
-            onClick={() => setShowTranscript(!showTranscript)}
-            className="w-full flex items-center justify-between p-5 hover:bg-secondary/30 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-primary" />
-              <span className="font-medium text-foreground">View Anonymised Transcript</span>
+      {/* Interactive Transcript Viewer */}
+      {transcript && feedback && (
+        <>
+          <div className="card-elevated overflow-hidden">
+            <div className="p-5 bg-gradient-to-r from-accent/10 to-primary/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">View Full Transcript</h3>
+                    <p className="text-sm text-muted-foreground">
+                      See highlighted sections that correspond to your feedback
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => setShowTranscriptViewer(true)}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  Open Transcript
+                </Button>
+              </div>
             </div>
-            {showTranscript ? (
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+            
+            {/* Quick preview toggle */}
+            <button
+              onClick={() => setShowTranscript(!showTranscript)}
+              className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors border-t border-border"
+            >
+              <span className="text-sm text-muted-foreground">Quick Preview (text only)</span>
+              {showTranscript ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
+            </button>
+            {showTranscript && (
+              <div className="p-5 border-t border-border animate-fade-in">
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto bg-secondary/20 p-4 rounded-lg">
+                  {transcript}
+                </p>
+              </div>
             )}
-          </button>
-          {showTranscript && (
-            <div className="p-5 border-t border-border animate-fade-in">
-              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto bg-secondary/20 p-4 rounded-lg">
-                {transcript}
-              </p>
-            </div>
-          )}
-        </div>
+          </div>
+          
+          {/* Full Transcript Viewer Modal */}
+          <TranscriptViewer
+            transcript={transcript}
+            feedback={feedback}
+            isOpen={showTranscriptViewer}
+            onClose={() => setShowTranscriptViewer(false)}
+          />
+        </>
       )}
 
       {/* Action Buttons */}
