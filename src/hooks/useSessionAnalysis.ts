@@ -294,6 +294,7 @@ export function useSessionAnalysis() {
     setState((prev) => ({ ...prev, mode, step: 1 }));
   }, []);
 
+  // For quick mode - audio only
   const handleAudioReady = useCallback(async (blob: Blob, fileName: string) => {
     setState((prev) => ({
       ...prev,
@@ -322,28 +323,59 @@ export function useSessionAnalysis() {
     }
   }, []);
 
+  // For deep-dive and full-review modes - audio + documents combined
+  const handleSessionCapture = useCallback(async (
+    blob: Blob, 
+    fileName: string, 
+    documents: SessionState["documents"]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      audioBlob: blob,
+      audioFileName: fileName,
+      documents,
+      step: 2,
+      isTranscribing: true,
+    }));
+
+    try {
+      const transcript = await mockTranscribe(blob);
+      const names = detectNames(transcript);
+      
+      setState((prev) => ({
+        ...prev,
+        transcript,
+        highlightedNames: names,
+        isTranscribing: false,
+      }));
+    } catch (error) {
+      console.error("Transcription failed:", error);
+      setState((prev) => ({
+        ...prev,
+        isTranscribing: false,
+      }));
+    }
+  }, []);
+
   const confirmTranscript = useCallback((anonymizedTranscript: string) => {
     setState((prev) => {
       // For quick mode, go to feedback (step 3)
-      // For deep-dive and full-review, go to document upload (step 3)
-      const nextStep = prev.mode === "quick" ? 3 : 3;
+      // For deep-dive and full-review, also go to feedback (step 3) since docs already uploaded
+      const nextStep = 3;
       return {
         ...prev,
         anonymizedTranscript,
         audioBlob: null,
         step: nextStep,
-        // For quick mode, start analysis immediately
-        isAnalyzing: prev.mode === "quick",
+        isAnalyzing: true,
       };
     });
     
-    // For quick mode, generate feedback after transcript confirmation
+    // Generate feedback after transcript confirmation for all modes
     setState((prev) => {
-      if (prev.mode === "quick") {
-        mockGenerateFeedback(prev.mode).then((feedback) => {
-          setState((p) => ({ ...p, feedback, isAnalyzing: false }));
-        });
-      }
+      mockGenerateFeedback(prev.mode).then((feedback) => {
+        setState((p) => ({ ...p, feedback, isAnalyzing: false }));
+      });
       return prev;
     });
   }, []);
@@ -390,6 +422,7 @@ export function useSessionAnalysis() {
     state,
     selectMode,
     handleAudioReady,
+    handleSessionCapture,
     confirmTranscript,
     handleDocumentsReady,
     resetSession,
