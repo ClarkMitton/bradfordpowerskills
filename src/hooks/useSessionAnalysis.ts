@@ -383,6 +383,23 @@ export function useSessionAnalysis() {
     }
   }, []);
 
+  // For direct transcript submission (pasted text)
+  const handleTranscriptSubmit = useCallback((transcript: string, sessionDetails?: SessionDetails) => {
+    const names = detectNames(transcript);
+    const anonymizedTranscript = autoAnonymizeTranscript(transcript, names);
+    
+    setState((prev) => ({
+      ...prev,
+      transcript,
+      highlightedNames: names,
+      anonymizedTranscript,
+      step: 2, // Go to phase selection
+      sessionDetails: sessionDetails || null,
+    }));
+    
+    toast.success("Transcript loaded and anonymized successfully");
+  }, []);
+
   const confirmTranscript = useCallback((anonymizedTranscript: string) => {
     setState((prev) => ({
       ...prev,
@@ -441,6 +458,7 @@ export function useSessionAnalysis() {
     selectMode,
     handleAudioReady,
     handleSessionCapture,
+    handleTranscriptSubmit,
     confirmTranscript,
     handlePhaseSelection,
     resetSession,

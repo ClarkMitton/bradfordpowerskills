@@ -45,6 +45,7 @@ const Index = () => {
     selectMode,
     handleAudioReady,
     handleSessionCapture,
+    handleTranscriptSubmit,
     handlePhaseSelection,
     resetSession,
     goBack,
@@ -89,7 +90,7 @@ const Index = () => {
     if (state.mode === "quick") {
       switch (state.step) {
         case 1:
-          return <AudioRecorder onFastFeedback={handleAudioReady} />;
+          return <AudioRecorder onFastFeedback={handleAudioReady} onTranscriptSubmit={handleTranscriptSubmit} />;
         case 2:
           // Show transcription loading or phase selector
           if (state.isTranscribing) {
