@@ -1,8 +1,8 @@
 import { StepIndicator } from "@/components/StepIndicator";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { AudioRecorder } from "@/components/AudioRecorder";
+import { SessionCapture } from "@/components/SessionCapture";
 import { TranscriptEditor } from "@/components/TranscriptEditor";
-import { DocumentUploader } from "@/components/DocumentUploader";
 import { FeedbackReport } from "@/components/FeedbackReport";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 
@@ -16,17 +16,15 @@ const getStepsForMode = (mode: string | null) => {
       ];
     case "deep-dive":
       return [
-        { id: 1, label: "Record Audio", shortLabel: "Audio" },
+        { id: 1, label: "Capture Session", shortLabel: "Capture" },
         { id: 2, label: "Review Transcript", shortLabel: "Review" },
-        { id: 3, label: "Upload Lesson Plan", shortLabel: "Plan" },
-        { id: 4, label: "View Feedback", shortLabel: "Feedback" },
+        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
       ];
     case "full-review":
       return [
-        { id: 1, label: "Record Audio", shortLabel: "Audio" },
+        { id: 1, label: "Capture Session", shortLabel: "Capture" },
         { id: 2, label: "Review Transcript", shortLabel: "Review" },
-        { id: 3, label: "Upload Materials", shortLabel: "Upload" },
-        { id: 4, label: "View Feedback", shortLabel: "Feedback" },
+        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
       ];
     default:
       return [];
@@ -38,8 +36,8 @@ const Index = () => {
     state,
     selectMode,
     handleAudioReady,
+    handleSessionCapture,
     confirmTranscript,
-    handleDocumentsReady,
     resetSession,
   } = useSessionAnalysis();
 
@@ -50,7 +48,7 @@ const Index = () => {
       return <WelcomeScreen onSelectMode={selectMode} />;
     }
 
-    // Quick feedback mode flow
+    // Quick feedback mode flow (audio only)
     if (state.mode === "quick") {
       switch (state.step) {
         case 1:
@@ -61,9 +59,7 @@ const Index = () => {
               transcript={state.transcript}
               highlightedNames={state.highlightedNames}
               isLoading={state.isTranscribing}
-              onConfirm={(transcript) => {
-                confirmTranscript(transcript);
-              }}
+              onConfirm={confirmTranscript}
             />
           );
         case 3:
@@ -79,40 +75,16 @@ const Index = () => {
       }
     }
 
-    // Deep dive mode flow
-    if (state.mode === "deep-dive") {
+    // Deep dive and full review modes (combined audio + documents)
+    if (state.mode === "deep-dive" || state.mode === "full-review") {
       switch (state.step) {
         case 1:
-          return <AudioRecorder onFastFeedback={handleAudioReady} />;
-        case 2:
           return (
-            <TranscriptEditor
-              transcript={state.transcript}
-              highlightedNames={state.highlightedNames}
-              isLoading={state.isTranscribing}
-              onConfirm={confirmTranscript}
-            />
-          );
-        case 3:
-          return <DocumentUploader onDocumentsReady={handleDocumentsReady} mode={state.mode} />;
-        case 4:
-          return (
-            <FeedbackReport
-              feedback={state.feedback}
-              transcript={state.anonymizedTranscript}
-              isLoading={state.isAnalyzing}
-              onReset={resetSession}
+            <SessionCapture
               mode={state.mode}
+              onComplete={handleSessionCapture}
             />
           );
-      }
-    }
-
-    // Full review mode flow
-    if (state.mode === "full-review") {
-      switch (state.step) {
-        case 1:
-          return <AudioRecorder onFastFeedback={handleAudioReady} />;
         case 2:
           return (
             <TranscriptEditor
@@ -123,8 +95,6 @@ const Index = () => {
             />
           );
         case 3:
-          return <DocumentUploader onDocumentsReady={handleDocumentsReady} mode={state.mode} />;
-        case 4:
           return (
             <FeedbackReport
               feedback={state.feedback}
