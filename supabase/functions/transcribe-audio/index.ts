@@ -52,16 +52,51 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("ElevenLabs API error:", response.status, errorText);
-      
+
+      // Try to surface provider error details to the client (without leaking secrets)
+      let providerMessage: string | undefined;
+      try {
+        const parsed = JSON.parse(errorText);
+        providerMessage =
+          parsed?.detail?.message ||
+          parsed?.detail?.error ||
+          parsed?.message ||
+          parsed?.error;
+      } catch {
+        // ignore
+      }
+
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Transcription rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: "Transcription rate limit exceeded. Please try again later.",
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
-      
+
+      // ElevenLabs can return 401 when a key is valid but usage is blocked (e.g. unusual activity / free tier disabled)
+      if (response.status === 401 || response.status === 403) {
+        return new Response(
+          JSON.stringify({
+            error:
+              providerMessage ||
+              "Transcription provider rejected the request. Please verify your account/plan and try again.",
+          }),
+          {
+            status: response.status,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ error: "Transcription failed. Please try again." }),
+        JSON.stringify({
+          error: providerMessage || "Transcription failed. Please try again.",
+        }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
