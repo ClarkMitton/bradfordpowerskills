@@ -248,6 +248,65 @@ For EACH domain, provide feedback in these THREE sections:
 - Example of what it would sound like
 `;
 
+const OFSTED_RUBRIC = `
+## Ofsted "Developing Teaching" Audio Transcript Analysis (November 2025 Framework)
+
+From November 2025, Ofsted uses a 5-point grading scale:
+- **Exceptional** - Exemplary practice
+- **Strong standard** - High quality provision  
+- **Expected standard** - Meeting requirements effectively
+- **Needs attention** - Areas requiring development
+- **Urgent improvement** - Critical concerns requiring immediate action
+
+IMPORTANT: Only grade based on evidence PRESENT in the transcript. If something isn't observable (e.g., can't see written feedback, can't observe planning documents), do NOT grade down for its absence. Focus ONLY on what CAN be heard/observed.
+
+### Key Areas to Evaluate from Audio Transcript:
+
+**1. Quality of Explanation and Modelling**
+- Clarity and precision of explanations
+- Use of subject terminology
+- Use of worked examples, models, non-examples
+- Scaffolding that is progressively removed
+- Pre-empting/addressing misconceptions
+
+**2. Questioning and Responsive Teaching**
+- Open, probing questions that extend thinking
+- Strategic wait time (3-5 seconds)
+- Building on learner responses with follow-up questions
+- Real-time adaptation based on learner contributions
+- Question distribution across all learners
+
+**3. Assessment for Learning Through Dialogue**
+- Checking understanding through dialogue
+- Identifying and correcting misconceptions as they emerge
+- Using learner responses diagnostically
+- Feedback embedded in conversation
+
+**4. Pedagogical Techniques in Delivery**
+- Think-aloud strategies making expert thinking visible
+- Retrieval practice and spaced learning
+- Connecting to prior knowledge and future applications
+- Cognitive demand level
+
+**5. Classroom Climate and Expectations**
+- Positive, intellectually rigorous environment
+- High expectations in every interaction
+- Encouraging risk-taking and treating mistakes as learning opportunities
+- Active learner engagement
+
+### Grading Guidance:
+
+**Exceptional**: Sophisticated pedagogy throughout. Masterful questioning with consistent follow-up. All learners actively engaged. Expert scaffolding. Pre-empts misconceptions. Creates intellectually rigorous environment.
+
+**Strong standard**: Consistently clear explanations with good examples. Strong questioning including open questions. Responsive to learner contributions. Positive environment with appropriate challenge.
+
+**Expected standard**: Generally clear explanations. Uses questioning but may rely on closed questions. Some responsiveness to confusion. Adequate environment but may lack richness.
+
+**Needs attention**: Explanations frequently unclear. Superficial questioning. Rarely builds on responses. Minimal checking for understanding. Low expectations evident.
+
+**Urgent improvement**: Explanations consistently unclear or inaccurate. No effective questioning. Completely unresponsive to learner needs. No meaningful feedback. Negative environment.
+`;
+
 const ANALYSIS_RULES = `
 ## Critical Analysis Rules
 
@@ -359,6 +418,8 @@ ${RATING_CRITERIA}
 
 ${FEEDBACK_STRUCTURE}
 
+${OFSTED_RUBRIC}
+
 ${ANALYSIS_RULES}
 
 ${phaseContext}
@@ -406,6 +467,13 @@ Respond with valid JSON matching this exact structure:
       "suggestions": ["suggestion 1"]
     }
   ],
+  "ofstedGrade": {
+    "grade": "exceptional" | "strong_standard" | "expected_standard" | "needs_attention" | "urgent_improvement",
+    "summary": "2-3 sentence overview of how this session would be viewed through the Ofsted 'Developing Teaching' lens. Be fair and balanced - only judge what can be heard in the transcript.",
+    "strengths": ["Key strength observable in transcript with brief evidence", "Another strength with evidence"],
+    "areasForDevelopment": ["Area that could be strengthened with specific guidance - only include if genuinely observed as needing work, not speculation"],
+    "caveat": "Brief note about what aspects could NOT be assessed from audio alone (e.g., visual resources, written feedback, planning documents)"
+  },
   "overallSummary": "Brief 2-3 sentence summary highlighting key strengths and overall impression",
   "topStrength": "The single biggest strength observed with specific evidence",
   "priorityGrowthArea": "The single most impactful area for development, framed positively as an opportunity"
