@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { SelectedPhase } from "@/components/PhaseSelector";
+import type { SessionDetails } from "@/components/AudioRecorder";
 
 interface HighlightedName {
   id: string;
@@ -15,8 +16,8 @@ interface CategoryFeedback {
   name: string;
   rating: number;
   whatsWorking: string;
-  growthEdge: string;
-  tryThis: string;
+  toMakeStronger: string;
+  tryThisNext: string;
 }
 
 interface LEADPhaseFeedback {
@@ -55,6 +56,9 @@ interface SessionState {
   isTranscribing: boolean;
   isAnalyzing: boolean;
   selectedPhases: SelectedPhase[];
+  transcriptionStartTime: number | null;
+  transcriptionElapsed: number;
+  sessionDetails: SessionDetails | null;
 }
 
 const initialState: SessionState = {
@@ -76,6 +80,9 @@ const initialState: SessionState = {
   isTranscribing: false,
   isAnalyzing: false,
   selectedPhases: [],
+  transcriptionStartTime: null,
+  transcriptionElapsed: 0,
+  sessionDetails: null,
 };
 
 // Mock function to detect names in transcript
@@ -103,6 +110,21 @@ const detectNames = (text: string): HighlightedName[] => {
   });
   
   return names.sort((a, b) => a.startIndex - b.startIndex);
+};
+
+// Auto-anonymize transcript by replacing detected names
+const autoAnonymizeTranscript = (text: string, names: HighlightedName[]): string => {
+  if (names.length === 0) return text;
+  
+  let result = text;
+  // Sort by start index descending to replace from end to start (preserves indices)
+  const sortedNames = [...names].sort((a, b) => b.startIndex - a.startIndex);
+  
+  sortedNames.forEach((name) => {
+    result = result.slice(0, name.startIndex) + "Student" + result.slice(name.endIndex);
+  });
+  
+  return result;
 };
 
 // Real transcription using ElevenLabs Speech-to-Text
@@ -192,7 +214,8 @@ const generateFeedback = async (
   transcript: string,
   selectedPhases: SelectedPhase[],
   mode: AnalysisMode,
-  documents: SessionState["documents"]
+  documents: SessionState["documents"],
+  sessionDetails: SessionDetails | null
 ): Promise<FeedbackData> => {
   // Read document contents if available
   let lessonPlanText = "";
@@ -221,6 +244,9 @@ const generateFeedback = async (
       scaffolding: scaffoldingText,
       studentWork: studentWorkText,
       mode,
+      learnerLevel: sessionDetails?.learnerLevel || "",
+      subject: sessionDetails?.subject || "",
+      selectedCategories: sessionDetails?.selectedCategories || [],
     },
   });
 
@@ -234,19 +260,44 @@ const generateFeedback = async (
 
 export function useSessionAnalysis() {
   const [state, setState] = useState<SessionState>(initialState);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Transcription timer effect
+  useEffect(() => {
+    if (state.isTranscribing && state.transcriptionStartTime) {
+      timerRef.current = setInterval(() => {
+        setState(prev => ({
+          ...prev,
+          transcriptionElapsed: Math.floor((Date.now() - (prev.transcriptionStartTime || Date.now())) / 1000)
+        }));
+      }, 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [state.isTranscribing, state.transcriptionStartTime]);
 
   const selectMode = useCallback((mode: AnalysisMode) => {
     setState((prev) => ({ ...prev, mode, step: 1 }));
   }, []);
 
-  // For quick mode - audio only
-  const handleAudioReady = useCallback(async (blob: Blob, fileName: string) => {
+  // For quick mode - audio only with session details
+  const handleAudioReady = useCallback(async (blob: Blob, fileName: string, sessionDetails?: SessionDetails) => {
     setState((prev) => ({
       ...prev,
       audioBlob: blob,
       audioFileName: fileName,
-      step: 2,
+      step: 2, // Go to phase selection (skip transcript review)
       isTranscribing: true,
+      transcriptionStartTime: Date.now(),
+      transcriptionElapsed: 0,
+      sessionDetails: sessionDetails || null,
     }));
 
     try {
@@ -257,15 +308,18 @@ export function useSessionAnalysis() {
       }
       
       const names = detectNames(transcript);
+      const anonymizedTranscript = autoAnonymizeTranscript(transcript, names);
       
       setState((prev) => ({
         ...prev,
         transcript,
         highlightedNames: names,
+        anonymizedTranscript,
         isTranscribing: false,
+        transcriptionStartTime: null,
       }));
       
-      toast.success("Audio transcribed successfully");
+      toast.success("Audio transcribed and anonymized successfully");
     } catch (error) {
       console.error("Transcription failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Transcription failed. Please try again.";
@@ -273,6 +327,7 @@ export function useSessionAnalysis() {
       setState((prev) => ({
         ...prev,
         isTranscribing: false,
+        transcriptionStartTime: null,
         step: 1, // Go back to recording step
       }));
     }
@@ -289,8 +344,10 @@ export function useSessionAnalysis() {
       audioBlob: blob,
       audioFileName: fileName,
       documents,
-      step: 2,
+      step: 2, // Go to phase selection (skip transcript review)
       isTranscribing: true,
+      transcriptionStartTime: Date.now(),
+      transcriptionElapsed: 0,
     }));
 
     try {
@@ -301,15 +358,18 @@ export function useSessionAnalysis() {
       }
       
       const names = detectNames(transcript);
+      const anonymizedTranscript = autoAnonymizeTranscript(transcript, names);
       
       setState((prev) => ({
         ...prev,
         transcript,
         highlightedNames: names,
+        anonymizedTranscript,
         isTranscribing: false,
+        transcriptionStartTime: null,
       }));
       
-      toast.success("Audio transcribed successfully");
+      toast.success("Audio transcribed and anonymized successfully");
     } catch (error) {
       console.error("Transcription failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Transcription failed. Please try again.";
@@ -317,6 +377,7 @@ export function useSessionAnalysis() {
       setState((prev) => ({
         ...prev,
         isTranscribing: false,
+        transcriptionStartTime: null,
         step: 1, // Go back to recording step
       }));
     }
@@ -327,7 +388,7 @@ export function useSessionAnalysis() {
       ...prev,
       anonymizedTranscript,
       audioBlob: null, // Delete audio after transcript confirmed
-      step: 3, // Go to phase selection
+      step: 2, // Go to phase selection
     }));
   }, []);
 
@@ -336,7 +397,7 @@ export function useSessionAnalysis() {
       ...prev,
       selectedPhases,
       isAnalyzing: true,
-      step: 4, // Go to feedback
+      step: 3, // Go to feedback (was step 4, now step 3 since we removed transcript review)
     }));
 
     try {
@@ -344,7 +405,8 @@ export function useSessionAnalysis() {
         state.anonymizedTranscript,
         selectedPhases,
         state.mode,
-        state.documents
+        state.documents,
+        state.sessionDetails
       );
       
       setState((prev) => ({
@@ -359,7 +421,7 @@ export function useSessionAnalysis() {
         isAnalyzing: false,
       }));
     }
-  }, [state.anonymizedTranscript, state.mode, state.documents]);
+  }, [state.anonymizedTranscript, state.mode, state.documents, state.sessionDetails]);
 
   const resetSession = useCallback(() => {
     setState(initialState);
