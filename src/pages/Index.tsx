@@ -5,6 +5,8 @@ import { SessionCapture } from "@/components/SessionCapture";
 import { TranscriptEditor } from "@/components/TranscriptEditor";
 import { FeedbackReport } from "@/components/FeedbackReport";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Home } from "lucide-react";
 
 const getStepsForMode = (mode: string | null) => {
   switch (mode) {
@@ -39,6 +41,7 @@ const Index = () => {
     handleSessionCapture,
     confirmTranscript,
     resetSession,
+    goBack,
   } = useSessionAnalysis();
 
   const steps = getStepsForMode(state.mode);
@@ -142,6 +145,18 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container max-w-4xl mx-auto px-4 py-8">
+        {state.step > 0 && (
+          <div className="flex gap-2 mb-6">
+            <Button variant="outline" size="sm" onClick={goBack}>
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            <Button variant="outline" size="sm" onClick={resetSession}>
+              <Home className="w-4 h-4" />
+              Home
+            </Button>
+          </div>
+        )}
         {renderStep()}
       </main>
 
