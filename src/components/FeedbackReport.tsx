@@ -829,7 +829,7 @@ export function FeedbackReport({
       </div>
 
       {/* LEAD Phase Analysis */}
-      {feedback.leadPhases.length > 0 && (
+      {feedback.leadPhases && feedback.leadPhases.length > 0 && (
         <div className="card-elevated overflow-hidden">
           <div className="p-5 bg-gradient-to-r from-accent/10 to-accent/5 border-b border-border">
             <div className="flex items-center gap-3">
