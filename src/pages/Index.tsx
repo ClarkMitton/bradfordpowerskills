@@ -8,18 +8,20 @@ import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 
 const getStepsForMode = (mode: string | null) => {
   switch (mode) {
-    case "recording":
+    case "quick":
       return [
         { id: 1, label: "Record Audio", shortLabel: "Audio" },
         { id: 2, label: "Review Transcript", shortLabel: "Review" },
         { id: 3, label: "View Feedback", shortLabel: "Feedback" },
       ];
-    case "resources":
-      return [
-        { id: 1, label: "Upload Materials", shortLabel: "Upload" },
-        { id: 2, label: "View Feedback", shortLabel: "Feedback" },
-      ];
     case "deep-dive":
+      return [
+        { id: 1, label: "Record Audio", shortLabel: "Audio" },
+        { id: 2, label: "Review Transcript", shortLabel: "Review" },
+        { id: 3, label: "Upload Lesson Plan", shortLabel: "Plan" },
+        { id: 4, label: "View Feedback", shortLabel: "Feedback" },
+      ];
+    case "full-review":
       return [
         { id: 1, label: "Record Audio", shortLabel: "Audio" },
         { id: 2, label: "Review Transcript", shortLabel: "Review" },
@@ -48,8 +50,8 @@ const Index = () => {
       return <WelcomeScreen onSelectMode={selectMode} />;
     }
 
-    // Recording mode flow
-    if (state.mode === "recording") {
+    // Quick feedback mode flow
+    if (state.mode === "quick") {
       switch (state.step) {
         case 1:
           return <AudioRecorder onFastFeedback={handleAudioReady} />;
@@ -71,23 +73,7 @@ const Index = () => {
               transcript={state.anonymizedTranscript}
               isLoading={state.isAnalyzing}
               onReset={resetSession}
-            />
-          );
-      }
-    }
-
-    // Resources mode flow
-    if (state.mode === "resources") {
-      switch (state.step) {
-        case 1:
-          return <DocumentUploader onDocumentsReady={handleDocumentsReady} />;
-        case 2:
-          return (
-            <FeedbackReport
-              feedback={state.feedback}
-              transcript=""
-              isLoading={state.isAnalyzing}
-              onReset={resetSession}
+              mode={state.mode}
             />
           );
       }
@@ -108,7 +94,7 @@ const Index = () => {
             />
           );
         case 3:
-          return <DocumentUploader onDocumentsReady={handleDocumentsReady} />;
+          return <DocumentUploader onDocumentsReady={handleDocumentsReady} mode={state.mode} />;
         case 4:
           return (
             <FeedbackReport
@@ -116,6 +102,36 @@ const Index = () => {
               transcript={state.anonymizedTranscript}
               isLoading={state.isAnalyzing}
               onReset={resetSession}
+              mode={state.mode}
+            />
+          );
+      }
+    }
+
+    // Full review mode flow
+    if (state.mode === "full-review") {
+      switch (state.step) {
+        case 1:
+          return <AudioRecorder onFastFeedback={handleAudioReady} />;
+        case 2:
+          return (
+            <TranscriptEditor
+              transcript={state.transcript}
+              highlightedNames={state.highlightedNames}
+              isLoading={state.isTranscribing}
+              onConfirm={confirmTranscript}
+            />
+          );
+        case 3:
+          return <DocumentUploader onDocumentsReady={handleDocumentsReady} mode={state.mode} />;
+        case 4:
+          return (
+            <FeedbackReport
+              feedback={state.feedback}
+              transcript={state.anonymizedTranscript}
+              isLoading={state.isAnalyzing}
+              onReset={resetSession}
+              mode={state.mode}
             />
           );
       }

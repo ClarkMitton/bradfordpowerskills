@@ -21,7 +21,17 @@ interface FeedbackData {
     strengths: string[];
     areasForDevelopment: string[];
   };
-  studentWorkAnalysis: {
+  planVsDelivery?: {
+    alignment: "strong" | "moderate" | "weak";
+    observations: string[];
+    deviations: string[];
+  };
+  resourceUtilization?: {
+    summary: string;
+    effectiveUses: string[];
+    missedOpportunities: string[];
+  };
+  studentWorkAnalysis?: {
     summary: string;
     differentiationEvidence: string[];
     objectivesReached: boolean;
@@ -30,7 +40,7 @@ interface FeedbackData {
   ebi: string[];
 }
 
-export type AnalysisMode = "recording" | "resources" | "deep-dive" | null;
+export type AnalysisMode = "quick" | "deep-dive" | "full-review" | null;
 
 interface SessionState {
   step: number;
@@ -140,10 +150,10 @@ You have 20 minutes. I'll be circulating to offer support. Thomas, I'll check in
 
 // Mock feedback generation
 // In production, this would use AI API
-const mockGenerateFeedback = async (): Promise<FeedbackData> => {
+const mockGenerateFeedback = async (mode: AnalysisMode): Promise<FeedbackData> => {
   await new Promise((resolve) => setTimeout(resolve, 3000));
   
-  return {
+  const baseFeedback: FeedbackData = {
     leadPhases: [
       {
         phase: "Launch",
@@ -215,15 +225,6 @@ const mockGenerateFeedback = async (): Promise<FeedbackData> => {
         "Extend higher-order questioning to push deeper analysis"
       ]
     },
-    studentWorkAnalysis: {
-      summary: "Student work samples show evidence of differentiated outcomes across ability levels. All three samples demonstrate understanding of dialogue techniques, with the higher ability sample showing more sophisticated application of multiple techniques.",
-      differentiationEvidence: [
-        "Lower ability sample shows basic dialogue punctuation mastery with support scaffolding visible",
-        "Middle ability sample demonstrates confident use of two dialogue techniques with some experimentation",
-        "Higher ability sample shows creative application of interruptions, dialect, and subtext with analytical annotation"
-      ],
-      objectivesReached: true
-    },
     www: [
       "Strong launch phase with effective recall questioning that connected to prior learning",
       "Excellent variety of student voices included throughout the session",
@@ -239,6 +240,51 @@ const mockGenerateFeedback = async (): Promise<FeedbackData> => {
       "Success criteria or self-assessment checklist was provided for the writing activity"
     ]
   };
+
+  // Add plan vs delivery for deep-dive and full-review modes
+  if (mode === "deep-dive" || mode === "full-review") {
+    baseFeedback.planVsDelivery = {
+      alignment: "moderate",
+      observations: [
+        "The lesson plan outlined a 10-minute starter activity, but only 5 minutes were spent on the recap",
+        "Paired activity was delivered as planned with appropriate time allocation",
+        "Main writing task matched the planned 20-minute duration",
+        "The planned plenary activity appears to have been shortened or skipped"
+      ],
+      deviations: [
+        "Starter activity was condensed - consider whether the full planned time was needed",
+        "Extension activities mentioned in plan were not referenced during the session",
+        "Success criteria from the plan were not shared with students as intended"
+      ]
+    };
+  }
+
+  // Add resource utilization for full-review mode
+  if (mode === "full-review") {
+    baseFeedback.resourceUtilization = {
+      summary: "Scaffolding materials were partially utilized during the session. The handout was used effectively, but some prepared support resources were not deployed.",
+      effectiveUses: [
+        "Handout with dialogue examples was distributed and actively used for analysis task",
+        "Word count guidance from support materials was communicated clearly"
+      ],
+      missedOpportunities: [
+        "Sentence starters from scaffolding pack were not offered to struggling learners",
+        "Visual prompts for dialogue techniques could have reinforced key concepts"
+      ]
+    };
+
+    baseFeedback.studentWorkAnalysis = {
+      summary: "Student work samples show evidence of differentiated outcomes across ability levels. All three samples demonstrate understanding of dialogue techniques, with the higher ability sample showing more sophisticated application of multiple techniques.",
+      differentiationEvidence: [
+        "Lower ability sample shows basic dialogue punctuation mastery with support scaffolding visible",
+        "Middle ability sample demonstrates confident use of two dialogue techniques with some experimentation",
+        "Higher ability sample shows creative application of interruptions, dialect, and subtext with analytical annotation"
+      ],
+      objectivesReached: true
+    };
+  }
+
+  return baseFeedback;
 };
 
 export function useSessionAnalysis() {
@@ -278,23 +324,23 @@ export function useSessionAnalysis() {
 
   const confirmTranscript = useCallback((anonymizedTranscript: string) => {
     setState((prev) => {
-      // For recording mode, go to feedback (step 3)
-      // For deep-dive mode, go to document upload (step 3)
-      const nextStep = prev.mode === "recording" ? 3 : 3;
+      // For quick mode, go to feedback (step 3)
+      // For deep-dive and full-review, go to document upload (step 3)
+      const nextStep = prev.mode === "quick" ? 3 : 3;
       return {
         ...prev,
         anonymizedTranscript,
         audioBlob: null,
         step: nextStep,
-        // For recording mode, start analysis immediately
-        isAnalyzing: prev.mode === "recording",
+        // For quick mode, start analysis immediately
+        isAnalyzing: prev.mode === "quick",
       };
     });
     
-    // For recording mode, generate feedback after transcript confirmation
+    // For quick mode, generate feedback after transcript confirmation
     setState((prev) => {
-      if (prev.mode === "recording") {
-        mockGenerateFeedback().then((feedback) => {
+      if (prev.mode === "quick") {
+        mockGenerateFeedback(prev.mode).then((feedback) => {
           setState((p) => ({ ...p, feedback, isAnalyzing: false }));
         });
       }
@@ -304,20 +350,21 @@ export function useSessionAnalysis() {
 
   const handleDocumentsReady = useCallback(
     async (documents: SessionState["documents"]) => {
+      let currentMode: AnalysisMode = null;
+      
       setState((prev) => {
-        // For resources mode, go to step 2 (feedback)
-        // For deep-dive mode, go to step 4 (feedback)
-        const nextStep = prev.mode === "resources" ? 2 : 4;
+        currentMode = prev.mode;
+        // For deep-dive and full-review modes, go to step 4 (feedback)
         return {
           ...prev,
           documents,
-          step: nextStep,
+          step: 4,
           isAnalyzing: true,
         };
       });
 
       try {
-        const feedback = await mockGenerateFeedback();
+        const feedback = await mockGenerateFeedback(currentMode);
         
         setState((prev) => ({
           ...prev,

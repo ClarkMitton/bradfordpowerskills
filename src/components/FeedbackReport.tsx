@@ -6,19 +6,15 @@ import {
   ChevronDown, 
   ChevronUp,
   CheckCircle2,
-  AlertCircle,
   Loader2,
   FileText,
   Target,
   Users,
-  Lightbulb
+  Lightbulb,
+  GitCompare,
+  BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface FeedbackSection {
-  title: string;
-  items: string[];
-}
 
 interface LEADPhaseFeedback {
   phase: string;
@@ -33,7 +29,17 @@ interface FeedbackData {
     strengths: string[];
     areasForDevelopment: string[];
   };
-  studentWorkAnalysis: {
+  planVsDelivery?: {
+    alignment: "strong" | "moderate" | "weak";
+    observations: string[];
+    deviations: string[];
+  };
+  resourceUtilization?: {
+    summary: string;
+    effectiveUses: string[];
+    missedOpportunities: string[];
+  };
+  studentWorkAnalysis?: {
     summary: string;
     differentiationEvidence: string[];
     objectivesReached: boolean;
@@ -42,11 +48,14 @@ interface FeedbackData {
   ebi: string[];
 }
 
+type AnalysisMode = "quick" | "deep-dive" | "full-review";
+
 interface FeedbackReportProps {
   feedback: FeedbackData | null;
   transcript: string;
   isLoading: boolean;
   onReset: () => void;
+  mode: AnalysisMode;
 }
 
 const ratingColors = {
@@ -63,11 +72,24 @@ const ratingLabels = {
   "needs-improvement": "Needs Improvement",
 };
 
+const alignmentColors = {
+  strong: "bg-success/10 text-success border-success/20",
+  moderate: "bg-warning/10 text-warning border-warning/20",
+  weak: "bg-destructive/10 text-destructive border-destructive/20",
+};
+
+const alignmentLabels = {
+  strong: "Strong Alignment",
+  moderate: "Moderate Alignment", 
+  weak: "Needs Attention",
+};
+
 export function FeedbackReport({
   feedback,
   transcript,
   isLoading,
   onReset,
+  mode,
 }: FeedbackReportProps) {
   const [showTranscript, setShowTranscript] = useState(false);
   const [expandedPhases, setExpandedPhases] = useState<string[]>(["Launch"]);
@@ -80,12 +102,24 @@ export function FeedbackReport({
     );
   };
 
+  const getLoadingMessage = () => {
+    switch (mode) {
+      case "quick":
+        return "The AI is reviewing your transcript against the LEAD model framework...";
+      case "deep-dive":
+        return "The AI is comparing your lesson plan against your actual delivery...";
+      case "full-review":
+        return "The AI is analyzing your complete teaching cycle — plan, delivery, and student outcomes...";
+    }
+  };
+
   const handleDownload = () => {
     if (!feedback) return;
 
-    const reportContent = `
+    let reportContent = `
 POWER SKILLS SESSION ANALYSIS REPORT
 Generated: ${new Date().toLocaleDateString()}
+Mode: ${mode === "quick" ? "Quick Feedback" : mode === "deep-dive" ? "Delivery Deep Dive" : "Full Session Review"}
 
 =====================================
 WHAT WENT WELL (WWW)
@@ -120,7 +154,40 @@ ${feedback.teachingDelivery.strengths.map((s) => `• ${s}`).join("\n")}
 
 Areas for Development:
 ${feedback.teachingDelivery.areasForDevelopment.map((a) => `• ${a}`).join("\n")}
+`;
 
+    if (feedback.planVsDelivery) {
+      reportContent += `
+=====================================
+PLAN VS DELIVERY COMPARISON
+=====================================
+Alignment: ${alignmentLabels[feedback.planVsDelivery.alignment]}
+
+Observations:
+${feedback.planVsDelivery.observations.map((o) => `• ${o}`).join("\n")}
+
+Notable Deviations:
+${feedback.planVsDelivery.deviations.map((d) => `• ${d}`).join("\n")}
+`;
+    }
+
+    if (feedback.resourceUtilization) {
+      reportContent += `
+=====================================
+RESOURCE UTILIZATION
+=====================================
+${feedback.resourceUtilization.summary}
+
+Effective Uses:
+${feedback.resourceUtilization.effectiveUses.map((e) => `• ${e}`).join("\n")}
+
+Missed Opportunities:
+${feedback.resourceUtilization.missedOpportunities.map((m) => `• ${m}`).join("\n")}
+`;
+    }
+
+    if (feedback.studentWorkAnalysis) {
+      reportContent += `
 =====================================
 STUDENT WORK ANALYSIS
 =====================================
@@ -130,14 +197,19 @@ Differentiation Evidence:
 ${feedback.studentWorkAnalysis.differentiationEvidence.map((d) => `• ${d}`).join("\n")}
 
 Learning Objectives Reached: ${feedback.studentWorkAnalysis.objectivesReached ? "Yes" : "Partially"}
+`;
+    }
 
+    if (transcript) {
+      reportContent += `
 =====================================
 ANONYMIZED TRANSCRIPT
 =====================================
 ${transcript}
-    `.trim();
+`;
+    }
 
-    const blob = new Blob([reportContent], { type: "text/plain" });
+    const blob = new Blob([reportContent.trim()], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -157,8 +229,7 @@ ${transcript}
             Analyzing Your Session
           </h3>
           <p className="text-muted-foreground max-w-md">
-            The AI is reviewing your transcript, lesson plan, and student work samples 
-            against the LEAD model framework. This may take 1-2 minutes...
+            {getLoadingMessage()}
           </p>
         </div>
       </div>
@@ -222,6 +293,96 @@ ${transcript}
           </ul>
         </div>
       </div>
+
+      {/* Plan vs Delivery Comparison - for deep-dive and full-review */}
+      {feedback.planVsDelivery && (
+        <div className="card-elevated p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <GitCompare className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Plan vs Delivery Comparison</h3>
+            </div>
+            <span className={cn(
+              "text-xs px-3 py-1 rounded-full border",
+              alignmentColors[feedback.planVsDelivery.alignment]
+            )}>
+              {alignmentLabels[feedback.planVsDelivery.alignment]}
+            </span>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                What We Observed
+              </h4>
+              <ul className="space-y-1">
+                {feedback.planVsDelivery.observations.map((obs, i) => (
+                  <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    {obs}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                Notable Deviations
+              </h4>
+              <ul className="space-y-1">
+                {feedback.planVsDelivery.deviations.map((dev, i) => (
+                  <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                    <span className="text-accent">→</span>
+                    {dev}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Resource Utilization - for full-review only */}
+      {feedback.resourceUtilization && (
+        <div className="card-elevated p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-foreground">Resource Utilization</h3>
+          </div>
+          
+          <p className="text-foreground mb-4">{feedback.resourceUtilization.summary}</p>
+          
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                Effective Uses
+              </h4>
+              <ul className="space-y-1">
+                {feedback.resourceUtilization.effectiveUses.map((use, i) => (
+                  <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                    <span className="text-success">✓</span>
+                    {use}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                Missed Opportunities
+              </h4>
+              <ul className="space-y-1">
+                {feedback.resourceUtilization.missedOpportunities.map((opp, i) => (
+                  <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                    <span className="text-accent">○</span>
+                    {opp}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* LEAD Phase Analysis */}
       <div className="card-elevated overflow-hidden">
@@ -295,67 +456,71 @@ ${transcript}
         </div>
       </div>
 
-      {/* Student Work Analysis */}
-      <div className="card-elevated p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Users className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold text-foreground">Student Work Analysis</h3>
+      {/* Student Work Analysis - for full-review only */}
+      {feedback.studentWorkAnalysis && (
+        <div className="card-elevated p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-foreground">Student Work Analysis</h3>
+          </div>
+          <p className="text-foreground mb-4">{feedback.studentWorkAnalysis.summary}</p>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-medium text-muted-foreground">
+              Learning Objectives Reached:
+            </span>
+            <span
+              className={cn(
+                "text-sm px-2 py-1 rounded-full",
+                feedback.studentWorkAnalysis.objectivesReached
+                  ? "bg-success/10 text-success"
+                  : "bg-warning/10 text-warning"
+              )}
+            >
+              {feedback.studentWorkAnalysis.objectivesReached ? "Yes" : "Partially"}
+            </span>
+          </div>
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-2">
+              Differentiation Evidence
+            </h4>
+            <ul className="space-y-1">
+              {feedback.studentWorkAnalysis.differentiationEvidence.map((item, i) => (
+                <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <p className="text-foreground mb-4">{feedback.studentWorkAnalysis.summary}</p>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-sm font-medium text-muted-foreground">
-            Learning Objectives Reached:
-          </span>
-          <span
-            className={cn(
-              "text-sm px-2 py-1 rounded-full",
-              feedback.studentWorkAnalysis.objectivesReached
-                ? "bg-success/10 text-success"
-                : "bg-warning/10 text-warning"
-            )}
-          >
-            {feedback.studentWorkAnalysis.objectivesReached ? "Yes" : "Partially"}
-          </span>
-        </div>
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">
-            Differentiation Evidence
-          </h4>
-          <ul className="space-y-1">
-            {feedback.studentWorkAnalysis.differentiationEvidence.map((item, i) => (
-              <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                <span className="text-primary">•</span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      )}
 
-      {/* Transcript Toggle */}
-      <div className="card-elevated overflow-hidden">
-        <button
-          onClick={() => setShowTranscript(!showTranscript)}
-          className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            <span className="font-medium text-foreground">View Anonymized Transcript</span>
-          </div>
-          {showTranscript ? (
-            <ChevronUp className="w-5 h-5 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+      {/* Transcript Toggle - only show if we have a transcript */}
+      {transcript && (
+        <div className="card-elevated overflow-hidden">
+          <button
+            onClick={() => setShowTranscript(!showTranscript)}
+            className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              <span className="font-medium text-foreground">View Anonymized Transcript</span>
+            </div>
+            {showTranscript ? (
+              <ChevronUp className="w-5 h-5 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+            )}
+          </button>
+          {showTranscript && (
+            <div className="p-4 border-t border-border animate-fade-in">
+              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
+                {transcript}
+              </p>
+            </div>
           )}
-        </button>
-        {showTranscript && (
-          <div className="p-4 border-t border-border animate-fade-in">
-            <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
-              {transcript}
-            </p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
