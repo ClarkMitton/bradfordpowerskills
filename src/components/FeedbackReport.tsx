@@ -130,40 +130,70 @@ const formatQuotesOnly = (text: string) => {
   return text.replace(quoteRegex, '<span class="quote-text">"$1"</span>');
 };
 
+// Strip inline bracket explanations after pedagogical terms, so the tooltip icon carries the meaning.
+// Examples we remove:
+// - cold calling (randomly selecting students)
+// - *wait time* (the pause after asking a question)
+// - retrieval practice [brief explanation]
+const stripPedagogicalExplanations = (text: string, terms: string[]) => {
+  if (!text) return text;
+
+  // Match the longest terms first to avoid partial matches
+  const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
+  const escaped = sortedTerms
+    .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("|");
+
+  // Optional italics markers around the term, then optional whitespace, then (...) or [...]
+  const pattern = new RegExp(
+    `(\\*?)\\b(${escaped})\\b\\1\\s*(?:\\(([^)]+)\\)|\\[([^\]]+)\\])`,
+    "gi"
+  );
+
+  return text.replace(pattern, (_full, asterisk, term) => {
+    // Preserve the original emphasis style if it was there
+    return asterisk ? `*${term}*` : term;
+  });
+};
+
 // Render text with pedagogical tooltips for both standalone terms and *italic* wrapped terms
 const renderWithTooltips = (text: string): React.ReactNode => {
   const terms = Object.keys(PEDAGOGICAL_TERMS);
+  const cleaned = stripPedagogicalExplanations(text, terms);
+
   const parts: React.ReactNode[] = [];
   let key = 0;
-  
+
   // First, split by italic markers *term* which often contain pedagogical terms
   // Pattern matches: *any text* (italic markers from AI)
   const italicPattern = /\*([^*]+)\*/g;
-  
+
   // Create pattern for known pedagogical terms (for non-italic matches)
   const termPattern = new RegExp(
-    `\\b(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
-    'gi'
+    `\\b(${terms
+      .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join("|")})\\b`,
+    "gi"
   );
-  
+
   let lastIndex = 0;
   let match;
-  
+
   // Process italic-wrapped terms first
-  while ((match = italicPattern.exec(text)) !== null) {
+  while ((match = italicPattern.exec(cleaned)) !== null) {
     // Add text before the match (check for pedagogical terms in it)
     if (match.index > lastIndex) {
-      const beforeText = text.slice(lastIndex, match.index);
+      const beforeText = cleaned.slice(lastIndex, match.index);
       parts.push(...processTextForTerms(beforeText, termPattern, key));
       key += 100; // Increment to avoid key collisions
     }
-    
+
     const italicContent = match[1];
     const termLower = italicContent.toLowerCase();
-    
+
     // Check if this italic text is a known pedagogical term
-    const matchedTerm = terms.find(t => termLower.includes(t.toLowerCase()));
-    
+    const matchedTerm = terms.find((t) => termLower.includes(t.toLowerCase()));
+
     if (matchedTerm) {
       // It's a pedagogical term - wrap in tooltip
       parts.push(
@@ -179,17 +209,21 @@ const renderWithTooltips = (text: string): React.ReactNode => {
         </em>
       );
     }
-    
+
     lastIndex = match.index + match[0].length;
   }
-  
+
   // Add remaining text (check for pedagogical terms in it)
-  if (lastIndex < text.length) {
-    const remainingText = text.slice(lastIndex);
+  if (lastIndex < cleaned.length) {
+    const remainingText = cleaned.slice(lastIndex);
     parts.push(...processTextForTerms(remainingText, termPattern, key));
   }
-  
-  return parts.length > 0 ? <>{parts}</> : <span dangerouslySetInnerHTML={{ __html: formatQuotesOnly(text) }} />;
+
+  return parts.length > 0 ? (
+    <>{parts}</>
+  ) : (
+    <span dangerouslySetInnerHTML={{ __html: formatQuotesOnly(cleaned) }} />
+  );
 };
 
 // Helper to process text segments for pedagogical terms
