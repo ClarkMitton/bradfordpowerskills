@@ -22,6 +22,7 @@ export function WelcomeScreen({ onSelectMode }: WelcomeScreenProps) {
       title: "Delivery Deep Dive",
       description: "Compare what you planned against what you actually delivered in the session.",
       details: ["Audio recording", "Lesson plan upload", "Plan vs execution analysis"],
+      encouragement: "Perfect for a closer look — see how your delivery aligned with your intentions and discover new insights.",
     },
     {
       id: "full-review" as const,
@@ -29,6 +30,7 @@ export function WelcomeScreen({ onSelectMode }: WelcomeScreenProps) {
       title: "Full Session Review",
       description: "Comprehensive analysis of the complete teaching cycle — from planning through delivery to student outcomes.",
       details: ["Audio recording", "Lesson plan & scaffolding", "3 pieces of student work"],
+      encouragement: "Perfect for deep reflection — connect your planning, delivery, and student outcomes for powerful professional growth.",
     },
   ];
 
@@ -71,8 +73,7 @@ export function WelcomeScreen({ onSelectMode }: WelcomeScreenProps) {
                 {option.description}
               </p>
               
-              {/* Encouragement message for Quick Feedback */}
-              {"encouragement" in option && option.encouragement && (
+              {option.encouragement && (
                 <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-success/10 border border-success/20">
                   <Sparkles className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-success font-medium">
