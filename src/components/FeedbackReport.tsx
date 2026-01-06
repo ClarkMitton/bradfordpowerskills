@@ -33,7 +33,6 @@ interface CategoryFeedback {
   name: string;
   rating: number;
   summary?: string;
-  mvpMoment?: string;
   whatsWorking: string;
   evidenceStrengths?: string[];
   toMakeStronger?: string;
@@ -43,6 +42,11 @@ interface CategoryFeedback {
   tryThisNext?: string;
   tryThis?: string; // Legacy support
   researchSuggestion?: ResearchSuggestion;
+}
+
+interface SessionMvp {
+  moment: string;
+  pedagogyHighlight: string;
 }
 
 interface ComparativeData {
@@ -60,6 +64,7 @@ interface LEADPhaseFeedback {
 }
 
 interface FeedbackData {
+  sessionMvp?: SessionMvp;
   categories: CategoryFeedback[];
   leadPhases: LEADPhaseFeedback[];
   overallSummary: string;
@@ -475,6 +480,19 @@ export function FeedbackReport({
     <p>Taking time to review and improve your teaching shows real dedication to your students' success.</p>
   </div>
 
+  ${feedback.sessionMvp ? `
+  <div class="mvp-box" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+    <div style="display: flex; align-items: flex-start; gap: 16px;">
+      <div style="font-size: 40px;">🏆</div>
+      <div>
+        <h3 style="color: #b45309; font-size: 18px; margin-bottom: 8px;">⭐ Session MVP Moment ⭐</h3>
+        <p style="font-size: 13px; color: #92400e; margin-bottom: 12px; font-weight: 600;">${feedback.sessionMvp.pedagogyHighlight}</p>
+        <p style="color: #78350f; font-size: 15px; line-height: 1.6;">${feedback.sessionMvp.moment}</p>
+      </div>
+    </div>
+  </div>
+  ` : ''}
+
   <div class="summary-box">
     <p>${feedback.overallSummary}</p>
     <div class="highlight-grid">
@@ -624,6 +642,36 @@ export function FeedbackReport({
         </p>
       </div>
 
+      {/* Session MVP - The Star Moment */}
+      {feedback.sessionMvp && (
+        <div className="card-elevated p-6 bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10 border-2 border-yellow-500/30 relative overflow-hidden">
+          <div className="absolute top-3 right-3 flex gap-1">
+            <Star className="w-5 h-5 text-yellow-500" fill="currentColor" />
+            <Star className="w-6 h-6 text-yellow-500" fill="currentColor" />
+            <Star className="w-5 h-5 text-yellow-500" fill="currentColor" />
+          </div>
+          <details className="group">
+            <summary className="flex items-center gap-4 cursor-pointer list-none">
+              <div className="w-14 h-14 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                <Trophy className="w-7 h-7 text-yellow-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-yellow-700 flex items-center gap-2">
+                  ⭐ Session MVP Moment ⭐
+                </h3>
+                <p className="text-sm text-yellow-600/80 font-medium">{feedback.sessionMvp.pedagogyHighlight}</p>
+              </div>
+              <ChevronDown className="w-5 h-5 text-yellow-600 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-4 pt-4 border-t border-yellow-500/20">
+              <p className="text-foreground leading-relaxed text-lg">
+                {renderWithTooltips(feedback.sessionMvp.moment)}
+              </p>
+            </div>
+          </details>
+        </div>
+      )}
+
       {/* Overall Summary - Warm Card */}
       <div className="card-elevated p-8 bg-gradient-to-br from-primary/5 via-background to-accent/5 border-primary/20">
         <p className="text-lg text-foreground leading-relaxed mb-6">{feedback.overallSummary}</p>
@@ -687,30 +735,6 @@ export function FeedbackReport({
               </button>
               {expandedCategories.includes(category.name) && (
                 <div className="px-5 pb-6 space-y-4 animate-fade-in">
-                  {/* MVP Moment - Star of the Show! */}
-                  {category.mvpMoment && (
-                    <div className="p-5 bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10 rounded-xl border-2 border-yellow-500/30 relative overflow-hidden">
-                      <div className="absolute top-2 right-2 flex gap-1">
-                        <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
-                        <Star className="w-5 h-5 text-yellow-500" fill="currentColor" />
-                        <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                          <Trophy className="w-6 h-6 text-yellow-600" />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-yellow-700 mb-2 flex items-center gap-2">
-                            ⭐ MVP Moment ⭐
-                          </h4>
-                          <p className="text-foreground leading-relaxed">
-                            {renderWithTooltips(category.mvpMoment)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   {/* What's Working Well */}
                   <div className="p-4 bg-success/5 rounded-xl border border-success/15">
                     <h4 className="text-sm font-semibold text-success mb-3 flex items-center gap-2">
