@@ -257,20 +257,30 @@ ${categoryContext}
 ${learnerContext}
 ${additionalContext}
 
+IMPORTANT RULES FOR HIGHLIGHTING PEDAGOGICAL TERMS:
+- When you use *italic text* to mark pedagogical terms, ALWAYS include a brief explanation in parentheses immediately after
+- Example: "*wait time* (the deliberate pause after asking a question to allow thinking)"
+- Example: "*cold calling* (randomly selecting students rather than asking for volunteers)"
+- Example: "*scaffolding* (breaking complex tasks into manageable steps with support)"
+- NEVER highlight a term without explaining what it means and why it matters
+
 Respond with valid JSON matching this exact structure:
 {
+  "sessionMvp": {
+    "moment": "The SINGLE BEST teaching moment of the ENTIRE session. This must be genuinely impressive - a moment where the tutor demonstrated exceptional skill. Start with timestamp [MM:SS], quote the exact words, then explain with enthusiasm WHY this was masterful teaching. Reference the specific pedagogical principle at play with an explanation. This should feel like a standing ovation moment - if it seems ordinary, look harder for something truly exceptional. 4-6 sentences of genuine celebration.",
+    "pedagogyHighlight": "Name the specific teaching technique demonstrated (e.g., 'Expert use of Socratic questioning', 'Masterful scaffolding', 'Perfect wait time execution')"
+  },
   "categories": [
     {
       "name": "Domain name",
       "rating": 1-4 (number of stars based on criteria above),
       "summary": "2-3 sentence summary explaining the rating with specific reference to what was observed",
-      "mvpMoment": "⭐ Identify the SINGLE BEST moment in this domain. Start with timestamp [MM:SS], quote the exact words, and explain why this was their most successful moment. Be enthusiastic and celebratory! This should feel like genuine praise for their best work.",
-      "whatsWorking": "Specific positive observation with timestamp [MM:SS], quote, and pedagogical principle. Include terms with explanations. Max 4-5 sentences.",
-      "evidenceStrengths": ["✓ [MM:SS] - \\"quote\\" - pedagogical explanation", "✓ [MM:SS] - \\"quote\\" - explanation"],
-      "toMakeStronger": "One specific moment with timestamp [MM:SS] + ONE actionable technique with research backing. Max 4-5 sentences.",
-      "areasForDevelopment": ["⚠ [MM:SS] - description - what could be improved", "⚠ [MM:SS] - description - improvement"],
-      "missedOpportunities": ["Strategy not used - when it could have been employed"],
-      "tryThisNext": "Concrete, immediately implementable strategy building on their strength. Max 4-5 sentences.",
+      "whatsWorking": "Specific positive observation with timestamp [MM:SS], quote, and pedagogical principle. When using pedagogical terms, always add explanation in parentheses. Max 4-5 sentences.",
+      "evidenceStrengths": ["✓ [MM:SS] - \\"quote\\" - pedagogical explanation with term definitions", "✓ [MM:SS] - \\"quote\\" - explanation"],
+      "toMakeStronger": "One specific moment with timestamp [MM:SS] + ONE actionable technique with research backing. Explain any pedagogical terms used. Max 4-5 sentences.",
+      "areasForDevelopment": ["⚠ [MM:SS] - description - what could be improved with clear explanation of the technique"],
+      "missedOpportunities": ["Strategy not used - when it could have been employed - brief explanation of what this strategy is"],
+      "tryThisNext": "Concrete, immediately implementable strategy building on their strength. Include explanation of any techniques mentioned. Max 4-5 sentences.",
       "researchSuggestion": {
         "technique": "Name of the technique",
         "howToImplement": "Concrete steps",
