@@ -432,7 +432,7 @@ CRITICAL: Return ONLY valid JSON. No text before or after. No markdown code bloc
 Respond with valid JSON matching this exact structure:
 {
   "sessionMvp": {
-    "moment": "The SINGLE BEST teaching moment. Start with timestamp [MM:SS], quote exact words, explain WHY this was masterful. Reference the pedagogical principle. 4-6 sentences.",
+    "moment": "Describe the SINGLE BEST teaching moment focusing on WHAT the teacher did pedagogically and WHY it was effective. Explain the technique used, how it impacted student learning, and the pedagogical principle behind it. Do NOT start with a timestamp - instead, paint a picture of the moment (e.g., 'Your use of *cold calling* here was masterful because...'). Reference the specific words or actions briefly to ground the feedback, then explain the impact. 4-6 sentences.",
     "pedagogyHighlight": "Name the specific technique (e.g., 'Expert Socratic questioning', 'Perfect wait time')"
   },
   "categories": [
