@@ -418,6 +418,15 @@ export function useSessionAnalysis() {
     setState(initialState);
   }, []);
 
+  const goBack = useCallback(() => {
+    setState((prev) => {
+      if (prev.step <= 1) {
+        return initialState;
+      }
+      return { ...prev, step: prev.step - 1 };
+    });
+  }, []);
+
   return {
     state,
     selectMode,
@@ -426,5 +435,6 @@ export function useSessionAnalysis() {
     confirmTranscript,
     handleDocumentsReady,
     resetSession,
+    goBack,
   };
 }
