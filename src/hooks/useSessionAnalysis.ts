@@ -59,6 +59,7 @@ interface SessionState {
   transcriptionStartTime: number | null;
   transcriptionElapsed: number;
   sessionDetails: SessionDetails | null;
+  analysisError: string | null;
 }
 
 const initialState: SessionState = {
@@ -83,6 +84,7 @@ const initialState: SessionState = {
   transcriptionStartTime: null,
   transcriptionElapsed: 0,
   sessionDetails: null,
+  analysisError: null,
 };
 
 // Mock function to detect names in transcript
@@ -414,6 +416,7 @@ export function useSessionAnalysis() {
       ...prev,
       selectedPhases,
       isAnalyzing: true,
+      analysisError: null,
       step: 3, // Go to feedback (was step 4, now step 3 since we removed transcript review)
     }));
 
@@ -430,15 +433,25 @@ export function useSessionAnalysis() {
         ...prev,
         feedback,
         isAnalyzing: false,
+        analysisError: null,
       }));
     } catch (error) {
       console.error("Analysis failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Analysis failed. Please try again.";
+      toast.error(errorMessage);
       setState((prev) => ({
         ...prev,
         isAnalyzing: false,
+        analysisError: errorMessage,
       }));
     }
   }, [state.anonymizedTranscript, state.mode, state.documents, state.sessionDetails]);
+
+  const retryAnalysis = useCallback(() => {
+    if (state.selectedPhases.length > 0) {
+      handlePhaseSelection(state.selectedPhases);
+    }
+  }, [state.selectedPhases, handlePhaseSelection]);
 
   const resetSession = useCallback(() => {
     setState(initialState);
@@ -461,6 +474,7 @@ export function useSessionAnalysis() {
     handleTranscriptSubmit,
     confirmTranscript,
     handlePhaseSelection,
+    retryAnalysis,
     resetSession,
     goBack,
   };

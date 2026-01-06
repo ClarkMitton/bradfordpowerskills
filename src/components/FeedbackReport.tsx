@@ -90,6 +90,8 @@ interface FeedbackReportProps {
   transcript: string;
   isLoading: boolean;
   onReset: () => void;
+  onRetry?: () => void;
+  error?: string | null;
   mode: AnalysisMode;
   selectedPhases: SelectedPhase[];
 }
@@ -239,6 +241,8 @@ export function FeedbackReport({
   transcript,
   isLoading,
   onReset,
+  onRetry,
+  error,
   mode,
   selectedPhases,
 }: FeedbackReportProps) {
@@ -724,7 +728,32 @@ export function FeedbackReport({
   }
 
   if (!feedback) {
-    return null;
+    return (
+      <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
+        <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+          <AlertTriangle className="w-8 h-8 text-destructive" />
+        </div>
+        <div className="text-center space-y-3">
+          <h3 className="text-2xl font-heading font-semibold text-foreground">
+            Analysis Couldn't Complete
+          </h3>
+          <p className="text-muted-foreground max-w-md">
+            {error || "Something went wrong during the analysis. Your transcript is safe - you can try again."}
+          </p>
+        </div>
+        <div className="flex gap-3">
+          {onRetry && (
+            <Button onClick={onRetry} className="gap-2">
+              <RotateCcw className="w-4 h-4" />
+              Try Again
+            </Button>
+          )}
+          <Button variant="outline" onClick={onReset} className="gap-2">
+            Start Over
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
