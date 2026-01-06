@@ -432,46 +432,46 @@ CRITICAL: Return ONLY valid JSON. No text before or after. No markdown code bloc
 Respond with valid JSON matching this exact structure:
 {
   "sessionMvp": {
-    "moment": "The SINGLE BEST teaching moment of the ENTIRE session. This must be genuinely impressive - a moment where the tutor demonstrated exceptional skill. Start with timestamp [MM:SS], quote the exact words, then explain with enthusiasm WHY this was masterful teaching. Reference the specific pedagogical principle at play with an explanation. This should feel like a standing ovation moment - if it seems ordinary, look harder for something truly exceptional. 4-6 sentences of genuine celebration.",
-    "pedagogyHighlight": "Name the specific teaching technique demonstrated (e.g., 'Expert use of Socratic questioning', 'Masterful scaffolding', 'Perfect wait time execution')"
+    "moment": "The SINGLE BEST teaching moment. Start with timestamp [MM:SS], quote exact words, explain WHY this was masterful. Reference the pedagogical principle. 4-6 sentences.",
+    "pedagogyHighlight": "Name the specific technique (e.g., 'Expert Socratic questioning', 'Perfect wait time')"
   },
   "categories": [
     {
       "name": "Domain name",
-      "rating": 1-4 (number of stars based on criteria above),
-      "summary": "2-3 sentence summary explaining the rating with specific reference to what was observed",
-      "whatsWorking": "Specific positive observation with timestamp [MM:SS], quote, and pedagogical principle. When using pedagogical terms, always add explanation in parentheses. Max 4-5 sentences.",
-      "evidenceStrengths": ["✓ [MM:SS] - \\"quote\\" - pedagogical explanation with term definitions", "✓ [MM:SS] - \\"quote\\" - explanation"],
-      "toMakeStronger": "One specific moment with timestamp [MM:SS] + ONE actionable technique with research backing. Explain any pedagogical terms used. Max 4-5 sentences.",
-      "areasForDevelopment": ["⚠ [MM:SS] - description - what could be improved with clear explanation of the technique"],
-      "missedOpportunities": ["Strategy not used - when it could have been employed - brief explanation of what this strategy is"],
-      "tryThisNext": "Concrete, immediately implementable strategy building on their strength. Include explanation of any techniques mentioned. Max 4-5 sentences.",
+      "rating": 1-4,
+      "summary": "2-3 sentence summary explaining the rating",
+      "whatsWorking": "Positive observation with [MM:SS] timestamp and quote. Use *asterisks* for pedagogical terms. Max 4-5 sentences.",
+      "evidenceStrengths": ["✓ [MM:SS] - \\"quote\\" - pedagogical explanation"],
+      "toMakeStronger": "One specific moment [MM:SS] + ONE actionable technique. Max 4-5 sentences.",
+      "areasForDevelopment": ["⚠ [MM:SS] - description - improvement suggestion"],
+      "missedOpportunities": ["Strategy not used - when it could have been employed"],
+      "tryThisNext": "Concrete strategy building on their strength. Max 4-5 sentences.",
       "researchSuggestion": {
         "technique": "Name of the technique",
         "howToImplement": "Concrete steps",
-        "whyItWorks": "Research evidence with citation if possible",
-        "example": "What it would sound like in practice"
+        "whyItWorks": "Research evidence",
+        "example": "What it would sound like"
       }
     }
   ],
   "leadPhases": [
     {
-      "phase": "Phase name (only include if selected)",
+      "phase": "Phase name",
       "rating": "exemplary" | "solid" | "developing" | "emerging",
-      "observations": ["observation 1 with [MM:SS] timestamp", "observation 2 with timestamp"],
-      "suggestions": ["suggestion 1"]
+      "observations": ["observation with [MM:SS] timestamp"],
+      "suggestions": ["suggestion"]
     }
   ],
   "ofstedGrade": {
     "grade": "exceptional" | "strong_standard" | "expected_standard" | "needs_attention" | "urgent_improvement",
-    "summary": "2-3 sentence overview of how this session would be viewed through the Ofsted 'Developing Teaching' lens. Be fair and balanced - only judge what can be heard in the transcript.",
-    "strengths": ["Key strength observable in transcript with brief evidence", "Another strength with evidence"],
-    "areasForDevelopment": ["Area that could be strengthened with specific guidance - only include if genuinely observed as needing work, not speculation"],
-    "caveat": "Brief note about what aspects could NOT be assessed from audio alone (e.g., visual resources, written feedback, planning documents)"
+    "summary": "2-3 sentence overview through Ofsted lens.",
+    "strengths": ["Key strength with evidence"],
+    "areasForDevelopment": ["Area to strengthen - only if observed"],
+    "caveat": "What could NOT be assessed from audio alone"
   },
-  "overallSummary": "Brief 2-3 sentence summary highlighting key strengths and overall impression",
-  "topStrength": "The single biggest strength observed with specific evidence",
-  "priorityGrowthArea": "The single most impactful area for development, framed positively as an opportunity"
+  "overallSummary": "Brief 2-3 sentence summary",
+  "topStrength": "Single biggest strength with evidence",
+  "priorityGrowthArea": "Most impactful development area, framed positively"
 }`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

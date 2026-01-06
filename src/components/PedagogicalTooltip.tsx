@@ -188,6 +188,22 @@ export const PEDAGOGICAL_TERMS: Record<string, { short: string; detailed: string
   "real-world application": {
     short: "Connecting learning to authentic contexts",
     detailed: "Real-world application involves linking classroom learning to genuine situations outside school. This increases motivation by showing relevance, develops transfer skills, and helps students see the practical value of what they're learning."
+  },
+  "diagnostic questioning": {
+    short: "Questions that probe student understanding",
+    detailed: "Diagnostic questioning involves asking targeted questions to uncover what students understand, identify misconceptions, and reveal their thinking processes. These questions go beyond checking for correct answers to explore 'Why do you think that?' and 'How did you work that out?' This provides valuable formative assessment data to inform instruction."
+  },
+  "diagnostic questions": {
+    short: "Questions that probe student understanding",
+    detailed: "Diagnostic questions are targeted queries designed to uncover what students understand, identify misconceptions, and reveal thinking processes. They go beyond right/wrong to explore reasoning with questions like 'Why?' and 'How do you know?'"
+  },
+  "probing questions": {
+    short: "Follow-up questions that dig deeper",
+    detailed: "Probing questions are follow-up queries that dig deeper into student responses. They push students to elaborate, clarify, or justify their thinking. Examples include 'Can you tell me more?', 'What makes you say that?', and 'What evidence supports your answer?'"
+  },
+  "hinge questions": {
+    short: "Key questions that determine lesson direction",
+    detailed: "Hinge questions are carefully designed diagnostic questions asked at critical points in a lesson. The responses quickly reveal whether students are ready to move on or need reteaching. They should be answerable in under a minute and provide clear insight into understanding."
   }
 };
 

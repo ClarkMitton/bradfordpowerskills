@@ -130,30 +130,36 @@ const formatQuotesOnly = (text: string) => {
   return text.replace(quoteRegex, '<span class="quote-text">"$1"</span>');
 };
 
-// Strip inline bracket explanations after pedagogical terms, so the tooltip icon carries the meaning.
+// Strip inline bracket explanations after pedagogical terms OR any italic phrase.
+// This ensures tooltips carry the meaning instead of inline brackets.
 // Examples we remove:
 // - cold calling (randomly selecting students)
 // - *wait time* (the pause after asking a question)
+// - *diagnostic questioning* (probing to understand thinking)
 // - retrieval practice [brief explanation]
 const stripPedagogicalExplanations = (text: string, terms: string[]) => {
   if (!text) return text;
 
-  // Match the longest terms first to avoid partial matches
+  let result = text;
+
+  // First: Strip brackets after ANY italic phrase *something* (...) or *something* [...]
+  // This catches ALL pedagogical terms the AI might italicise, even ones not in our dictionary
+  const italicBracketPattern = /(\*[^*]+\*)\s*(?:\([^)]+\)|\[[^\]]+\])/g;
+  result = result.replace(italicBracketPattern, '$1');
+
+  // Second: Strip brackets after known terms (non-italicised)
   const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
   const escaped = sortedTerms
     .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
     .join("|");
 
-  // Optional italics markers around the term, then optional whitespace, then (...) or [...]
-  const pattern = new RegExp(
-    `(\\*?)\\b(${escaped})\\b\\1\\s*(?:\\(([^)]+)\\)|\\[([^\]]+)\\])`,
+  const termPattern = new RegExp(
+    `\\b(${escaped})\\b\\s*(?:\\([^)]+\\)|\\[[^\\]]+\\])`,
     "gi"
   );
+  result = result.replace(termPattern, '$1');
 
-  return text.replace(pattern, (_full, asterisk, term) => {
-    // Preserve the original emphasis style if it was there
-    return asterisk ? `*${term}*` : term;
-  });
+  return result;
 };
 
 // Render text with pedagogical tooltips for both standalone terms and *italic* wrapped terms
