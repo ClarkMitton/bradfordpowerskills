@@ -1,54 +1,34 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Mic, FileText, Brain, CheckCircle } from "lucide-react";
+import { Mic, FileText, Layers } from "lucide-react";
+
+export type AnalysisMode = "recording" | "resources" | "deep-dive";
 
 interface WelcomeScreenProps {
-  onStart: () => void;
+  onSelectMode: (mode: AnalysisMode) => void;
 }
 
-export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
-  const leadPhases = [
+export function WelcomeScreen({ onSelectMode }: WelcomeScreenProps) {
+  const analysisOptions = [
     {
-      letter: "L",
-      name: "Launch",
-      description: "Start with purpose, inspire curiosity, and establish learning aims",
-    },
-    {
-      letter: "E",
-      name: "Establish",
-      description: "Engage students with new learning through varied activities",
-    },
-    {
-      letter: "A",
-      name: "Apply",
-      description: "Embed learning through higher-order thinking and challenge",
-    },
-    {
-      letter: "D",
-      name: "Demonstrate",
-      description: "Assess progress and provide meaningful feedback",
-    },
-  ];
-
-  const features = [
-    {
+      id: "recording" as const,
       icon: Mic,
-      title: "Record or Upload",
-      description: "Capture your teaching session via live recording or file upload",
+      title: "Lesson Recording Feedback",
+      description: "Get AI-powered feedback on your teaching session from an audio recording",
+      details: ["Record or upload audio", "Auto-transcription", "LEAD model analysis"],
     },
     {
+      id: "resources" as const,
       icon: FileText,
-      title: "Auto Transcribe",
-      description: "AI-powered transcription with automatic name detection for privacy",
+      title: "Delivery Resources Feedback",
+      description: "Receive feedback on your lesson plan and teaching materials",
+      details: ["Upload lesson plan", "Scaffolding materials", "Resource analysis"],
     },
     {
-      icon: Brain,
-      title: "AI Analysis",
-      description: "Comprehensive feedback aligned to the LEAD model framework",
-    },
-    {
-      icon: CheckCircle,
-      title: "Actionable Insights",
-      description: "Clear WWW and EBI feedback to improve your practice",
+      id: "deep-dive" as const,
+      icon: Layers,
+      title: "Power Skills Deep Dive",
+      description: "Comprehensive analysis combining recording, resources, and student work",
+      details: ["Audio recording", "Lesson plan & resources", "3 pieces of student work"],
     },
   ];
 
@@ -60,53 +40,47 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           Power Skills Session Analysis
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
-          Record your teaching session, upload your lesson materials, and receive 
-          AI-powered feedback aligned to Bradford College's LEAD model.
+          Get AI-powered feedback aligned to Bradford College's LEAD model.
+          Choose the type of analysis you'd like to receive.
         </p>
       </div>
 
-      {/* LEAD Model Overview */}
-      <div className="card-elevated p-6 sm:p-8">
-        <h2 className="text-xl font-heading font-semibold text-foreground mb-6 text-center">
-          The LEAD Model
+      {/* Analysis Options */}
+      <div className="text-center space-y-2 mb-6">
+        <h2 className="text-xl font-heading font-semibold text-foreground">
+          What would you like feedback on?
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {leadPhases.map((phase, index) => (
-            <div
-              key={phase.letter}
-              className="flex flex-col items-center text-center p-4 rounded-lg bg-secondary/50 animate-fade-in"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mb-3">
-                {phase.letter}
-              </div>
-              <h3 className="font-semibold text-foreground mb-1">{phase.name}</h3>
-              <p className="text-sm text-muted-foreground">{phase.description}</p>
-            </div>
-          ))}
-        </div>
       </div>
 
-      {/* How It Works */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-heading font-semibold text-foreground text-center">
-          How It Works
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {features.map((feature, index) => (
-            <div
-              key={feature.title}
-              className="card-elevated p-5 flex flex-col items-center text-center animate-fade-in"
-              style={{ animationDelay: `${index * 100 + 200}ms` }}
-            >
-              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
-                <feature.icon className="w-6 h-6 text-accent" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {analysisOptions.map((option, index) => (
+          <button
+            key={option.id}
+            onClick={() => onSelectMode(option.id)}
+            className="card-elevated p-6 text-left hover:border-primary/50 transition-all duration-300 hover:shadow-lg group animate-fade-in"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <div className="flex flex-col h-full">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <option.icon className="w-7 h-7 text-primary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">{feature.description}</p>
+              <h3 className="font-heading font-semibold text-foreground text-lg mb-2">
+                {option.title}
+              </h3>
+              <p className="text-muted-foreground text-sm mb-4 flex-grow">
+                {option.description}
+              </p>
+              <ul className="space-y-1">
+                {option.details.map((detail, i) => (
+                  <li key={i} className="text-xs text-muted-foreground flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                    {detail}
+                  </li>
+                ))}
+              </ul>
             </div>
-          ))}
-        </div>
+          </button>
+        ))}
       </div>
 
       {/* Privacy Notice */}
@@ -115,14 +89,6 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           <strong>Privacy First:</strong> No data is stored permanently. All audio files are deleted 
           after transcription, and your session data is cleared when you close the browser.
         </p>
-      </div>
-
-      {/* Start Button */}
-      <div className="flex justify-center pt-4">
-        <Button onClick={onStart} size="xl" className="group">
-          Start Session Analysis
-          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-        </Button>
       </div>
     </div>
   );

@@ -6,52 +6,122 @@ import { DocumentUploader } from "@/components/DocumentUploader";
 import { FeedbackReport } from "@/components/FeedbackReport";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 
-const steps = [
-  { id: 1, label: "Record Audio", shortLabel: "Audio" },
-  { id: 2, label: "Review Transcript", shortLabel: "Review" },
-  { id: 3, label: "Upload Materials", shortLabel: "Upload" },
-  { id: 4, label: "View Feedback", shortLabel: "Feedback" },
-];
+const getStepsForMode = (mode: string | null) => {
+  switch (mode) {
+    case "recording":
+      return [
+        { id: 1, label: "Record Audio", shortLabel: "Audio" },
+        { id: 2, label: "Review Transcript", shortLabel: "Review" },
+        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
+      ];
+    case "resources":
+      return [
+        { id: 1, label: "Upload Materials", shortLabel: "Upload" },
+        { id: 2, label: "View Feedback", shortLabel: "Feedback" },
+      ];
+    case "deep-dive":
+      return [
+        { id: 1, label: "Record Audio", shortLabel: "Audio" },
+        { id: 2, label: "Review Transcript", shortLabel: "Review" },
+        { id: 3, label: "Upload Materials", shortLabel: "Upload" },
+        { id: 4, label: "View Feedback", shortLabel: "Feedback" },
+      ];
+    default:
+      return [];
+  }
+};
 
 const Index = () => {
   const {
     state,
-    startSession,
+    selectMode,
     handleAudioReady,
     confirmTranscript,
     handleDocumentsReady,
     resetSession,
   } = useSessionAnalysis();
 
+  const steps = getStepsForMode(state.mode);
+
   const renderStep = () => {
-    switch (state.step) {
-      case 0:
-        return <WelcomeScreen onStart={startSession} />;
-      case 1:
-        return <AudioRecorder onAudioReady={handleAudioReady} />;
-      case 2:
-        return (
-          <TranscriptEditor
-            transcript={state.transcript}
-            highlightedNames={state.highlightedNames}
-            isLoading={state.isTranscribing}
-            onConfirm={confirmTranscript}
-          />
-        );
-      case 3:
-        return <DocumentUploader onDocumentsReady={handleDocumentsReady} />;
-      case 4:
-        return (
-          <FeedbackReport
-            feedback={state.feedback}
-            transcript={state.anonymizedTranscript}
-            isLoading={state.isAnalyzing}
-            onReset={resetSession}
-          />
-        );
-      default:
-        return <WelcomeScreen onStart={startSession} />;
+    if (state.step === 0) {
+      return <WelcomeScreen onSelectMode={selectMode} />;
     }
+
+    // Recording mode flow
+    if (state.mode === "recording") {
+      switch (state.step) {
+        case 1:
+          return <AudioRecorder onFastFeedback={handleAudioReady} />;
+        case 2:
+          return (
+            <TranscriptEditor
+              transcript={state.transcript}
+              highlightedNames={state.highlightedNames}
+              isLoading={state.isTranscribing}
+              onConfirm={(transcript) => {
+                confirmTranscript(transcript);
+              }}
+            />
+          );
+        case 3:
+          return (
+            <FeedbackReport
+              feedback={state.feedback}
+              transcript={state.anonymizedTranscript}
+              isLoading={state.isAnalyzing}
+              onReset={resetSession}
+            />
+          );
+      }
+    }
+
+    // Resources mode flow
+    if (state.mode === "resources") {
+      switch (state.step) {
+        case 1:
+          return <DocumentUploader onDocumentsReady={handleDocumentsReady} />;
+        case 2:
+          return (
+            <FeedbackReport
+              feedback={state.feedback}
+              transcript=""
+              isLoading={state.isAnalyzing}
+              onReset={resetSession}
+            />
+          );
+      }
+    }
+
+    // Deep dive mode flow
+    if (state.mode === "deep-dive") {
+      switch (state.step) {
+        case 1:
+          return <AudioRecorder onFastFeedback={handleAudioReady} />;
+        case 2:
+          return (
+            <TranscriptEditor
+              transcript={state.transcript}
+              highlightedNames={state.highlightedNames}
+              isLoading={state.isTranscribing}
+              onConfirm={confirmTranscript}
+            />
+          );
+        case 3:
+          return <DocumentUploader onDocumentsReady={handleDocumentsReady} />;
+        case 4:
+          return (
+            <FeedbackReport
+              feedback={state.feedback}
+              transcript={state.anonymizedTranscript}
+              isLoading={state.isAnalyzing}
+              onReset={resetSession}
+            />
+          );
+      }
+    }
+
+    return <WelcomeScreen onSelectMode={selectMode} />;
   };
 
   return (
