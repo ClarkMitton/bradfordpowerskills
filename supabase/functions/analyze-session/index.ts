@@ -264,6 +264,7 @@ Respond with valid JSON matching this exact structure:
       "name": "Domain name",
       "rating": 1-4 (number of stars based on criteria above),
       "summary": "2-3 sentence summary explaining the rating with specific reference to what was observed",
+      "mvpMoment": "⭐ Identify the SINGLE BEST moment in this domain. Start with timestamp [MM:SS], quote the exact words, and explain why this was their most successful moment. Be enthusiastic and celebratory! This should feel like genuine praise for their best work.",
       "whatsWorking": "Specific positive observation with timestamp [MM:SS], quote, and pedagogical principle. Include terms with explanations. Max 4-5 sentences.",
       "evidenceStrengths": ["✓ [MM:SS] - \\"quote\\" - pedagogical explanation", "✓ [MM:SS] - \\"quote\\" - explanation"],
       "toMakeStronger": "One specific moment with timestamp [MM:SS] + ONE actionable technique with research backing. Max 4-5 sentences.",

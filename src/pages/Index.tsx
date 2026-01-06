@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { StepIndicator } from "@/components/StepIndicator";
-import { WelcomeScreen } from "@/components/WelcomeScreen";
+import { WelcomeScreen, FeedbackPath } from "@/components/WelcomeScreen";
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { SessionCapture } from "@/components/SessionCapture";
 import { PhaseSelector } from "@/components/PhaseSelector";
 import { FeedbackReport } from "@/components/FeedbackReport";
+import { PreviousReportUploader } from "@/components/PreviousReportUploader";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, Loader2, Clock } from "lucide-react";
@@ -40,6 +42,9 @@ const formatTime = (seconds: number) => {
 };
 
 const Index = () => {
+  const [feedbackPath, setFeedbackPath] = useState<FeedbackPath | null>(null);
+  const [previousReport, setPreviousReport] = useState<string | null>(null);
+  
   const {
     state,
     selectMode,
@@ -50,6 +55,12 @@ const Index = () => {
     resetSession,
     goBack,
   } = useSessionAnalysis();
+
+  const handleReset = () => {
+    setFeedbackPath(null);
+    setPreviousReport(null);
+    resetSession();
+  };
 
   const steps = getStepsForMode(state.mode);
 
@@ -83,7 +94,23 @@ const Index = () => {
 
   const renderStep = () => {
     if (state.step === 0) {
-      return <WelcomeScreen onSelectMode={selectMode} />;
+      // Show path selection first, then mode selection
+      if (feedbackPath === "comparative" && !previousReport) {
+        return (
+          <PreviousReportUploader 
+            onReportUploaded={(data, raw) => setPreviousReport(raw)}
+            onSkip={() => setFeedbackPath("new")}
+          />
+        );
+      }
+      return (
+        <WelcomeScreen 
+          onSelectMode={selectMode} 
+          onSelectPath={setFeedbackPath}
+          showPathSelection={true}
+          selectedPath={feedbackPath}
+        />
+      );
     }
 
     // Quick feedback mode flow (audio only)
@@ -108,7 +135,7 @@ const Index = () => {
               feedback={state.feedback}
               transcript={state.anonymizedTranscript}
               isLoading={state.isAnalyzing}
-              onReset={resetSession}
+              onReset={handleReset}
               mode={state.mode}
               selectedPhases={state.selectedPhases}
             />
@@ -143,7 +170,7 @@ const Index = () => {
               feedback={state.feedback}
               transcript={state.anonymizedTranscript}
               isLoading={state.isAnalyzing}
-              onReset={resetSession}
+              onReset={handleReset}
               mode={state.mode}
               selectedPhases={state.selectedPhases}
             />
@@ -192,7 +219,7 @@ const Index = () => {
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
-            <Button variant="outline" size="sm" onClick={resetSession}>
+            <Button variant="outline" size="sm" onClick={handleReset}>
               <Home className="w-4 h-4" />
               Home
             </Button>
