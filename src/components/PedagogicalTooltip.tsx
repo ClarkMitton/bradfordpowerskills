@@ -87,6 +87,107 @@ export const PEDAGOGICAL_TERMS: Record<string, { short: string; detailed: string
   "retrieval practice": {
     short: "Actively recalling information from memory",
     detailed: "Retrieval practice involves actively recalling information from memory rather than passively reviewing it. Research shows that the act of retrieval strengthens memory more than re-reading or highlighting. Techniques include low-stakes quizzes, flashcards, and asking students to write what they remember."
+  },
+  // Additional pedagogical terms
+  "active learning": {
+    short: "Engaging students in the learning process",
+    detailed: "Active learning involves instructional methods that engage students directly in the learning process through activities, discussions, problem-solving, and collaboration rather than passive listening. Research shows active learning significantly improves student outcomes compared to traditional lectures."
+  },
+  "prior knowledge activation": {
+    short: "Connecting new learning to what students already know",
+    detailed: "Prior knowledge activation involves helping students recall and connect what they already know to new content. This builds neural pathways between existing and new knowledge, making learning more meaningful and memorable. Techniques include KWL charts, brainstorming, and preview questions."
+  },
+  "dual coding": {
+    short: "Combining words and visuals for better learning",
+    detailed: "Dual Coding Theory suggests learning improves when information is presented both verbally and visually. The brain processes words and images through different channels, and combining them creates stronger memory traces. Effective use includes diagrams with explanations, annotated images, and visual metaphors."
+  },
+  "spaced repetition": {
+    short: "Reviewing at increasing intervals",
+    detailed: "Spaced repetition is a learning technique where review sessions are spaced out over increasing intervals. Each successful recall strengthens the memory and allows for longer intervals before the next review. This is one of the most effective evidence-based learning strategies."
+  },
+  "interleaving": {
+    short: "Mixing different topics during practice",
+    detailed: "Interleaving involves mixing different topics or problem types during practice rather than focusing on one type at a time (blocking). While it may feel harder, research shows interleaving leads to better long-term retention and transfer of learning to new situations."
+  },
+  "concrete examples": {
+    short: "Using specific instances to illustrate concepts",
+    detailed: "Concrete examples make abstract concepts tangible and understandable. By providing specific, relatable instances, teachers help students build accurate mental models. Multiple varied examples help students identify the essential features of a concept and transfer understanding to new contexts."
+  },
+  "elaborative interrogation": {
+    short: "Asking 'why' and 'how' questions",
+    detailed: "Elaborative interrogation involves prompting students to explain why facts or concepts are true. This 'why' questioning encourages deeper processing and helps students connect new information to existing knowledge, leading to better understanding and retention."
+  },
+  "self-explanation": {
+    short: "Students explaining their thinking process",
+    detailed: "Self-explanation is a strategy where students explain their thinking, reasoning, or problem-solving process to themselves. This metacognitive activity helps identify gaps in understanding, strengthens memory, and develops deeper comprehension of material."
+  },
+  "positive reinforcement": {
+    short: "Rewarding desired behaviours",
+    detailed: "Positive reinforcement involves providing a rewarding consequence after a desired behaviour, making it more likely to occur again. In teaching, this includes specific praise, recognition, and encouragement that reinforces effort, progress, and achievement."
+  },
+  "inclusive practice": {
+    short: "Ensuring all students can participate and succeed",
+    detailed: "Inclusive practice involves teaching strategies that ensure all students, regardless of ability, background, or learning needs, can fully participate and achieve. This includes accessible materials, varied teaching methods, and a welcoming classroom culture."
+  },
+  "questioning techniques": {
+    short: "Strategic use of questions to promote learning",
+    detailed: "Questioning techniques encompass various strategies for using questions effectively in teaching. This includes varying question types (open/closed, convergent/divergent), using wait time, targeting questions appropriately, and using follow-up probes to deepen thinking."
+  },
+  "feedback loop": {
+    short: "Cycle of providing and acting on feedback",
+    detailed: "A feedback loop is the ongoing cycle where students receive feedback, act on it, and then receive further feedback. Effective feedback loops are timely, specific, and actionable, helping students understand their current performance and how to improve."
+  },
+  "learning intentions": {
+    short: "Clear statements of what students will learn",
+    detailed: "Learning intentions (or objectives) are clear statements of what students should know, understand, or be able to do by the end of a lesson. When shared with students, they provide focus and help students understand the purpose of activities and how to recognise success."
+  },
+  "success criteria": {
+    short: "How students know they've achieved the goal",
+    detailed: "Success criteria describe what successful learning looks like. They provide students with clear indicators of quality and help them self-assess their work. Effective success criteria are specific, measurable, and co-constructed with students when appropriate."
+  },
+  "stretch and challenge": {
+    short: "Extending learning for higher-attaining students",
+    detailed: "Stretch and challenge involves providing extension activities and higher-order thinking opportunities for students who have mastered the basic content. This ensures all students are appropriately challenged and continues to develop skills in depth, breadth, and complexity."
+  },
+  "growth mindset": {
+    short: "Belief that abilities can be developed",
+    detailed: "Growth mindset, developed by Carol Dweck, is the belief that intelligence and abilities can be developed through effort, strategies, and help from others. Teachers foster growth mindset by praising effort over innate ability, normalising mistakes, and teaching about brain plasticity."
+  },
+  "desirable difficulties": {
+    short: "Challenges that enhance long-term learning",
+    detailed: "Desirable difficulties are learning conditions that make initial learning more challenging but lead to better long-term retention and transfer. Examples include interleaving, spaced practice, and testing. While they may slow initial performance, they enhance durable learning."
+  },
+  "collaborative learning": {
+    short: "Students working together to learn",
+    detailed: "Collaborative learning involves students working together in pairs or groups to solve problems, complete tasks, or understand new concepts. When structured well, it develops communication skills, deepens understanding through discussion, and exposes students to different perspectives."
+  },
+  "peer assessment": {
+    short: "Students evaluating each other's work",
+    detailed: "Peer assessment involves students providing feedback on each other's work using clear criteria. This develops critical evaluation skills, reinforces success criteria, and often provides timely feedback. Research shows students learn both from giving and receiving peer feedback."
+  },
+  "worked examples": {
+    short: "Step-by-step demonstrations of problem-solving",
+    detailed: "Worked examples are step-by-step demonstrations showing how an expert solves a problem or completes a task. They reduce cognitive load for novice learners by allowing them to focus on understanding the process rather than generating solutions from scratch."
+  },
+  "purposeful start": {
+    short: "Beginning lessons with clear direction and engagement",
+    detailed: "A purposeful start ensures lessons begin promptly with engaging activities that focus attention, activate prior knowledge, and clearly communicate the learning purpose. This maximises learning time and sets a positive tone for the session."
+  },
+  "student welcome": {
+    short: "Greeting students to build rapport",
+    detailed: "Student welcome involves greeting students individually as they enter, using names and showing genuine interest. This builds positive relationships, helps students feel valued, and creates a welcoming atmosphere that supports learning."
+  },
+  "marketplace activity": {
+    short: "Students moving around to gather information",
+    detailed: "A marketplace activity is a collaborative technique where information or work is displayed around the room, and students move between 'stalls' to gather, discuss, or evaluate content. This promotes movement, peer learning, and engagement with multiple perspectives."
+  },
+  "student voice": {
+    short: "Giving students opportunity to express views",
+    detailed: "Student voice involves creating opportunities for students to share their opinions, perspectives, and feedback on their learning experience. This develops ownership, makes learning more relevant, and provides valuable insights for teachers to improve their practice."
+  },
+  "real-world application": {
+    short: "Connecting learning to authentic contexts",
+    detailed: "Real-world application involves linking classroom learning to genuine situations outside school. This increases motivation by showing relevance, develops transfer skills, and helps students see the practical value of what they're learning."
   }
 };
 

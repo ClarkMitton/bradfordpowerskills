@@ -111,59 +111,96 @@ const starRatingColors: Record<number, string> = {
   1: "text-accent",
 };
 
-// Helper to highlight quotes and italics in text
-const formatTextWithEvidence = (text: string) => {
-  // Match quoted text
+// Helper to highlight quotes in text (non-pedagogical formatting)
+const formatQuotesOnly = (text: string) => {
   const quoteRegex = /"([^"]+)"/g;
-  // Match italic text with asterisks
-  const italicRegex = /\*([^*]+)\*/g;
-  
-  let result = text;
-  
-  // Replace quotes with styled text
-  result = result.replace(quoteRegex, '<span class="quote-text">"$1"</span>');
-  
-  // Replace italic markers with actual italics
-  result = result.replace(italicRegex, '<em class="text-primary/80">$1</em>');
-  
-  return result;
+  return text.replace(quoteRegex, '<span class="quote-text">"$1"</span>');
 };
 
-// Render text with formatting and check for pedagogical terms
-const renderFormattedText = (text: string) => {
-  const formattedHtml = formatTextWithEvidence(text);
-  
-  return (
-    <span 
-      className="evidence-text"
-      dangerouslySetInnerHTML={{ __html: formattedHtml }}
-    />
-  );
-};
-
-// Render text with pedagogical tooltips for standalone terms
-const renderWithTooltips = (text: string) => {
+// Render text with pedagogical tooltips for both standalone terms and *italic* wrapped terms
+const renderWithTooltips = (text: string): React.ReactNode => {
   const terms = Object.keys(PEDAGOGICAL_TERMS);
   const parts: React.ReactNode[] = [];
-  let lastIndex = 0;
   let key = 0;
   
-  const pattern = new RegExp(
+  // First, split by italic markers *term* which often contain pedagogical terms
+  // Pattern matches: *any text* (italic markers from AI)
+  const italicPattern = /\*([^*]+)\*/g;
+  
+  // Create pattern for known pedagogical terms (for non-italic matches)
+  const termPattern = new RegExp(
     `\\b(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
     'gi'
   );
   
+  let lastIndex = 0;
   let match;
-  const formattedText = formatTextWithEvidence(text);
   
-  // For simple text without HTML, add tooltips
-  while ((match = pattern.exec(text)) !== null) {
+  // Process italic-wrapped terms first
+  while ((match = italicPattern.exec(text)) !== null) {
+    // Add text before the match (check for pedagogical terms in it)
     if (match.index > lastIndex) {
-      parts.push(<span key={key++} dangerouslySetInnerHTML={{ __html: formatTextWithEvidence(text.slice(lastIndex, match.index)) }} />);
+      const beforeText = text.slice(lastIndex, match.index);
+      parts.push(...processTextForTerms(beforeText, termPattern, key));
+      key += 100; // Increment to avoid key collisions
     }
     
+    const italicContent = match[1];
+    const termLower = italicContent.toLowerCase();
+    
+    // Check if this italic text is a known pedagogical term
+    const matchedTerm = terms.find(t => termLower.includes(t.toLowerCase()));
+    
+    if (matchedTerm) {
+      // It's a pedagogical term - wrap in tooltip
+      parts.push(
+        <PedagogicalTooltip key={`italic-${key++}`} term={matchedTerm}>
+          {italicContent}
+        </PedagogicalTooltip>
+      );
+    } else {
+      // Just render as italic with emphasis styling
+      parts.push(
+        <em key={`italic-em-${key++}`} className="text-primary/80 font-medium">
+          {italicContent}
+        </em>
+      );
+    }
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text (check for pedagogical terms in it)
+  if (lastIndex < text.length) {
+    const remainingText = text.slice(lastIndex);
+    parts.push(...processTextForTerms(remainingText, termPattern, key));
+  }
+  
+  return parts.length > 0 ? <>{parts}</> : <span dangerouslySetInnerHTML={{ __html: formatQuotesOnly(text) }} />;
+};
+
+// Helper to process text segments for pedagogical terms
+const processTextForTerms = (text: string, termPattern: RegExp, startKey: number): React.ReactNode[] => {
+  const parts: React.ReactNode[] = [];
+  let key = startKey;
+  let lastIndex = 0;
+  
+  // Reset regex
+  termPattern.lastIndex = 0;
+  
+  let match;
+  while ((match = termPattern.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      const beforeText = text.slice(lastIndex, match.index);
+      parts.push(
+        <span key={`text-${key++}`} dangerouslySetInnerHTML={{ __html: formatQuotesOnly(beforeText) }} />
+      );
+    }
+    
+    // Add tooltip for the matched term
     parts.push(
-      <PedagogicalTooltip key={key++} term={match[1]}>
+      <PedagogicalTooltip key={`term-${key++}`} term={match[1]}>
         {match[0]}
       </PedagogicalTooltip>
     );
@@ -171,11 +208,19 @@ const renderWithTooltips = (text: string) => {
     lastIndex = match.index + match[0].length;
   }
   
+  // Add remaining text
   if (lastIndex < text.length) {
-    parts.push(<span key={key++} dangerouslySetInnerHTML={{ __html: formatTextWithEvidence(text.slice(lastIndex)) }} />);
+    parts.push(
+      <span key={`text-end-${key++}`} dangerouslySetInnerHTML={{ __html: formatQuotesOnly(text.slice(lastIndex)) }} />
+    );
   }
   
-  return parts.length > 0 ? parts : <span dangerouslySetInnerHTML={{ __html: formattedText }} />;
+  return parts;
+};
+
+// For evidence lists - format quotes only (terms should be in main text)
+const renderFormattedText = (text: string) => {
+  return renderWithTooltips(text);
 };
 
 export function FeedbackReport({
