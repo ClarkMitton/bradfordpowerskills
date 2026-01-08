@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { StepIndicator } from "@/components/StepIndicator";
 import { WelcomeScreen, FeedbackPath } from "@/components/WelcomeScreen";
 import { AudioRecorder } from "@/components/AudioRecorder";
@@ -75,8 +75,8 @@ const Index = () => {
   const steps = getStepsForMode(state.mode);
 
   // Show transcription loading state
-  const TranscriptionLoader = () => (
-    <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
+  const TranscriptionLoader = React.forwardRef<HTMLDivElement>((_, ref) => (
+    <div ref={ref} className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
       <div className="relative">
         <Loader2 className="w-16 h-16 text-primary animate-spin" />
         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-mono px-3 py-1 rounded-full flex items-center gap-2">
@@ -100,10 +100,12 @@ const Index = () => {
         </div>
       </div>
     </div>
-  );
+  ));
+
+  TranscriptionLoader.displayName = "TranscriptionLoader";
 
   // Show video processing loading state
-  const VideoProcessingLoader = () => {
+  const VideoProcessingLoader = React.forwardRef<HTMLDivElement>((_, ref) => {
     const getStatusText = () => {
       switch (state.videoProcessingStatus) {
         case "uploading":
@@ -121,7 +123,7 @@ const Index = () => {
     const StatusIcon = status.icon;
 
     return (
-      <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
+      <div ref={ref} className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
         <div className="relative">
           <Loader2 className="w-16 h-16 text-primary animate-spin" />
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-mono px-3 py-1 rounded-full flex items-center gap-2">
@@ -146,7 +148,9 @@ const Index = () => {
         </div>
       </div>
     );
-  };
+  });
+
+  VideoProcessingLoader.displayName = "VideoProcessingLoader";
 
   const renderStep = () => {
     if (state.step === 0) {
