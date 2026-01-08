@@ -35,7 +35,7 @@ interface FeedbackData {
   priorityGrowthArea: string;
 }
 
-export type AnalysisMode = "quick" | "deep-dive" | "full-review" | null;
+export type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis" | null;
 
 interface SessionState {
   step: number;
@@ -60,6 +60,11 @@ interface SessionState {
   transcriptionElapsed: number;
   sessionDetails: SessionDetails | null;
   analysisError: string | null;
+  // Video analysis state
+  videoBlob: Blob | null;
+  videoFileName: string;
+  isVideoAnalysis: boolean;
+  videoProcessingStatus: "uploading" | "processing" | "analyzing" | null;
 }
 
 const initialState: SessionState = {
@@ -85,6 +90,11 @@ const initialState: SessionState = {
   transcriptionElapsed: 0,
   sessionDetails: null,
   analysisError: null,
+  // Video analysis initial state
+  videoBlob: null,
+  videoFileName: "",
+  isVideoAnalysis: false,
+  videoProcessingStatus: null,
 };
 
 // Mock function to detect names in transcript
@@ -466,6 +476,80 @@ export function useSessionAnalysis() {
     });
   }, []);
 
+  // Handle video capture and analysis
+  const handleVideoCapture = useCallback(async (blob: Blob, fileName: string) => {
+    setState((prev) => ({
+      ...prev,
+      videoBlob: blob,
+      videoFileName: fileName,
+      isVideoAnalysis: true,
+      step: 2, // Go to phase selection
+      videoProcessingStatus: null,
+    }));
+  }, []);
+
+  // Analyze video with TwelveLabs
+  const analyzeVideo = useCallback(async (selectedPhases: SelectedPhase[]) => {
+    if (!state.videoBlob) {
+      toast.error("No video to analyze");
+      return;
+    }
+
+    setState((prev) => ({
+      ...prev,
+      selectedPhases,
+      isAnalyzing: true,
+      videoProcessingStatus: "uploading",
+      step: 3,
+      analysisError: null,
+    }));
+
+    try {
+      // Convert blob to base64
+      const arrayBuffer = await state.videoBlob.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const videoBase64 = btoa(binary);
+
+      setState((prev) => ({ ...prev, videoProcessingStatus: "processing" }));
+
+      const { data, error } = await supabase.functions.invoke("analyze-video", {
+        body: {
+          videoBase64,
+          fileName: state.videoFileName,
+          selectedPhases,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message || "Video analysis failed");
+      }
+
+      setState((prev) => ({
+        ...prev,
+        feedback: data,
+        isAnalyzing: false,
+        videoProcessingStatus: null,
+        analysisError: null,
+      }));
+
+      toast.success("Video analysis complete!");
+    } catch (error) {
+      console.error("Video analysis failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Video analysis failed. Please try again.";
+      toast.error(errorMessage);
+      setState((prev) => ({
+        ...prev,
+        isAnalyzing: false,
+        videoProcessingStatus: null,
+        analysisError: errorMessage,
+      }));
+    }
+  }, [state.videoBlob, state.videoFileName]);
+
   return {
     state,
     selectMode,
@@ -474,6 +558,8 @@ export function useSessionAnalysis() {
     handleTranscriptSubmit,
     confirmTranscript,
     handlePhaseSelection,
+    handleVideoCapture,
+    analyzeVideo,
     retryAnalysis,
     resetSession,
     goBack,

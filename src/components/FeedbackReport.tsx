@@ -83,7 +83,7 @@ interface FeedbackData {
   priorityGrowthArea: string;
 }
 
-type AnalysisMode = "quick" | "deep-dive" | "full-review";
+type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis";
 
 interface FeedbackReportProps {
   feedback: FeedbackData | null;
