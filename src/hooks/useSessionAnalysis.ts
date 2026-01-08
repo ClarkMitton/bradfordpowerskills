@@ -63,6 +63,8 @@ interface SessionState {
   // Video analysis state
   videoBlob: Blob | null;
   videoFileName: string;
+  videoStoragePath: string | null;
+  videoTaskId: string | null;
   isVideoAnalysis: boolean;
   videoProcessingStatus: "uploading" | "processing" | "analyzing" | null;
 }
@@ -93,6 +95,8 @@ const initialState: SessionState = {
   // Video analysis initial state
   videoBlob: null,
   videoFileName: "",
+  videoStoragePath: null,
+  videoTaskId: null,
   isVideoAnalysis: false,
   videoProcessingStatus: null,
 };
@@ -270,9 +274,32 @@ const generateFeedback = async (
   return data as FeedbackData;
 };
 
+// Upload video to storage and return the path
+const uploadVideoToStorage = async (file: File): Promise<string> => {
+  const timestamp = Date.now();
+  const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+  const storagePath = `${timestamp}_${sanitizedName}`;
+  
+  const { error } = await supabase.storage
+    .from("teaching-videos")
+    .upload(storagePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    console.error("Storage upload error:", error);
+    throw new Error("Failed to upload video: " + error.message);
+  }
+
+  return storagePath;
+};
+
 export function useSessionAnalysis() {
   const [state, setState] = useState<SessionState>(initialState);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingAbortRef = useRef<boolean>(false);
 
   // Transcription timer effect
   useEffect(() => {
@@ -294,6 +321,16 @@ export function useSessionAnalysis() {
       }
     };
   }, [state.isTranscribing, state.transcriptionStartTime]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      pollingAbortRef.current = true;
+      if (pollingRef.current) {
+        clearTimeout(pollingRef.current);
+      }
+    };
+  }, []);
 
   const selectMode = useCallback((mode: AnalysisMode) => {
     setState((prev) => ({ ...prev, mode, step: 1 }));
@@ -464,19 +501,27 @@ export function useSessionAnalysis() {
   }, [state.selectedPhases, handlePhaseSelection]);
 
   const resetSession = useCallback(() => {
+    pollingAbortRef.current = true;
+    if (pollingRef.current) {
+      clearTimeout(pollingRef.current);
+    }
     setState(initialState);
   }, []);
 
   const goBack = useCallback(() => {
     setState((prev) => {
       if (prev.step <= 1) {
+        pollingAbortRef.current = true;
+        if (pollingRef.current) {
+          clearTimeout(pollingRef.current);
+        }
         return initialState;
       }
       return { ...prev, step: prev.step - 1 };
     });
   }, []);
 
-  // Handle video capture and analysis
+  // Handle video capture - just store the file reference
   const handleVideoCapture = useCallback(async (blob: Blob, fileName: string) => {
     setState((prev) => ({
       ...prev,
@@ -488,7 +533,84 @@ export function useSessionAnalysis() {
     }));
   }, []);
 
-  // Analyze video with TwelveLabs
+  // Poll for video analysis status
+  const pollVideoStatus = useCallback(async (
+    taskId: string, 
+    selectedPhases: SelectedPhase[],
+    maxAttempts = 60 // 5 minutes max (60 * 5s)
+  ) => {
+    let attempts = 0;
+    pollingAbortRef.current = false;
+
+    const poll = async () => {
+      if (pollingAbortRef.current || attempts >= maxAttempts) {
+        if (attempts >= maxAttempts) {
+          setState((prev) => ({
+            ...prev,
+            isAnalyzing: false,
+            videoProcessingStatus: null,
+            analysisError: "Video processing timed out. Please try again with a shorter video.",
+          }));
+          toast.error("Video processing timed out");
+        }
+        return;
+      }
+
+      attempts++;
+
+      try {
+        const { data, error } = await supabase.functions.invoke("video-analysis-status", {
+          body: {
+            taskId,
+            selectedPhases: selectedPhases,
+          },
+        });
+
+        if (error) {
+          throw new Error(error.message || "Failed to check video status");
+        }
+
+        if (data.status === "complete") {
+          setState((prev) => ({
+            ...prev,
+            feedback: data.feedback,
+            isAnalyzing: false,
+            videoProcessingStatus: null,
+            analysisError: null,
+            videoBlob: null, // Clear blob after successful analysis
+          }));
+          toast.success("Video analysis complete!");
+          return;
+        }
+
+        if (data.status === "failed") {
+          throw new Error(data.error || "Video processing failed");
+        }
+
+        // Still processing, update status and poll again
+        setState((prev) => ({
+          ...prev,
+          videoProcessingStatus: data.taskStatus === "indexing" ? "analyzing" : "processing",
+        }));
+
+        pollingRef.current = setTimeout(poll, 5000); // Poll every 5 seconds
+      } catch (error) {
+        console.error("Polling error:", error);
+        const errorMessage = error instanceof Error ? error.message : "Video analysis failed. Please try again.";
+        setState((prev) => ({
+          ...prev,
+          isAnalyzing: false,
+          videoProcessingStatus: null,
+          analysisError: errorMessage,
+        }));
+        toast.error(errorMessage);
+      }
+    };
+
+    poll();
+  }, []);
+
+  // Analyze video with TwelveLabs - new async flow
   const analyzeVideo = useCallback(async (selectedPhases: SelectedPhase[]) => {
     if (!state.videoBlob) {
       toast.error("No video to analyze");
@@ -505,38 +627,43 @@ export function useSessionAnalysis() {
     }));
 
     try {
-      // Convert blob to base64
-      const arrayBuffer = await state.videoBlob.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      let binary = "";
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      const videoBase64 = btoa(binary);
+      // Step 1: Upload video to storage (no base64!)
+      const storagePath = await uploadVideoToStorage(state.videoBlob as unknown as File);
+      console.log("Video uploaded to storage:", storagePath);
 
-      setState((prev) => ({ ...prev, videoProcessingStatus: "processing" }));
+      setState((prev) => ({
+        ...prev,
+        videoStoragePath: storagePath,
+        videoProcessingStatus: "processing",
+      }));
 
-      const { data, error } = await supabase.functions.invoke("analyze-video", {
+      // Step 2: Start video analysis task
+      const { data, error } = await supabase.functions.invoke("start-video-analysis", {
         body: {
-          videoBase64,
+          storagePath,
           fileName: state.videoFileName,
-          selectedPhases,
+          selectedPhases: selectedPhases,
         },
       });
 
       if (error) {
-        throw new Error(error.message || "Video analysis failed");
+        throw new Error(error.message || "Failed to start video analysis");
       }
+
+      if (!data.taskId) {
+        throw new Error("No task ID returned from server");
+      }
+
+      console.log("Video analysis task started:", data.taskId);
 
       setState((prev) => ({
         ...prev,
-        feedback: data,
-        isAnalyzing: false,
-        videoProcessingStatus: null,
-        analysisError: null,
+        videoTaskId: data.taskId,
       }));
 
-      toast.success("Video analysis complete!");
+      // Step 3: Poll for completion
+      pollVideoStatus(data.taskId, selectedPhases);
+
     } catch (error) {
       console.error("Video analysis failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Video analysis failed. Please try again.";
@@ -548,7 +675,7 @@ export function useSessionAnalysis() {
         analysisError: errorMessage,
       }));
     }
-  }, [state.videoBlob, state.videoFileName]);
+  }, [state.videoBlob, state.videoFileName, pollVideoStatus]);
 
   return {
     state,

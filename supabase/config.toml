@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.analyze-video]
 verify_jwt = false
+
+[functions.start-video-analysis]
+verify_jwt = false
+
+[functions.video-analysis-status]
+verify_jwt = false
