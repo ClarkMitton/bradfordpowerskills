@@ -109,18 +109,42 @@ const Index = () => {
     const getStatusText = () => {
       switch (state.videoProcessingStatus) {
         case "uploading":
-          return { title: "Uploading Video", message: "Sending your video for analysis...", icon: Upload };
+          return { 
+            title: "Uploading Video", 
+            message: "Sending your video to our servers...", 
+            icon: Upload,
+            detail: "This depends on your connection speed"
+          };
         case "processing":
-          return { title: "Processing Video", message: "Analyzing visual and audio elements...", icon: Video };
+          return { 
+            title: "Indexing Video", 
+            message: "TwelveLabs is processing your video content...", 
+            icon: Video,
+            detail: "This typically takes 60-90 seconds"
+          };
         case "analyzing":
-          return { title: "Analyzing Pedagogy", message: "Extracting teaching insights...", icon: Sparkles };
+          return { 
+            title: "Analyzing Pedagogy", 
+            message: "AI is extracting teaching insights from visual and audio...", 
+            icon: Sparkles,
+            detail: "Almost done..."
+          };
         default:
-          return { title: "Analyzing Video", message: "This may take a few minutes...", icon: Video };
+          return { 
+            title: "Preparing Analysis", 
+            message: "Setting up video analysis...", 
+            icon: Video,
+            detail: "Please wait"
+          };
       }
     };
 
     const status = getStatusText();
     const StatusIcon = status.icon;
+
+    // Progress stages for visual feedback
+    const stages = ["uploading", "processing", "analyzing"];
+    const currentStageIndex = stages.indexOf(state.videoProcessingStatus || "uploading");
 
     return (
       <div ref={ref} className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
@@ -128,9 +152,30 @@ const Index = () => {
           <Loader2 className="w-16 h-16 text-primary animate-spin" />
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-mono px-3 py-1 rounded-full flex items-center gap-2">
             <StatusIcon className="w-4 h-4" />
-            <span className="capitalize">{state.videoProcessingStatus || "analyzing"}</span>
+            <span className="capitalize">{state.videoProcessingStatus || "preparing"}</span>
           </div>
         </div>
+        
+        {/* Progress indicator */}
+        <div className="flex items-center gap-2 w-full max-w-xs">
+          {stages.map((stage, index) => (
+            <React.Fragment key={stage}>
+              <div 
+                className={`h-2 flex-1 rounded-full transition-colors ${
+                  index <= currentStageIndex 
+                    ? "bg-primary" 
+                    : "bg-muted"
+                }`}
+              />
+              {index < stages.length - 1 && (
+                <div className={`w-1 h-1 rounded-full ${
+                  index < currentStageIndex ? "bg-primary" : "bg-muted"
+                }`} />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+        
         <div className="text-center space-y-3">
           <h3 className="text-2xl font-heading font-semibold text-foreground">
             {status.title}
@@ -139,10 +184,10 @@ const Index = () => {
             {status.message}
           </p>
           <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground/70">
-            <p>Video analysis typically takes 2-5 minutes depending on length</p>
+            <p>{status.detail}</p>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span>Please wait...</span>
+              <span>Step {currentStageIndex + 1} of {stages.length}</span>
             </div>
           </div>
         </div>
