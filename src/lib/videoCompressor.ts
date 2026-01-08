@@ -19,7 +19,7 @@ interface CompressionProgress {
 
 type ProgressCallback = (progress: CompressionProgress) => void;
 
-async function loadFFmpeg(onProgress: ProgressCallback): Promise<FFmpeg> {
+async function loadFFmpeg(): Promise<FFmpeg> {
   if (ffmpeg && ffmpeg.loaded) {
     return ffmpeg;
   }
@@ -35,18 +35,9 @@ async function loadFFmpeg(onProgress: ProgressCallback): Promise<FFmpeg> {
   }
 
   isLoading = true;
-  onProgress({ stage: "loading", progress: 0, message: "Loading video processor..." });
 
   try {
     ffmpeg = new FFmpeg();
-
-    ffmpeg.on("progress", ({ progress }) => {
-      onProgress({
-        stage: "compressing",
-        progress: Math.round(progress * 100),
-        message: `Compressing: ${Math.round(progress * 100)}%`,
-      });
-    });
 
     // Load from CDN
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
@@ -55,7 +46,6 @@ async function loadFFmpeg(onProgress: ProgressCallback): Promise<FFmpeg> {
       wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
     });
 
-    onProgress({ stage: "loading", progress: 100, message: "Video processor ready" });
     return ffmpeg;
   } finally {
     isLoading = false;
@@ -80,7 +70,19 @@ export async function compressVideo(
     };
   }
 
-  const ff = await loadFFmpeg(onProgress);
+  onProgress({ stage: "loading", progress: 0, message: "Loading video processor..." });
+  
+  const ff = await loadFFmpeg();
+  
+  // Re-attach the progress listener with the current callback each time
+  ff.on("progress", ({ progress }) => {
+    console.log("FFmpeg progress:", progress);
+    onProgress({
+      stage: "compressing",
+      progress: Math.round(progress * 100),
+      message: `Compressing: ${Math.round(progress * 100)}%`,
+    });
+  });
 
   onProgress({ stage: "compressing", progress: 0, message: "Preparing video..." });
 
