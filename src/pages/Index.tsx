@@ -75,8 +75,8 @@ const Index = () => {
   const steps = getStepsForMode(state.mode);
 
   // Show transcription loading state
-  const TranscriptionLoader = React.forwardRef<HTMLDivElement>((_, ref) => (
-    <div ref={ref} className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
+  const TranscriptionLoader = () => (
+    <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
       <div className="relative">
         <Loader2 className="w-16 h-16 text-primary animate-spin" />
         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-mono px-3 py-1 rounded-full flex items-center gap-2">
@@ -100,41 +100,39 @@ const Index = () => {
         </div>
       </div>
     </div>
-  ));
-
-  TranscriptionLoader.displayName = "TranscriptionLoader";
+  );
 
   // Show video processing loading state
-  const VideoProcessingLoader = React.forwardRef<HTMLDivElement>((_, ref) => {
+  const VideoProcessingLoader = () => {
     const getStatusText = () => {
       switch (state.videoProcessingStatus) {
         case "uploading":
-          return { 
-            title: "Uploading Video", 
-            message: "Sending your video to our servers...", 
+          return {
+            title: "Uploading Video",
+            message: "Sending your video to our servers...",
             icon: Upload,
-            detail: "This depends on your connection speed"
+            detail: "This depends on your connection speed",
           };
         case "processing":
-          return { 
-            title: "Indexing Video", 
-            message: "TwelveLabs is processing your video content...", 
+          return {
+            title: "Indexing Video",
+            message: "TwelveLabs is processing your video content...",
             icon: Video,
-            detail: "This typically takes 60-90 seconds"
+            detail: "This typically takes 60-90 seconds",
           };
         case "analyzing":
-          return { 
-            title: "Analyzing Pedagogy", 
-            message: "AI is extracting teaching insights from visual and audio...", 
+          return {
+            title: "Analyzing Pedagogy",
+            message: "AI is extracting teaching insights from visual and audio...",
             icon: Sparkles,
-            detail: "Almost done..."
+            detail: "Almost done...",
           };
         default:
-          return { 
-            title: "Preparing Analysis", 
-            message: "Setting up video analysis...", 
+          return {
+            title: "Preparing Analysis",
+            message: "Setting up video analysis...",
             icon: Video,
-            detail: "Please wait"
+            detail: "Please wait",
           };
       }
     };
@@ -147,7 +145,7 @@ const Index = () => {
     const currentStageIndex = stages.indexOf(state.videoProcessingStatus || "uploading");
 
     return (
-      <div ref={ref} className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
+      <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
         <div className="relative">
           <Loader2 className="w-16 h-16 text-primary animate-spin" />
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-mono px-3 py-1 rounded-full flex items-center gap-2">
@@ -155,48 +153,43 @@ const Index = () => {
             <span className="capitalize">{state.videoProcessingStatus || "preparing"}</span>
           </div>
         </div>
-        
+
         {/* Progress indicator */}
         <div className="flex items-center gap-2 w-full max-w-xs">
           {stages.map((stage, index) => (
             <React.Fragment key={stage}>
-              <div 
+              <div
                 className={`h-2 flex-1 rounded-full transition-colors ${
-                  index <= currentStageIndex 
-                    ? "bg-primary" 
-                    : "bg-muted"
+                  index <= currentStageIndex ? "bg-primary" : "bg-muted"
                 }`}
               />
               {index < stages.length - 1 && (
-                <div className={`w-1 h-1 rounded-full ${
-                  index < currentStageIndex ? "bg-primary" : "bg-muted"
-                }`} />
+                <div
+                  className={`w-1 h-1 rounded-full ${
+                    index < currentStageIndex ? "bg-primary" : "bg-muted"
+                  }`}
+                />
               )}
             </React.Fragment>
           ))}
         </div>
-        
+
         <div className="text-center space-y-3">
-          <h3 className="text-2xl font-heading font-semibold text-foreground">
-            {status.title}
-          </h3>
-          <p className="text-muted-foreground max-w-md">
-            {status.message}
-          </p>
+          <h3 className="text-2xl font-heading font-semibold text-foreground">{status.title}</h3>
+          <p className="text-muted-foreground max-w-md">{status.message}</p>
           <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground/70">
             <p>{status.detail}</p>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span>Step {currentStageIndex + 1} of {stages.length}</span>
+              <span>
+                Step {currentStageIndex + 1} of {stages.length}
+              </span>
             </div>
           </div>
         </div>
       </div>
     );
-  });
-
-  VideoProcessingLoader.displayName = "VideoProcessingLoader";
-
+  };
   const renderStep = () => {
     if (state.step === 0) {
       // Show path selection first, then mode selection
