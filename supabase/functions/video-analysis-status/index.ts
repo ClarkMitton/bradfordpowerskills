@@ -75,14 +75,21 @@ Respond in this JSON structure:
   "topPriority": "The single most impactful improvement to focus on"
 }`;
 
-  const response = await makeRequest("/analyze", {
+const response = await makeRequest("/analyze", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       video_id: videoId,
       prompt: prompt,
+      stream: false, // Disable streaming to get a single JSON response
     }),
   }, apiKey);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("TwelveLabs analyze API error:", response.status, errorText);
+    throw new Error(`TwelveLabs API returned ${response.status}: ${errorText}`);
+  }
   
   return await response.json();
 }

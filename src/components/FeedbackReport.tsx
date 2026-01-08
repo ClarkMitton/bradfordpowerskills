@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Download, 
@@ -276,7 +276,7 @@ const renderFormattedText = (text: string) => {
   return renderWithTooltips(text);
 };
 
-export function FeedbackReport({
+export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
   feedback,
   transcript,
   isLoading,
@@ -285,7 +285,7 @@ export function FeedbackReport({
   error,
   mode,
   selectedPhases,
-}: FeedbackReportProps) {
+}, ref) => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [expandedPhases, setExpandedPhases] = useState<string[]>([]);
 
@@ -1198,4 +1198,6 @@ export function FeedbackReport({
       </div>
     </div>
   );
-}
+});
+
+FeedbackReport.displayName = "FeedbackReport";
