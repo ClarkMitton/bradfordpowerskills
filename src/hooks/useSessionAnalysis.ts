@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { compressVideo, formatBytes } from "@/lib/videoCompressor";
 import type { SelectedPhase } from "@/components/PhaseSelector";
 import type { SessionDetails } from "@/components/AudioRecorder";
 
@@ -66,7 +67,9 @@ interface SessionState {
   videoStoragePath: string | null;
   videoTaskId: string | null;
   isVideoAnalysis: boolean;
-  videoProcessingStatus: "uploading" | "processing" | "analyzing" | null;
+  videoProcessingStatus: "compressing" | "uploading" | "processing" | "analyzing" | null;
+  compressionProgress: number;
+  compressionSavings: string | null;
 }
 
 const initialState: SessionState = {
@@ -99,6 +102,8 @@ const initialState: SessionState = {
   videoTaskId: null,
   isVideoAnalysis: false,
   videoProcessingStatus: null,
+  compressionProgress: 0,
+  compressionSavings: null,
 };
 
 // Mock function to detect names in transcript
@@ -621,14 +626,42 @@ export function useSessionAnalysis() {
       ...prev,
       selectedPhases,
       isAnalyzing: true,
-      videoProcessingStatus: "uploading",
+      videoProcessingStatus: "compressing",
+      compressionProgress: 0,
+      compressionSavings: null,
       step: 3,
       analysisError: null,
     }));
 
     try {
-      // Step 1: Upload video to storage (no base64!)
-      const storagePath = await uploadVideoToStorage(state.videoBlob as unknown as File);
+      // Step 1: Compress video first
+      const compressionResult = await compressVideo(
+        state.videoBlob as unknown as File,
+        (progress) => {
+          setState((prev) => ({
+            ...prev,
+            compressionProgress: progress.progress,
+          }));
+        }
+      );
+
+      // Calculate savings
+      const savings = compressionResult.originalSize > compressionResult.compressedSize
+        ? `Reduced from ${formatBytes(compressionResult.originalSize)} to ${formatBytes(compressionResult.compressedSize)}`
+        : null;
+
+      setState((prev) => ({
+        ...prev,
+        videoProcessingStatus: "uploading",
+        compressionProgress: 100,
+        compressionSavings: savings,
+      }));
+
+      // Step 2: Upload compressed video to storage
+      const videoFile = new File([compressionResult.blob], state.videoFileName.replace(/\.\w+$/, ".mp4"), {
+        type: "video/mp4",
+      });
+      const storagePath = await uploadVideoToStorage(videoFile);
       console.log("Video uploaded to storage:", storagePath);
 
       setState((prev) => ({
