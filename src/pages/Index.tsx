@@ -106,12 +106,29 @@ const Index = () => {
   const VideoProcessingLoader = () => {
     const getStatusText = () => {
       switch (state.videoProcessingStatus) {
+        case "loading":
+          return {
+            title: "Loading Video Processor",
+            message: state.compressionMessage || "Loading video processor...",
+            icon: Zap,
+            detail: "Downloading processing engine",
+            showProgress: false,
+          };
+        case "preparing":
+          return {
+            title: "Preparing Video",
+            message: state.compressionMessage || "Copying video to processor...",
+            icon: Upload,
+            detail: `${state.compressionProgress}% complete`,
+            showProgress: true,
+          };
         case "compressing":
           return {
-            title: "Optimizing Video",
-            message: "Compressing for faster upload...",
+            title: "Compressing Video",
+            message: state.compressionMessage || "Optimizing for upload...",
             icon: Zap,
             detail: `${state.compressionProgress}% complete`,
+            showProgress: true,
           };
         case "uploading":
           return {
@@ -119,6 +136,7 @@ const Index = () => {
             message: state.compressionSavings || "Sending your video to our servers...",
             icon: Upload,
             detail: "This depends on your connection speed",
+            showProgress: false,
           };
         case "processing":
           return {
@@ -126,6 +144,7 @@ const Index = () => {
             message: "Processing your video content...",
             icon: Video,
             detail: "This typically takes 60-90 seconds",
+            showProgress: false,
           };
         case "analyzing":
           return {
@@ -133,6 +152,7 @@ const Index = () => {
             message: "AI is extracting teaching insights from visual and audio...",
             icon: Sparkles,
             detail: "Almost done...",
+            showProgress: false,
           };
         default:
           return {
@@ -140,6 +160,7 @@ const Index = () => {
             message: "Setting up video analysis...",
             icon: Video,
             detail: "Please wait",
+            showProgress: false,
           };
       }
     };
@@ -148,8 +169,8 @@ const Index = () => {
     const StatusIcon = status.icon;
 
     // Progress stages for visual feedback
-    const stages = ["compressing", "uploading", "processing", "analyzing"];
-    const currentStageIndex = stages.indexOf(state.videoProcessingStatus || "compressing");
+    const stages = ["loading", "preparing", "compressing", "uploading", "processing", "analyzing"];
+    const currentStageIndex = stages.indexOf(state.videoProcessingStatus || "loading");
 
     return (
       <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">

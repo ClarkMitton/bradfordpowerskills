@@ -67,8 +67,9 @@ interface SessionState {
   videoStoragePath: string | null;
   videoTaskId: string | null;
   isVideoAnalysis: boolean;
-  videoProcessingStatus: "compressing" | "uploading" | "processing" | "analyzing" | null;
+  videoProcessingStatus: "loading" | "preparing" | "compressing" | "uploading" | "processing" | "analyzing" | null;
   compressionProgress: number;
+  compressionMessage: string;
   compressionSavings: string | null;
 }
 
@@ -103,6 +104,7 @@ const initialState: SessionState = {
   isVideoAnalysis: false,
   videoProcessingStatus: null,
   compressionProgress: 0,
+  compressionMessage: "",
   compressionSavings: null,
 };
 
@@ -626,8 +628,9 @@ export function useSessionAnalysis() {
       ...prev,
       selectedPhases,
       isAnalyzing: true,
-      videoProcessingStatus: "compressing",
+      videoProcessingStatus: "loading",
       compressionProgress: 0,
+      compressionMessage: "Loading video processor...",
       compressionSavings: null,
       step: 3,
       analysisError: null,
@@ -640,7 +643,9 @@ export function useSessionAnalysis() {
         (progress) => {
           setState((prev) => ({
             ...prev,
+            videoProcessingStatus: progress.stage,
             compressionProgress: progress.progress,
+            compressionMessage: progress.message,
           }));
         }
       );
