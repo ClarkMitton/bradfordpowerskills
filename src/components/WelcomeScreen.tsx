@@ -1,7 +1,7 @@
-import { Mic, FileText, Layers, Sparkles, GitCompare, ArrowRight } from "lucide-react";
+import { Mic, FileText, Layers, Sparkles, GitCompare, ArrowRight, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export type AnalysisMode = "quick" | "deep-dive" | "full-review";
+export type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis";
 export type FeedbackPath = "new" | "comparative";
 
 interface WelcomeScreenProps {
@@ -59,6 +59,14 @@ export function WelcomeScreen({
       description: "Comprehensive analysis of the complete teaching cycle — from planning through delivery to student outcomes.",
       details: ["Audio recording", "Lesson plan & scaffolding", "3 pieces of student work"],
       encouragement: "Perfect for deep reflection — connect your planning, delivery, and student outcomes for powerful professional growth.",
+    },
+    {
+      id: "video-analysis" as const,
+      icon: Video,
+      title: "Video Analysis",
+      description: "Upload a video of your teaching session for comprehensive visual and audio analysis.",
+      details: ["Upload MP4/WebM video", "Visual + audio analysis", "Body language feedback"],
+      encouragement: "See your teaching from your students' perspective — get insights on presence, movement, and visual delivery.",
     },
   ];
 

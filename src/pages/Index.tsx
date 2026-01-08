@@ -3,12 +3,13 @@ import { StepIndicator } from "@/components/StepIndicator";
 import { WelcomeScreen, FeedbackPath } from "@/components/WelcomeScreen";
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { SessionCapture } from "@/components/SessionCapture";
+import { VideoCapture } from "@/components/VideoCapture";
 import { PhaseSelector } from "@/components/PhaseSelector";
 import { FeedbackReport } from "@/components/FeedbackReport";
 import { PreviousReportUploader } from "@/components/PreviousReportUploader";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, Home, Loader2, Clock, Video, Upload, Sparkles } from "lucide-react";
 
 const getStepsForMode = (mode: string | null) => {
   switch (mode) {
@@ -27,6 +28,12 @@ const getStepsForMode = (mode: string | null) => {
     case "full-review":
       return [
         { id: 1, label: "Capture Session", shortLabel: "Capture" },
+        { id: 2, label: "Select Phases", shortLabel: "Phases" },
+        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
+      ];
+    case "video-analysis":
+      return [
+        { id: 1, label: "Upload Video", shortLabel: "Video" },
         { id: 2, label: "Select Phases", shortLabel: "Phases" },
         { id: 3, label: "View Feedback", shortLabel: "Feedback" },
       ];
@@ -52,6 +59,8 @@ const Index = () => {
     handleSessionCapture,
     handleTranscriptSubmit,
     handlePhaseSelection,
+    handleVideoCapture,
+    analyzeVideo,
     retryAnalysis,
     resetSession,
     goBack,
@@ -92,6 +101,52 @@ const Index = () => {
       </div>
     </div>
   );
+
+  // Show video processing loading state
+  const VideoProcessingLoader = () => {
+    const getStatusText = () => {
+      switch (state.videoProcessingStatus) {
+        case "uploading":
+          return { title: "Uploading Video", message: "Sending your video for analysis...", icon: Upload };
+        case "processing":
+          return { title: "Processing Video", message: "Analyzing visual and audio elements...", icon: Video };
+        case "analyzing":
+          return { title: "Analyzing Pedagogy", message: "Extracting teaching insights...", icon: Sparkles };
+        default:
+          return { title: "Analyzing Video", message: "This may take a few minutes...", icon: Video };
+      }
+    };
+
+    const status = getStatusText();
+    const StatusIcon = status.icon;
+
+    return (
+      <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
+        <div className="relative">
+          <Loader2 className="w-16 h-16 text-primary animate-spin" />
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-mono px-3 py-1 rounded-full flex items-center gap-2">
+            <StatusIcon className="w-4 h-4" />
+            <span className="capitalize">{state.videoProcessingStatus || "analyzing"}</span>
+          </div>
+        </div>
+        <div className="text-center space-y-3">
+          <h3 className="text-2xl font-heading font-semibold text-foreground">
+            {status.title}
+          </h3>
+          <p className="text-muted-foreground max-w-md">
+            {status.message}
+          </p>
+          <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground/70">
+            <p>Video analysis typically takes 2-5 minutes depending on length</p>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span>Please wait...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderStep = () => {
     if (state.step === 0) {
@@ -175,6 +230,41 @@ const Index = () => {
               isLoading={state.isAnalyzing}
               onReset={handleReset}
               onRetry={retryAnalysis}
+              error={state.analysisError}
+              mode={state.mode}
+              selectedPhases={state.selectedPhases}
+            />
+          );
+      }
+    }
+
+    // Video analysis mode
+    if (state.mode === "video-analysis") {
+      switch (state.step) {
+        case 1:
+          return (
+            <VideoCapture
+              onComplete={handleVideoCapture}
+            />
+          );
+        case 2:
+          return (
+            <PhaseSelector
+              onConfirm={analyzeVideo}
+              isLoading={false}
+            />
+          );
+        case 3:
+          if (state.isAnalyzing) {
+            return <VideoProcessingLoader />;
+          }
+          return (
+            <FeedbackReport
+              feedback={state.feedback}
+              transcript=""
+              isLoading={state.isAnalyzing}
+              onReset={handleReset}
+              onRetry={() => state.selectedPhases.length > 0 && analyzeVideo(state.selectedPhases)}
               error={state.analysisError}
               mode={state.mode}
               selectedPhases={state.selectedPhases}
