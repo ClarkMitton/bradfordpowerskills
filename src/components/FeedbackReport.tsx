@@ -747,7 +747,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
 
   if (isLoading) {
     return (
-      <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
+      <div ref={ref} className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
         <div className="relative">
           <Loader2 className="w-16 h-16 text-primary animate-spin" />
           <Sparkles className="w-6 h-6 text-yellow-500 absolute -top-1 -right-1 animate-pulse" />
@@ -769,7 +769,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
 
   if (!feedback) {
     return (
-      <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
+      <div ref={ref} className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
         <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-destructive" />
         </div>
@@ -797,7 +797,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
   }
 
   return (
-    <div className="section-fade-in space-y-8">
+    <div ref={ref} className="section-fade-in space-y-8">
       {/* Celebration Header */}
       <div className="text-center space-y-4 py-4">
         <div className="inline-flex items-center gap-2 text-success bg-success/10 px-4 py-2 rounded-full">
