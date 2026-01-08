@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -43,7 +43,7 @@ const phases = [
   },
 ];
 
-export function PhaseSelector({ onConfirm, isLoading }: PhaseSelectorProps) {
+export const PhaseSelector = forwardRef<HTMLDivElement, PhaseSelectorProps>(({ onConfirm, isLoading }, ref) => {
   const [selected, setSelected] = useState<SelectedPhase[]>([]);
 
   const handleToggle = (phaseId: SelectedPhase) => {
@@ -105,7 +105,7 @@ export function PhaseSelector({ onConfirm, isLoading }: PhaseSelectorProps) {
   }
 
   return (
-    <div className="section-fade-in space-y-6">
+    <div ref={ref} className="section-fade-in space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-heading font-semibold text-foreground">
           Select LEAD Phases to Analyze
@@ -161,4 +161,6 @@ export function PhaseSelector({ onConfirm, isLoading }: PhaseSelectorProps) {
       </div>
     </div>
   );
-}
+});
+
+PhaseSelector.displayName = "PhaseSelector";

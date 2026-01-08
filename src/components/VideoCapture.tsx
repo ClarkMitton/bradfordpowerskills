@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Video, X, Play, Pause, AlertCircle, CheckCircle2 } from "lucide-react";
@@ -11,7 +11,7 @@ interface VideoCaptureProps {
 const MAX_FILE_SIZE_MB = 500;
 const RECOMMENDED_DURATION_MIN = 30;
 
-export const VideoCapture: React.FC<VideoCaptureProps> = ({ onComplete }) => {
+export const VideoCapture = forwardRef<HTMLDivElement, VideoCaptureProps>(({ onComplete }, ref) => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -103,7 +103,7 @@ export const VideoCapture: React.FC<VideoCaptureProps> = ({ onComplete }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div ref={ref} className="space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-foreground">Upload Your Teaching Video</h2>
         <p className="text-muted-foreground">
@@ -222,7 +222,9 @@ export const VideoCapture: React.FC<VideoCaptureProps> = ({ onComplete }) => {
         size="lg"
       >
         Analyze My Teaching Video
-      </Button>
+    </Button>
     </div>
   );
-};
+});
+
+VideoCapture.displayName = "VideoCapture";
