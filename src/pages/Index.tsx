@@ -9,7 +9,7 @@ import { FeedbackReport } from "@/components/FeedbackReport";
 import { PreviousReportUploader } from "@/components/PreviousReportUploader";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, Loader2, Clock, Video, Upload, Sparkles } from "lucide-react";
+import { ArrowLeft, Home, Loader2, Clock, Video, Upload, Sparkles, Zap } from "lucide-react";
 
 const getStepsForMode = (mode: string | null) => {
   switch (mode) {
@@ -106,17 +106,24 @@ const Index = () => {
   const VideoProcessingLoader = () => {
     const getStatusText = () => {
       switch (state.videoProcessingStatus) {
+        case "compressing":
+          return {
+            title: "Optimizing Video",
+            message: "Compressing for faster upload...",
+            icon: Zap,
+            detail: `${state.compressionProgress}% complete`,
+          };
         case "uploading":
           return {
             title: "Uploading Video",
-            message: "Sending your video to our servers...",
+            message: state.compressionSavings || "Sending your video to our servers...",
             icon: Upload,
             detail: "This depends on your connection speed",
           };
         case "processing":
           return {
             title: "Indexing Video",
-            message: "TwelveLabs is processing your video content...",
+            message: "Processing your video content...",
             icon: Video,
             detail: "This typically takes 60-90 seconds",
           };
@@ -141,8 +148,8 @@ const Index = () => {
     const StatusIcon = status.icon;
 
     // Progress stages for visual feedback
-    const stages = ["uploading", "processing", "analyzing"];
-    const currentStageIndex = stages.indexOf(state.videoProcessingStatus || "uploading");
+    const stages = ["compressing", "uploading", "processing", "analyzing"];
+    const currentStageIndex = stages.indexOf(state.videoProcessingStatus || "compressing");
 
     return (
       <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
