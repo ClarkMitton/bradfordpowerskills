@@ -211,19 +211,20 @@ const FEEDBACK_STRUCTURE = `
 For EACH domain, provide feedback in these THREE sections:
 
 ### Section 1: What's Working Well (marked with ✓)
-- Start with specific observable behaviour with timestamp [MM:SS]
-- Explain the pedagogical principle behind why this is effective
+- DO NOT include timestamps in the main text - focus on explaining WHY they received this rating
+- Provide a GENERAL OVERVIEW of the pedagogical strengths observed
+- Explain the pedagogical principles behind what makes their practice effective
 - Wrap pedagogical terms in *asterisks* (e.g., *wait time*) - the system adds tooltips automatically, do NOT add explanations in brackets
 - Maximum 4-5 sentences
-- Example: "At [3:45], you paused for 5 seconds after asking 'What patterns do you notice?' This demonstrates excellent *wait time*. Research shows this increases both response quality and participation by up to 40%."
+- Example: "You demonstrated strong *wait time* throughout your questioning, allowing students adequate thinking time before expecting responses. This practice is grounded in research showing that pausing 3-5 seconds increases response quality and participation."
 
 ### Section 2: To Make It Even Stronger (marked with →)
-- Identify specific moment with timestamp [MM:SS] where enhancement could occur
+- DO NOT include timestamps - focus on the GENERAL pattern or area for improvement
 - Suggest ONE concrete, actionable technique with pedagogical justification
 - Include research-based reasoning where relevant
 - Focus on ONE clear action only
 - Maximum 4-5 sentences
-- Example: "At [8:20], when three students answered consecutively, consider using *cold calling* to distribute participation more equitably. Research by Dylan Wiliam shows this increases overall engagement significantly compared to relying on volunteers."
+- Example: "Consider using *cold calling* more frequently to distribute participation more equitably. Research by Dylan Wiliam shows this increases overall engagement significantly compared to relying on volunteers."
 
 ### Section 3: Try This Next Time (marked with 💡)
 - Provide a concrete, practical strategy they can implement immediately
@@ -232,11 +233,15 @@ For EACH domain, provide feedback in these THREE sections:
 - Maximum 4-5 sentences
 - Example: "Build on your strong questioning by adding *think-pair-share* before whole-class discussion. This gives every student processing time and ensures quieter voices are heard."
 
-### Evidence of Strengths (bullet points)
-- ✓ [timestamp] - "Exact quote" - Why this demonstrates strong practice with pedagogical reference
+### Transcript Examples (NEW - for "Want an example?" feature)
+For EACH section (whatsWorking, toMakeStronger, tryThisNext), also provide 1-3 specific transcript examples:
+- Include the EXACT timestamp [MM:SS]
+- Include the EXACT quote from the transcript
+- Provide a brief explanation of why this moment exemplifies the feedback
+- These will be shown when users click "Want an example?"
 
 ### Areas for Development (bullet points)  
-- ⚠ [timestamp] - Description of what happened - What could be improved
+- Description of general pattern observed - What could be improved (NO timestamps in main text)
 
 ### Missed Opportunities
 - Strategy not used - When it could have been employed
@@ -312,16 +317,17 @@ const ANALYSIS_RULES = `
 
 1. NEVER mention any student names - use "Student" or "a student" instead
 2. Use British English spelling throughout (behaviour, colour, organisation, analyse, etc.)
-3. EVERY observation MUST include a specific timestamp [MM:SS] AND ideally a direct quote
-4. Focus on growth and celebration of strengths, not criticism
-5. Use warm, encouraging, developmental language throughout
-6. Be specific and actionable - vague feedback is not helpful
-7. When using pedagogical terms, wrap them in *asterisks* (e.g., *wait time*, *cold calling*) - DO NOT add explanations in brackets after them as the system will show tooltips automatically
-8. One good example ≠ exceptional practice (need patterns, not isolated incidents)
-9. Absence of best practice is feedback-worthy even if nothing "wrong" occurred
-10. Quality matters more than quantity (one sophisticated question > five basic ones)
-11. Consider impact: did the strategy actually achieve its pedagogical goal?
-12. Be honest but kind: frame everything as growth opportunity, not criticism
+3. In the MAIN feedback text (whatsWorking, toMakeStronger, tryThisNext), DO NOT include timestamps - focus on GENERAL explanations of WHY they received the rating
+4. Timestamps and quotes go ONLY in the "examples" arrays - these are shown when users click "Want an example?"
+5. Focus on growth and celebration of strengths, not criticism
+6. Use warm, encouraging, developmental language throughout
+7. Be specific and actionable - vague feedback is not helpful
+8. When using pedagogical terms, wrap them in *asterisks* (e.g., *wait time*, *cold calling*) - DO NOT add explanations in brackets after them as the system will show tooltips automatically
+9. One good example ≠ exceptional practice (need patterns, not isolated incidents)
+10. Absence of best practice is feedback-worthy even if nothing "wrong" occurred
+11. Quality matters more than quantity (one sophisticated question > five basic ones)
+12. Consider impact: did the strategy actually achieve its pedagogical goal?
+13. Be honest but kind: frame everything as growth opportunity, not criticism
 `;
 
 serve(async (req) => {
@@ -440,12 +446,20 @@ Respond with valid JSON matching this exact structure:
       "name": "Domain name",
       "rating": 1-4,
       "summary": "2-3 sentence summary explaining the rating",
-      "whatsWorking": "Positive observation with [MM:SS] timestamp and quote. Use *asterisks* for pedagogical terms. Max 4-5 sentences.",
-      "evidenceStrengths": ["✓ [MM:SS] - \\"quote\\" - pedagogical explanation"],
-      "toMakeStronger": "One specific moment [MM:SS] + ONE actionable technique. Max 4-5 sentences.",
-      "areasForDevelopment": ["⚠ [MM:SS] - description - improvement suggestion"],
+      "whatsWorking": "GENERAL explanation of why their practice is strong in this area. NO timestamps. Focus on pedagogical principles. Use *asterisks* for pedagogical terms. Max 4-5 sentences.",
+      "whatsWorkingExamples": [
+        {"timestamp": "[MM:SS]", "quote": "Exact words spoken", "explanation": "Why this moment demonstrates the strength"}
+      ],
+      "toMakeStronger": "GENERAL explanation of the area for improvement. NO timestamps. ONE actionable technique with pedagogical justification. Max 4-5 sentences.",
+      "toMakeStrongerExamples": [
+        {"timestamp": "[MM:SS]", "quote": "Exact words or description of moment", "explanation": "Why this moment shows the area for development and what could be done differently"}
+      ],
+      "areasForDevelopment": ["General pattern description - improvement suggestion (NO timestamps)"],
       "missedOpportunities": ["Strategy not used - when it could have been employed"],
       "tryThisNext": "Concrete strategy building on their strength. Max 4-5 sentences.",
+      "tryThisNextExamples": [
+        {"timestamp": "[MM:SS]", "quote": "Moment where this could have been applied", "explanation": "How the suggested technique would work here"}
+      ],
       "researchSuggestion": {
         "technique": "Name of the technique",
         "howToImplement": "Concrete steps",
