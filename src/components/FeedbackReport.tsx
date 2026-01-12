@@ -16,7 +16,8 @@ import {
   Trophy,
   ArrowUpRight,
   ArrowDownRight,
-  Minus
+  Minus,
+  MessageSquareQuote
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SelectedPhase } from "./PhaseSelector";
@@ -29,17 +30,26 @@ interface ResearchSuggestion {
   example: string;
 }
 
+interface TranscriptExample {
+  timestamp: string;
+  quote: string;
+  explanation: string;
+}
+
 interface CategoryFeedback {
   name: string;
   rating: number;
   summary?: string;
   whatsWorking: string;
-  evidenceStrengths?: string[];
+  whatsWorkingExamples?: TranscriptExample[];
+  evidenceStrengths?: string[]; // Legacy support
   toMakeStronger?: string;
+  toMakeStrongerExamples?: TranscriptExample[];
   growthEdge?: string; // Legacy support
   areasForDevelopment?: string[];
   missedOpportunities?: string[];
   tryThisNext?: string;
+  tryThisNextExamples?: TranscriptExample[];
   tryThis?: string; // Legacy support
   researchSuggestion?: ResearchSuggestion;
 }
@@ -913,16 +923,34 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                     <p className="text-foreground leading-relaxed mb-3">
                       {renderWithTooltips(category.whatsWorking)}
                     </p>
-                    {category.evidenceStrengths && category.evidenceStrengths.length > 0 && (
-                      <ul className="space-y-2 mt-3 border-t border-success/10 pt-3">
-                        {category.evidenceStrengths.map((evidence, i) => (
-                          <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                            <span className="text-success mt-0.5">•</span>
-                            {renderFormattedText(evidence)}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {/* Want an example? button */}
+                    {(category.whatsWorkingExamples && category.whatsWorkingExamples.length > 0) || (category.evidenceStrengths && category.evidenceStrengths.length > 0) ? (
+                      <details className="mt-3 border-t border-success/10 pt-3 group">
+                        <summary className="flex items-center gap-2 cursor-pointer text-sm font-medium text-success hover:text-success/80 transition-colors">
+                          <MessageSquareQuote className="w-4 h-4" />
+                          Want an example?
+                          <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform ml-auto" />
+                        </summary>
+                        <div className="mt-3 space-y-3">
+                          {category.whatsWorkingExamples && category.whatsWorkingExamples.map((example, i) => (
+                            <div key={i} className="p-3 bg-success/10 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs font-mono px-2 py-0.5 bg-success/20 rounded text-success">{example.timestamp}</span>
+                              </div>
+                              <p className="text-sm text-foreground italic mb-2">"{example.quote}"</p>
+                              <p className="text-sm text-muted-foreground">{example.explanation}</p>
+                            </div>
+                          ))}
+                          {/* Legacy support for evidenceStrengths */}
+                          {category.evidenceStrengths && category.evidenceStrengths.map((evidence, i) => (
+                            <div key={`legacy-${i}`} className="text-sm text-foreground flex items-start gap-2">
+                              <span className="text-success mt-0.5">•</span>
+                              {renderFormattedText(evidence)}
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    ) : null}
                   </div>
 
                   {/* To Make It Even Stronger */}
@@ -933,16 +961,34 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                     <p className="text-foreground leading-relaxed mb-3">
                       {renderWithTooltips(category.toMakeStronger || category.growthEdge || "")}
                     </p>
-                    {category.areasForDevelopment && category.areasForDevelopment.length > 0 && (
-                      <ul className="space-y-2 mt-3 border-t border-amber-500/10 pt-3">
-                        {category.areasForDevelopment.map((area, i) => (
-                          <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                            <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                            {renderFormattedText(area)}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {/* Want an example? button */}
+                    {(category.toMakeStrongerExamples && category.toMakeStrongerExamples.length > 0) || (category.areasForDevelopment && category.areasForDevelopment.length > 0) ? (
+                      <details className="mt-3 border-t border-amber-500/10 pt-3 group">
+                        <summary className="flex items-center gap-2 cursor-pointer text-sm font-medium text-amber-600 hover:text-amber-500 transition-colors">
+                          <MessageSquareQuote className="w-4 h-4" />
+                          Want an example?
+                          <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform ml-auto" />
+                        </summary>
+                        <div className="mt-3 space-y-3">
+                          {category.toMakeStrongerExamples && category.toMakeStrongerExamples.map((example, i) => (
+                            <div key={i} className="p-3 bg-amber-500/10 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs font-mono px-2 py-0.5 bg-amber-500/20 rounded text-amber-700">{example.timestamp}</span>
+                              </div>
+                              <p className="text-sm text-foreground italic mb-2">"{example.quote}"</p>
+                              <p className="text-sm text-muted-foreground">{example.explanation}</p>
+                            </div>
+                          ))}
+                          {/* Legacy/additional support for areasForDevelopment */}
+                          {category.areasForDevelopment && category.areasForDevelopment.map((area, i) => (
+                            <div key={`area-${i}`} className="text-sm text-foreground flex items-start gap-2">
+                              <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                              {renderFormattedText(area)}
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    ) : null}
                     {category.missedOpportunities && category.missedOpportunities.length > 0 && (
                       <div className="mt-3 border-t border-amber-500/10 pt-3">
                         <p className="text-xs font-semibold text-amber-700 mb-2">Missed Opportunities:</p>
@@ -966,30 +1012,58 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                     <p className="text-foreground leading-relaxed">
                       {renderWithTooltips(category.tryThisNext || category.tryThis || "")}
                     </p>
+                    {/* Want an example? button */}
+                    {category.tryThisNextExamples && category.tryThisNextExamples.length > 0 && (
+                      <details className="mt-3 border-t border-primary/10 pt-3 group">
+                        <summary className="flex items-center gap-2 cursor-pointer text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+                          <MessageSquareQuote className="w-4 h-4" />
+                          Want an example?
+                          <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform ml-auto" />
+                        </summary>
+                        <div className="mt-3 space-y-3">
+                          {category.tryThisNextExamples.map((example, i) => (
+                            <div key={i} className="p-3 bg-primary/10 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs font-mono px-2 py-0.5 bg-primary/20 rounded text-primary">{example.timestamp}</span>
+                              </div>
+                              <p className="text-sm text-foreground italic mb-2">"{example.quote}"</p>
+                              <p className="text-sm text-muted-foreground">{example.explanation}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </div>
 
-                  {/* Research-Informed Suggestion */}
+                  {/* Research-Informed Suggestion - COLLAPSED BY DEFAULT */}
                   {category.researchSuggestion && (
-                    <div className="p-4 bg-purple-500/5 rounded-xl border border-purple-500/15">
-                      <h4 className="text-sm font-semibold text-purple-600 mb-3 flex items-center gap-2">
-                        <BookOpen className="w-4 h-4" />
-                        Research-Informed Suggestion: {category.researchSuggestion.technique}
-                      </h4>
-                      <div className="space-y-2 text-sm">
-                        <p className="text-foreground">
-                          <span className="font-medium text-purple-700">How to implement:</span>{" "}
-                          {category.researchSuggestion.howToImplement}
-                        </p>
-                        <p className="text-foreground">
-                          <span className="font-medium text-purple-700">Why it works:</span>{" "}
-                          {category.researchSuggestion.whyItWorks}
-                        </p>
-                        <p className="text-foreground italic">
-                          <span className="font-medium text-purple-700 not-italic">Example:</span>{" "}
-                          "{category.researchSuggestion.example}"
-                        </p>
+                    <details className="group">
+                      <summary className="p-4 bg-purple-500/5 rounded-xl border border-purple-500/15 cursor-pointer hover:bg-purple-500/10 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-semibold text-purple-600 flex items-center gap-2">
+                            <BookOpen className="w-4 h-4" />
+                            📚 Research-Informed Suggestion: {category.researchSuggestion.technique}
+                          </h4>
+                          <ChevronDown className="w-4 h-4 text-purple-600 group-open:rotate-180 transition-transform" />
+                        </div>
+                      </summary>
+                      <div className="p-4 bg-purple-500/5 rounded-b-xl border border-t-0 border-purple-500/15 -mt-2 pt-4">
+                        <div className="space-y-2 text-sm">
+                          <p className="text-foreground">
+                            <span className="font-medium text-purple-700">How to implement:</span>{" "}
+                            {category.researchSuggestion.howToImplement}
+                          </p>
+                          <p className="text-foreground">
+                            <span className="font-medium text-purple-700">Why it works:</span>{" "}
+                            {category.researchSuggestion.whyItWorks}
+                          </p>
+                          <p className="text-foreground italic">
+                            <span className="font-medium text-purple-700 not-italic">Example:</span>{" "}
+                            "{category.researchSuggestion.example}"
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    </details>
                   )}
                 </div>
               )}

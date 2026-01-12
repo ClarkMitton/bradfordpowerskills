@@ -204,6 +204,102 @@ export const PEDAGOGICAL_TERMS: Record<string, { short: string; detailed: string
   "hinge questions": {
     short: "Key questions that determine lesson direction",
     detailed: "Hinge questions are carefully designed diagnostic questions asked at critical points in a lesson. The responses quickly reveal whether students are ready to move on or need reteaching. They should be answerable in under a minute and provide clear insight into understanding."
+  },
+  "mini whiteboard": {
+    short: "Individual boards for whole-class response",
+    detailed: "Mini whiteboards (or show-me boards) allow every student to display their answer simultaneously, giving teachers instant formative assessment data. They increase participation, provide immediate feedback, and help identify misconceptions across the whole class."
+  },
+  "mini whiteboards": {
+    short: "Individual boards for whole-class response",
+    detailed: "Mini whiteboards (or show-me boards) allow every student to display their answer simultaneously, giving teachers instant formative assessment data. They increase participation, provide immediate feedback, and help identify misconceptions across the whole class."
+  },
+  "choral response": {
+    short: "Whole class answering together",
+    detailed: "Choral response involves the entire class responding to a question in unison. It's useful for reinforcing factual information, building confidence before individual responses, and ensuring all students actively participate."
+  },
+  "oracy": {
+    short: "Teaching students to articulate ideas clearly",
+    detailed: "Oracy refers to the ability to express oneself clearly in spoken language. Teaching oracy involves developing students' speaking and listening skills, enabling them to articulate ideas, justify opinions, and engage in academic discourse."
+  },
+  "turn and talk": {
+    short: "Quick partner discussion",
+    detailed: "Turn and talk (also called talk partners) involves students briefly turning to a neighbour to discuss a question or idea. It provides thinking time, encourages participation from all students, and helps them formulate responses before sharing with the class."
+  },
+  "talk partners": {
+    short: "Paired discussion for thinking time",
+    detailed: "Talk partners involves pairing students to discuss ideas before sharing with the class. This provides processing time, builds confidence, ensures every student engages, and often produces higher-quality responses."
+  },
+  "no opt out": {
+    short: "Ensuring all students provide an answer",
+    detailed: "No opt out is a technique where teachers don't allow 'I don't know' as a final answer. If a student can't answer, the teacher provides support (another student's answer, a hint, or scaffolding) then returns to the original student to say the correct answer. This maintains high expectations."
+  },
+  "live marking": {
+    short: "Marking work with students in real-time",
+    detailed: "Live marking involves teachers marking student work while circulating during the lesson, providing immediate feedback. This gives students instant actionable feedback they can act on immediately, making it more impactful than delayed written feedback."
+  },
+  "stretch question": {
+    short: "Extension question for deeper thinking",
+    detailed: "Stretch questions are extension questions designed to push students beyond the basic content to develop deeper understanding. They often require application, analysis, or evaluation and are used to challenge higher-attaining students or extend thinking for all."
+  },
+  "stretch questions": {
+    short: "Extension questions for deeper thinking",
+    detailed: "Stretch questions are extension questions designed to push students beyond the basic content to develop deeper understanding. They often require application, analysis, or evaluation and are used to challenge higher-attaining students or extend thinking for all."
+  },
+  "verbal feedback": {
+    short: "Spoken feedback during learning",
+    detailed: "Verbal feedback is spoken feedback given during the lesson. When specific and actionable, it's often more effective than written feedback because students can immediately ask clarifying questions and act on it. It should be focused on what to improve and how."
+  },
+  "responsive questioning": {
+    short: "Adapting questions based on student responses",
+    detailed: "Responsive questioning involves adjusting questions based on student answers. Teachers probe deeper when students give brief answers, scaffold when students struggle, and extend when students show strong understanding. This tailors challenge to individual needs."
+  },
+  "clarifying questions": {
+    short: "Questions to check meaning and understanding",
+    detailed: "Clarifying questions are used to ensure understanding of what a student has said or to prompt them to express their ideas more clearly. They help avoid misunderstandings and push students to articulate their thinking more precisely."
+  },
+  "extension questions": {
+    short: "Questions that push thinking further",
+    detailed: "Extension questions take student thinking beyond the initial answer. They might ask students to apply knowledge to new contexts, make connections, evaluate alternatives, or consider implications. They ensure higher-attaining students are appropriately challenged."
+  },
+  "redirecting": {
+    short: "Moving discussion to another student",
+    detailed: "Redirecting involves taking a student's response and directing it to another student for comment, evaluation, or extension. This increases engagement, develops listening skills, and creates a more dialogic classroom where students build on each other's ideas."
+  },
+  "revoicing": {
+    short: "Restating student ideas for clarity",
+    detailed: "Revoicing is when a teacher repeats or paraphrases a student's contribution, often to make it clearer, give it legitimacy, or highlight its importance. It validates student thinking while ensuring the whole class hears and understands the idea."
+  },
+  "teacher talk": {
+    short: "How much the teacher speaks vs students",
+    detailed: "Teacher talk refers to the proportion of classroom time the teacher spends talking versus student participation. Research suggests reducing excessive teacher talk and increasing student talk leads to deeper learning and better engagement."
+  },
+  "student talk": {
+    short: "Student verbal participation in learning",
+    detailed: "Student talk refers to opportunities for students to express their thinking verbally. Increasing quality student talk - through discussion, explanation, and collaborative dialogue - deepens understanding and develops communication skills."
+  },
+  "academic vocabulary": {
+    short: "Subject-specific language and terminology",
+    detailed: "Academic vocabulary refers to the specialised language used in educational settings and specific subjects. Explicitly teaching and reinforcing academic vocabulary helps students access challenging texts and communicate precisely about complex ideas."
+  },
+  "sentence stems": {
+    short: "Starter phrases to support responses",
+    detailed: "Sentence stems are partial sentences provided to students to help structure their responses. Examples include 'I think... because...' or 'Building on what [student] said...'. They scaffold academic language use and support students in formulating complete, well-structured answers."
+  },
+  "sentence starters": {
+    short: "Phrases to begin responses",
+    detailed: "Sentence starters are prompts that help students begin their responses in structured ways. They scaffold academic language, support articulation of ideas, and help students develop habits of justification and elaboration."
+  },
+  "targeted questioning": {
+    short: "Directing questions to specific students strategically",
+    detailed: "Targeted questioning involves deliberately directing questions to specific students based on their needs - perhaps to check a struggling student's understanding, challenge a high-attainer, or bring a disengaged student back into the lesson."
+  },
+  "ratio": {
+    short: "Balance of teacher vs student work/talk",
+    detailed: "Ratio refers to the balance of cognitive work between teacher and students. High ratio teaching pushes more thinking onto students rather than the teacher doing the intellectual heavy lifting. This includes shifting from teacher explanations to student discovery and discussion."
+  },
+  "all-student response": {
+    short: "Every student responds simultaneously",
+    detailed: "All-student response techniques (like mini whiteboards, finger voting, or response cards) require every student to provide an answer at the same time. This increases engagement and gives teachers immediate whole-class formative assessment data."
   }
 };
 
