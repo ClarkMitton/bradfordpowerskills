@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { compressVideo, formatBytes } from "@/lib/videoCompressor";
+import { usePrivacyCleanup } from "@/hooks/usePrivacyCleanup";
 import type { SelectedPhase } from "@/components/PhaseSelector";
 import type { SessionDetails } from "@/components/AudioRecorder";
 
@@ -307,6 +308,24 @@ export function useSessionAnalysis() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const pollingAbortRef = useRef<boolean>(false);
+  
+  // Privacy cleanup hook
+  const { 
+    trackVideoStoragePath, 
+    trackBlobs, 
+    deleteVideoFromStorage,
+    performFullCleanup 
+  } = usePrivacyCleanup();
+
+  // Track blobs when they change
+  useEffect(() => {
+    trackBlobs(state.audioBlob, state.videoBlob);
+  }, [state.audioBlob, state.videoBlob, trackBlobs]);
+
+  // Track video storage path when it changes
+  useEffect(() => {
+    trackVideoStoragePath(state.videoStoragePath);
+  }, [state.videoStoragePath, trackVideoStoragePath]);
 
   // Transcription timer effect
   useEffect(() => {
@@ -512,8 +531,10 @@ export function useSessionAnalysis() {
     if (pollingRef.current) {
       clearTimeout(pollingRef.current);
     }
+    // Perform privacy cleanup on reset
+    performFullCleanup();
     setState(initialState);
-  }, []);
+  }, [performFullCleanup]);
 
   const goBack = useCallback(() => {
     setState((prev) => {
@@ -578,13 +599,20 @@ export function useSessionAnalysis() {
         }
 
         if (data.status === "complete") {
+          // Delete video from storage after successful analysis
+          if (state.videoStoragePath) {
+            console.log("[Privacy] Deleting video after successful analysis");
+            deleteVideoFromStorage(state.videoStoragePath);
+          }
+          
           setState((prev) => ({
             ...prev,
             feedback: data.feedback,
             isAnalyzing: false,
             videoProcessingStatus: null,
             analysisError: null,
-            videoBlob: null, // Clear blob after successful analysis
+            videoBlob: null,
+            videoStoragePath: null,
           }));
           toast.success("Video analysis complete!");
           return;
