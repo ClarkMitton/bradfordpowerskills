@@ -60,14 +60,15 @@ export function WelcomeScreen({
       details: ["Audio recording", "Lesson plan & scaffolding", "3 pieces of student work"],
       encouragement: "Perfect for deep reflection — connect your planning, delivery, and student outcomes for powerful professional growth.",
     },
-    {
-      id: "video-analysis" as const,
-      icon: Video,
-      title: "Video Analysis",
-      description: "Upload a video of your teaching session for comprehensive visual and audio analysis.",
-      details: ["Upload MP4/WebM video", "Visual + audio analysis", "Body language feedback"],
-      encouragement: "See your teaching from your students' perspective — get insights on presence, movement, and visual delivery.",
-    },
+    // Video analysis hidden for now
+    // {
+    //   id: "video-analysis" as const,
+    //   icon: Video,
+    //   title: "Video Analysis",
+    //   description: "Upload a video of your teaching session for comprehensive visual and audio analysis.",
+    //   details: ["Upload MP4/WebM video", "Visual + audio analysis", "Body language feedback"],
+    //   encouragement: "See your teaching from your students' perspective — get insights on presence, movement, and visual delivery.",
+    // },
   ];
 
   // If path selection is enabled and no path is selected yet, show path selection
