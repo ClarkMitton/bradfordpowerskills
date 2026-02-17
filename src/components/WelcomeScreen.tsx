@@ -45,17 +45,9 @@ export function WelcomeScreen({
       encouragement: "Perfect for everyday practice — use it anytime you want a quick reflection on your delivery.",
     },
     {
-      id: "deep-dive" as const,
-      icon: FileText,
-      title: "Delivery Deep Dive",
-      description: "Compare what you planned against what you actually delivered in the session.",
-      details: ["Audio recording", "Lesson plan upload", "Plan vs execution analysis"],
-      encouragement: "Perfect for a closer look — see how your delivery aligned with your intentions and discover new insights.",
-    },
-    {
       id: "full-review" as const,
       icon: Layers,
-      title: "Full Session Review",
+      title: "15 Minute Lesson",
       description: "Comprehensive analysis of the complete teaching cycle — from planning through delivery to student outcomes.",
       details: ["Audio recording", "Lesson plan & scaffolding", "3 pieces of student work"],
       encouragement: "Perfect for deep reflection — connect your planning, delivery, and student outcomes for powerful professional growth.",
