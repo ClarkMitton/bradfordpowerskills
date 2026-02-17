@@ -6,6 +6,7 @@ import { SessionCapture } from "@/components/SessionCapture";
 import { VideoCapture } from "@/components/VideoCapture";
 import { FeedbackReport } from "@/components/FeedbackReport";
 import { PreviousReportUploader } from "@/components/PreviousReportUploader";
+import { RotatingInsight } from "@/components/RotatingInsight";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, Loader2, Clock, Video, Upload, Sparkles, Zap } from "lucide-react";
@@ -103,16 +104,10 @@ const Index = () => {
           Transcribing Your Session
         </h3>
         <p className="text-muted-foreground max-w-md">
-          Converting your audio to text and automatically anonymizing student names...
+          Converting your audio to text and automatically anonymising student names...
         </p>
-        <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground/70">
-          <p>This usually takes 30-60 seconds depending on recording length</p>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span>Processing audio...</span>
-          </div>
-        </div>
       </div>
+      <RotatingInsight />
     </div>
   );
 
@@ -219,16 +214,8 @@ const Index = () => {
         <div className="text-center space-y-3">
           <h3 className="text-2xl font-heading font-semibold text-foreground">{status.title}</h3>
           <p className="text-muted-foreground max-w-md">{status.message}</p>
-          <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground/70">
-            <p>{status.detail}</p>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span>
-                Step {currentStageIndex + 1} of {stages.length}
-              </span>
-            </div>
-          </div>
         </div>
+        <RotatingInsight />
       </div>
     );
   };

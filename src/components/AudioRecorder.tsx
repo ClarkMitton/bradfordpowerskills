@@ -3,15 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mic, Square, Upload, Play, Pause, Trash2, Download, Zap, FileText } from "lucide-react";
+import { Mic, Square, Upload, Play, Pause, Trash2, Download, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const FEEDBACK_CATEGORIES = [
@@ -39,18 +38,17 @@ export interface SessionDetails {
 
 interface AudioRecorderProps {
   onFastFeedback: (audioBlob: Blob, fileName: string, sessionDetails: SessionDetails) => void;
-  onTranscriptSubmit: (transcript: string, sessionDetails: SessionDetails) => void;
+  onTranscriptSubmit?: (transcript: string, sessionDetails: SessionDetails) => void;
 }
 
-export function AudioRecorder({ onFastFeedback, onTranscriptSubmit }: AudioRecorderProps) {
+export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState(false);
-  const [pastedTranscript, setPastedTranscript] = useState<string>("");
-  const [showTranscriptInput, setShowTranscriptInput] = useState(false);
+  
   
   // Session details
   const [learnerLevel, setLearnerLevel] = useState<string>("");
@@ -212,22 +210,7 @@ export function AudioRecorder({ onFastFeedback, onTranscriptSubmit }: AudioRecor
     }
   };
 
-  const handleTranscriptSubmit = () => {
-    if (pastedTranscript.trim().length < 50) {
-      toast({
-        title: "Transcript Too Short",
-        description: "Please enter a longer transcript (at least 50 characters).",
-        variant: "destructive",
-      });
-      return;
-    }
-    onTranscriptSubmit(pastedTranscript, getSessionDetails());
-  };
 
-  const clearTranscript = () => {
-    setPastedTranscript("");
-    setShowTranscriptInput(false);
-  };
 
   return (
     <div className="section-fade-in space-y-6">
@@ -292,137 +275,9 @@ export function AudioRecorder({ onFastFeedback, onTranscriptSubmit }: AudioRecor
                   <Upload className="w-5 h-5" />
                   Upload Audio File
                 </Button>
-                <div className="flex items-center gap-4 w-full max-w-xs">
-                  <div className="flex-1 h-px bg-border" />
-                  <span className="text-sm text-muted-foreground">or</span>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-                <Button
-                  onClick={() => setShowTranscriptInput(true)}
-                  variant="outline"
-                  size="lg"
-                >
-                  <FileText className="w-5 h-5" />
-                  Paste Your Own Transcript
-                </Button>
               </>
             )}
           </div>
-
-          {/* Paste Transcript Section */}
-          {showTranscriptInput && !isRecording && (
-            <div className="border-t border-border pt-6 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="transcript-input" className="text-base font-semibold">
-                  Paste Your Transcript
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Paste a transcript of your teaching session below for feedback
-                </p>
-                <Textarea
-                  id="transcript-input"
-                  value={pastedTranscript}
-                  onChange={(e) => setPastedTranscript(e.target.value)}
-                  placeholder="Paste your transcript here... Include timestamps if available (e.g., [00:30] Good morning class...)"
-                  className="min-h-[200px] font-mono text-sm"
-                />
-                <p className="text-xs text-muted-foreground">
-                  {pastedTranscript.length} characters
-                </p>
-              </div>
-
-              {/* Session Details for Transcript */}
-              <div className="space-y-5 pt-4 border-t border-border">
-                <h3 className="font-semibold text-foreground">Session Details (Optional)</h3>
-                
-                {/* Learner Level */}
-                <div className="space-y-2">
-                  <Label htmlFor="learner-level-transcript">Learner Level</Label>
-                  <Select value={learnerLevel} onValueChange={setLearnerLevel}>
-                    <SelectTrigger id="learner-level-transcript">
-                      <SelectValue placeholder="Select learner level..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LEARNER_LEVELS.map(level => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Subject */}
-                <div className="space-y-2">
-                  <Label htmlFor="subject-transcript">Subject or Topic</Label>
-                  <Input
-                    id="subject-transcript"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="e.g., Introduction to Algebra, Creative Writing..."
-                  />
-                </div>
-
-                {/* Feedback Categories */}
-                <div className="space-y-3">
-                  <Label>Feedback Focus Areas</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Select specific areas for feedback, or leave as "All" for comprehensive feedback
-                  </p>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="all-categories-transcript" 
-                        checked={allCategoriesSelected}
-                        onCheckedChange={handleAllCategoriesToggle}
-                      />
-                      <label 
-                        htmlFor="all-categories-transcript" 
-                        className="text-sm font-medium cursor-pointer"
-                      >
-                        All Categories (Comprehensive Feedback)
-                      </label>
-                    </div>
-                    
-                    <div className="pl-6 space-y-2 border-l-2 border-border ml-2">
-                      {FEEDBACK_CATEGORIES.map(category => (
-                        <div key={`transcript-${category.id}`} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={`transcript-${category.id}`}
-                            checked={allCategoriesSelected || selectedCategories.includes(category.id)}
-                            disabled={allCategoriesSelected}
-                            onCheckedChange={() => handleCategoryToggle(category.id)}
-                          />
-                          <label 
-                            htmlFor={`transcript-${category.id}`} 
-                            className={`text-sm cursor-pointer ${allCategoriesSelected ? 'text-muted-foreground' : ''}`}
-                          >
-                            {category.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 justify-center pt-2">
-                <Button onClick={clearTranscript} variant="outline">
-                  <Trash2 className="w-4 h-4" />
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleTranscriptSubmit} 
-                  variant="success"
-                  disabled={pastedTranscript.trim().length < 50}
-                >
-                  <Zap className="w-4 h-4" />
-                  Analyze Transcript
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         <div className="card-elevated p-8 space-y-6">
