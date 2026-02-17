@@ -11,7 +11,7 @@ interface CategoryFeedback {
   tryThis: string;
 }
 
-interface LEADPhaseFeedback {
+interface LessonPhaseFeedback {
   phase: string;
   rating: "exemplary" | "solid" | "developing" | "emerging";
   observations: string[];
@@ -20,7 +20,7 @@ interface LEADPhaseFeedback {
 
 interface FeedbackData {
   categories: CategoryFeedback[];
-  leadPhases: LEADPhaseFeedback[];
+  lessonPhases: LessonPhaseFeedback[];
   overallSummary: string;
   topStrength: string;
   priorityGrowthArea: string;
@@ -81,8 +81,8 @@ const buildHighlightMap = (feedback: FeedbackData): HighlightMatch[] => {
     });
   });
   
-  // LEAD phase feedback
-  feedback.leadPhases.forEach((phase) => {
+  // Lesson phase feedback
+  (feedback.lessonPhases || []).forEach((phase) => {
     phase.observations.forEach((obs) => {
       extractEvidence(obs).forEach((quote) => {
         matches.push({
@@ -215,7 +215,7 @@ export function TranscriptViewer({ transcript, feedback, isOpen, onClose }: Tran
   const legendItems = [
     { type: "strength" as const, label: "Strength", color: "bg-success/30 border-success/50", icon: "✓" },
     { type: "growth" as const, label: "Growth Area", color: "bg-amber-500/30 border-amber-500/50", icon: "→" },
-    { type: "phase" as const, label: "LEAD Phase", color: "bg-primary/30 border-primary/50", icon: "◆" },
+    { type: "phase" as const, label: "Lesson Phase", color: "bg-primary/30 border-primary/50", icon: "◆" },
   ];
   
   if (!isOpen) return null;
@@ -305,7 +305,7 @@ export function TranscriptViewer({ transcript, feedback, isOpen, onClose }: Tran
                         segment.highlight.color,
                         "hover:opacity-80 cursor-help"
                       )}
-                      title={`${segment.highlight.category} - ${segment.highlight.type === "strength" ? "What's Working" : segment.highlight.type === "growth" ? "Growth Area" : "LEAD Phase Observation"}`}
+                      title={`${segment.highlight.category} - ${segment.highlight.type === "strength" ? "What's Working" : segment.highlight.type === "growth" ? "Growth Area" : "Lesson Phase Observation"}`}
                     >
                       {segment.text}
                       <span className="absolute -top-6 left-0 hidden group-hover:block bg-foreground text-background text-xs px-2 py-1 rounded whitespace-nowrap">

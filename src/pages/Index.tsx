@@ -353,7 +353,7 @@ const Index = () => {
                 <h1 className="font-heading font-semibold text-foreground text-lg">
                   PowerED
                 </h1>
-                <p className="text-xs text-muted-foreground">Session Analysis</p>
+                <p className="text-xs text-muted-foreground">Teaching Feedback</p>
               </div>
             </div>
             {state.step > 0 && (
@@ -387,11 +387,11 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-muted/30 mt-auto">
+      <footer className="border-t border-border bg-muted/30 mt-auto rounded-t-3xl">
         <div className="container max-w-4xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} PowerED Session Analysis Tool</p>
-            <p>Built for Bradford College LEAD Model</p>
+            <p>© {new Date().getFullYear()} PowerED by Bradford College</p>
+            <p>Your personal teaching coach</p>
           </div>
         </div>
       </footer>

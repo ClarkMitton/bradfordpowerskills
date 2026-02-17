@@ -20,7 +20,7 @@ async function makeRequest(endpoint: string, options: RequestInit, apiKey: strin
 
 async function analyzeVideo(apiKey: string, videoId: string, selectedPhases?: string[], selectedCategories?: string[]) {
   const phaseContext = selectedPhases?.length 
-    ? `Focus on these LEAD phases: ${selectedPhases.join(", ")}.` 
+    ? `Focus on these lesson phases: ${selectedPhases.join(", ")}.` 
     : "";
   
   const categoryContext = selectedCategories?.length 
