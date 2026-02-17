@@ -65,15 +65,15 @@ export function RotatingInsight() {
   const current = shuffled[currentIndex];
 
   return (
-    <div className="w-full max-w-md mx-auto mt-6">
+    <div className="w-full max-w-lg mx-auto mt-8">
       <div
         className="transition-opacity duration-500 ease-in-out text-center"
         style={{ opacity: isVisible ? 1 : 0 }}
       >
-        <p className="text-xs font-semibold text-primary/70 uppercase tracking-wider mb-2">
+        <p className="text-sm font-semibold text-primary/70 uppercase tracking-wider mb-3">
           {current.type === "fact" ? "💡 Did you know?" : "✨ Inspiration"}
         </p>
-        <p className="text-sm text-muted-foreground leading-relaxed italic">
+        <p className="text-lg text-muted-foreground leading-relaxed italic">
           {current.text}
         </p>
       </div>
