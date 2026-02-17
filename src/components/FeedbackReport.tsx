@@ -86,7 +86,8 @@ interface OfstedGrade {
 interface FeedbackData {
   sessionMvp?: SessionMvp;
   categories: CategoryFeedback[];
-  leadPhases: LEADPhaseFeedback[];
+  leadPhases?: LEADPhaseFeedback[];
+  lessonPhases?: LEADPhaseFeedback[];
   ofstedGrade?: OfstedGrade;
   overallSummary: string;
   topStrength: string;
@@ -334,10 +335,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
   };
 
   const getLoadingMessage = () => {
-    const phaseText = selectedPhases.includes("full")
-      ? "all LEAD phases"
-      : selectedPhases.join(", ");
-    return `The AI is carefully reviewing your session, focusing on ${phaseText}. This usually takes about 30 seconds...`;
+    return `The AI is carefully reviewing your session. This usually takes about 30 seconds...`;
   };
 
   const handleDownload = () => {
@@ -670,10 +668,10 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
     `).join('')}
   </div>
 
-  ${feedback.leadPhases.length > 0 ? `
+  ${(feedback.lessonPhases || feedback.leadPhases || []).length > 0 ? `
   <div class="section">
-    <h3 class="section-title">📚 LEAD Phase Analysis</h3>
-    ${feedback.leadPhases.map(phase => `
+    <h3 class="section-title">📚 Lesson Phase Feedback</h3>
+    ${(feedback.lessonPhases || feedback.leadPhases || []).map(phase => `
     <div class="lead-phase">
       <h4>${phase.phase} - ${ratingLabels[phase.rating]}</h4>
       <strong style="font-size: 13px; color: #64748b;">Observations:</strong>
@@ -1092,8 +1090,8 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
         </div>
       </div>
 
-      {/* LEAD Phase Analysis */}
-      {feedback.leadPhases && feedback.leadPhases.length > 0 && (
+      {/* Lesson Phase Feedback */}
+      {(feedback.lessonPhases || feedback.leadPhases || []).length > 0 && (
         <div className="card-elevated overflow-hidden">
           <div className="p-5 bg-gradient-to-r from-accent/10 to-accent/5 border-b border-border">
             <div className="flex items-center gap-3">
@@ -1101,13 +1099,13 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                 <Target className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground text-lg">LEAD Phase Analysis</h3>
+                <h3 className="font-semibold text-foreground text-lg">Lesson Phase Feedback</h3>
                 <p className="text-sm text-muted-foreground">How you performed in each lesson phase</p>
               </div>
             </div>
           </div>
           <div className="divide-y divide-border">
-            {feedback.leadPhases.map((phase) => (
+            {(feedback.lessonPhases || feedback.leadPhases || []).map((phase) => (
               <div key={phase.phase}>
                 <button
                   onClick={() => togglePhase(phase.phase)}
