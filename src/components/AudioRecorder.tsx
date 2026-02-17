@@ -317,7 +317,7 @@ export function AudioRecorder({ onFastFeedback, onTranscriptSubmit }: AudioRecor
                   Paste Your Transcript
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Paste a transcript of your teaching session below for analysis
+                  Paste a transcript of your teaching session below for feedback
                 </p>
                 <Textarea
                   id="transcript-input"
@@ -367,7 +367,7 @@ export function AudioRecorder({ onFastFeedback, onTranscriptSubmit }: AudioRecor
                 <div className="space-y-3">
                   <Label>Feedback Focus Areas</Label>
                   <p className="text-sm text-muted-foreground">
-                    Select specific areas for feedback, or leave as "All" for comprehensive analysis
+                    Select specific areas for feedback, or leave as "All" for comprehensive feedback
                   </p>
                   
                   <div className="space-y-2">
@@ -445,7 +445,7 @@ export function AudioRecorder({ onFastFeedback, onTranscriptSubmit }: AudioRecor
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground truncate">{fileName}</p>
                   <p className="text-sm text-muted-foreground">
-                    Ready for analysis
+                    Ready for feedback
                   </p>
                 </div>
               </div>
@@ -493,7 +493,7 @@ export function AudioRecorder({ onFastFeedback, onTranscriptSubmit }: AudioRecor
               <div className="space-y-3">
                 <Label>Feedback Focus Areas</Label>
                 <p className="text-sm text-muted-foreground">
-                  Select specific areas for feedback, or leave as "All" for comprehensive analysis
+                  Select specific areas for feedback, or leave as "All" for comprehensive feedback
                 </p>
                 
                 <div className="space-y-2">
@@ -552,11 +552,11 @@ export function AudioRecorder({ onFastFeedback, onTranscriptSubmit }: AudioRecor
       )}
 
       {/* Tips */}
-      <div className="bg-muted rounded-lg p-4">
+      <div className="bg-muted rounded-3xl p-4">
         <h3 className="font-semibold text-foreground mb-2">Recording Tips</h3>
         <ul className="text-sm text-muted-foreground space-y-1">
           <li>• Ensure a quiet environment for best transcription quality</li>
-          <li>• Sessions of 15-20 minutes work best for detailed analysis</li>
+          <li>• Sessions of 15-20 minutes work best for detailed feedback</li>
           <li>• Speak clearly and at a natural pace</li>
           <li>• Position your device close to the main speaker</li>
         </ul>

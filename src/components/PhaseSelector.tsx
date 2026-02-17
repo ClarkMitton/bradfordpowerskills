@@ -13,8 +13,8 @@ interface PhaseSelectorProps {
 const phases = [
   {
     id: "full" as const,
-    label: "Full LEAD Delivery",
-    description: "Analyze all phases of your lesson",
+    label: "Full Lesson",
+    description: "Get feedback on all phases of your lesson",
     icon: "🎯",
   },
   {
@@ -108,10 +108,10 @@ export const PhaseSelector = forwardRef<HTMLDivElement, PhaseSelectorProps>(({ o
     <div ref={ref} className="section-fade-in space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-heading font-semibold text-foreground">
-          Select LEAD Phases to Analyze
+          Select Lesson Phases
         </h2>
         <p className="text-muted-foreground">
-          Choose which phases you want feedback on, or select "Full LEAD Delivery" for complete analysis
+          Choose which phases you want feedback on, or select "Full Lesson" for complete feedback
         </p>
       </div>
 

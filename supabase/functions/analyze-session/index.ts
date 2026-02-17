@@ -5,119 +5,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const LEAD_PHASES_DETAILED = `
-## Bradford College LEAD Lesson Structure - Official Definitions
+const LESSON_STRUCTURE = `
+## Lesson Structure Guidance
 
-You MUST identify which LEAD phase(s) are occurring in the transcript based on the teacher's actions, language, and student activities. Use these official definitions as your guide:
+Analyse the teaching session holistically, looking at how the lesson flows through its natural phases:
+- **Opening**: How the lesson begins — student welcome, engagement hooks, gauging starting points
+- **Core Teaching**: How new learning is introduced — explanations, modelling, guided practice
+- **Application**: How students practise and apply learning — independent work, differentiated tasks
+- **Closing**: How learning is consolidated — checking understanding, summarising, next steps
 
-### LAUNCH PHASE
-The opening of the lesson designed to engage and prepare students. Look for evidence of:
-
-1. **Student Welcome**
-   - Teacher greeting learners as they enter
-   - Setting a respectful tone for the session
-   - Challenging lateness or previous absence
-   - Directing learners to seating arrangements
-   - Giving clear instructions for a prompt start
-
-2. **Purposeful Start (The "Hook")**
-   - A starter activity or initial problem/puzzle
-   - Something prepared for learners on desks or screen
-   - Fermi questions or creative problem-solving tasks
-   - Activities designed to engage learners instantly
-
-3. **Gauging Starting Points**
-   - Asking "what do students already know?"
-   - Introducing learning intentions for the lesson
-   - Assessing existing student knowledge through activities
-   - Using mind maps, Q&A, student discussion, practical demos
-   - Sharing "3 big things" or lesson objectives
-
-4. **Inspiring Student Curiosity**
-   - Building confidence through early success
-   - Paving the way for meaningful learning
-   - Creating curiosity about the topic
-
-**Transcript indicators for LAUNCH:** welcomes, "today we will...", "by the end of this lesson...", "what do you already know about...", starter activities, learning objectives being shared, prior knowledge questions
-
-### ESTABLISH PHASE
-The phase where new learning is introduced and understanding is built. Look for evidence of:
-
-1. **Videos & Questions**
-   - Showing documentary or film clips
-   - Asking comprehension questions after viewing
-   - "What key ideas were presented?"
-   - "How do the characters differ from common perceptions?"
-
-2. **Marketplace Activity**
-   - Students assigned different concepts to teach
-   - Creating concept booths with definitions and examples
-   - Students circulating and learning from peers
-
-3. **Structured Reading Activity**
-   - Providing extracts or texts to explore themes
-   - Gallery walks with annotations
-   - Class discussions comparing different approaches
-
-4. **Guided Research**
-   - Students researching relevant topics
-   - Using guiding templates
-   - Presenting findings to the class
-
-5. **Practical Activity**
-   - Creative projects designing solutions to problems
-   - Sharing ideas in small groups
-   - Providing and receiving peer feedback
-
-**Transcript indicators for ESTABLISH:** direct instruction, explaining concepts, modelling, "let me show you...", "so what this means is...", demonstrations, checking understanding, guided practice
-
-### APPLY PHASE
-The phase where students practise and apply what they've learned. Look for evidence of:
-
-1. **Independent Practice**
-   - Students working on tasks individually
-   - Applying learned concepts to new problems
-   - Completing exercises or activities
-
-2. **Differentiated Tasks**
-   - Different levels of challenge for different students
-   - Extension activities for those who finish early
-   - Scaffolded support for those who need it
-
-3. **Extending Learning**
-   - Connecting to real-world applications
-   - Deepening understanding through practice
-   - Problem-solving activities
-
-**Transcript indicators for APPLY:** "now you try...", "work through this example...", "in your pairs/groups...", students working independently, teacher circulating and supporting
-
-### DEMONSTRATE PHASE
-The closing phase where learning is consolidated and assessed. Look for evidence of:
-
-1. **Assessment for Learning**
-   - Checking what students have learned
-   - Exit tickets or quick assessments
-   - Reviewing learning objectives
-
-2. **Student Demonstrations**
-   - Students showing their work
-   - Peer presentations
-   - Explaining their thinking
-
-3. **Plenaries**
-   - Summarising key learning points
-   - Connecting to future lessons
-   - Celebrating success
-
-**Transcript indicators for DEMONSTRATE:** "what have we learned today?", exit tickets, student presentations, reviewing objectives, "next time we will...", summarising, celebrating achievements
+Identify which phases are present in the transcript and provide feedback on each.
 `;
 
-const LEAD_PHASES = {
-  launch: "Launch Phase - Student welcome, purposeful start (hook), gauging starting points, inspiring curiosity",
-  establish: "Establish Phase - Videos & questions, marketplace activities, structured reading, guided research, practical activities",
-  apply: "Apply Phase - Independent practice, differentiated tasks, extending learning",
-  demonstrate: "Demonstrate Phase - Assessment for learning, student demonstrations, exit tickets, plenaries"
-};
 
 const DOMAIN_DEFINITIONS = `
 ## The Five Teaching Domains
@@ -348,13 +247,7 @@ serve(async (req) => {
     }
 
     // Build phase context based on selection
-    let phaseContext = "";
-    if (selectedPhases.includes("full")) {
-      phaseContext = "Analyse ALL four LEAD phases: Launch, Establish, Apply, and Demonstrate.";
-    } else {
-      const phases = selectedPhases.map((p: string) => LEAD_PHASES[p as keyof typeof LEAD_PHASES]).filter(Boolean);
-      phaseContext = `Only analyse these specific LEAD phases: ${selectedPhases.join(", ")}. Do NOT provide feedback on phases not selected.`;
-    }
+    let phaseContext = "Analyse the session holistically, covering all natural lesson phases: opening, core teaching, application, and closing.";
 
     // Map category names to domain names
     const categoryToDomain: Record<string, string> = {
@@ -414,9 +307,9 @@ ${studentWork}
       }
     }
 
-    const systemPrompt = `You are a supportive, encouraging teaching coach analysing a classroom session transcript. Your feedback should feel like it comes from a trusted colleague who genuinely wants to help teachers grow. You are based in the UK and use British English spelling throughout.
+    const systemPrompt = `You are a supportive, encouraging teaching coach providing feedback on a classroom session transcript. Your feedback should feel like it comes from a trusted colleague who genuinely wants to help teachers grow. You are based in the UK and use British English spelling throughout.
 
-${LEAD_PHASES_DETAILED}
+${LESSON_STRUCTURE}
 
 ${DOMAIN_DEFINITIONS}
 
@@ -468,9 +361,9 @@ Respond with valid JSON matching this exact structure:
       }
     }
   ],
-  "leadPhases": [
+  "lessonPhases": [
     {
-      "phase": "Phase name",
+      "phase": "Phase name (e.g., Opening, Core Teaching, Application, Closing)",
       "rating": "exemplary" | "solid" | "developing" | "emerging",
       "observations": ["observation with [MM:SS] timestamp"],
       "suggestions": ["suggestion"]
