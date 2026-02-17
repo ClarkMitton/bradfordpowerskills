@@ -362,17 +362,59 @@ export function useSessionAnalysis() {
     setState((prev) => ({ ...prev, mode, step: 1 }));
   }, []);
 
+  // Internal helper to trigger analysis after transcription
+  const triggerAnalysis = useCallback(async (
+    anonymizedTranscript: string,
+    selectedPhases: SelectedPhase[],
+    sessionDetails: SessionDetails | null,
+    mode: AnalysisMode,
+    documents: SessionState["documents"]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      isAnalyzing: true,
+      analysisError: null,
+    }));
+
+    try {
+      const feedback = await generateFeedback(
+        anonymizedTranscript,
+        selectedPhases,
+        mode,
+        documents,
+        sessionDetails
+      );
+      
+      setState((prev) => ({
+        ...prev,
+        feedback,
+        isAnalyzing: false,
+        analysisError: null,
+      }));
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Analysis failed. Please try again.";
+      toast.error(errorMessage);
+      setState((prev) => ({
+        ...prev,
+        isAnalyzing: false,
+        analysisError: errorMessage,
+      }));
+    }
+  }, []);
+
   // For quick mode - audio only with session details
   const handleAudioReady = useCallback(async (blob: Blob, fileName: string, sessionDetails?: SessionDetails) => {
     setState((prev) => ({
       ...prev,
       audioBlob: blob,
       audioFileName: fileName,
-      step: 2, // Go to phase selection (skip transcript review)
+      step: 2, // Go straight to feedback step
       isTranscribing: true,
       transcriptionStartTime: Date.now(),
       transcriptionElapsed: 0,
       sessionDetails: sessionDetails || null,
+      selectedPhases: ["full"],
     }));
 
     try {
@@ -395,6 +437,13 @@ export function useSessionAnalysis() {
       }));
       
       toast.success("Audio transcribed and anonymized successfully");
+      
+      // Auto-trigger analysis with full phases
+      const fullPhases: SelectedPhase[] = ["full"];
+      // We need to trigger analysis after state update, so use a microtask
+      setTimeout(() => {
+        triggerAnalysis(anonymizedTranscript, fullPhases, sessionDetails || null, "quick", initialState.documents);
+      }, 0);
     } catch (error) {
       console.error("Transcription failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Transcription failed. Please try again.";
@@ -414,15 +463,17 @@ export function useSessionAnalysis() {
     fileName: string, 
     documents: SessionState["documents"]
   ) => {
+    const currentMode = state.mode;
     setState((prev) => ({
       ...prev,
       audioBlob: blob,
       audioFileName: fileName,
       documents,
-      step: 2, // Go to phase selection (skip transcript review)
+      step: 2, // Go straight to feedback
       isTranscribing: true,
       transcriptionStartTime: Date.now(),
       transcriptionElapsed: 0,
+      selectedPhases: ["full"],
     }));
 
     try {
@@ -445,6 +496,12 @@ export function useSessionAnalysis() {
       }));
       
       toast.success("Audio transcribed and anonymized successfully");
+      
+      // Auto-trigger analysis with full phases
+      const fullPhases: SelectedPhase[] = ["full"];
+      setTimeout(() => {
+        triggerAnalysis(anonymizedTranscript, fullPhases, null, currentMode, documents);
+      }, 0);
     } catch (error) {
       console.error("Transcription failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Transcription failed. Please try again.";
@@ -456,7 +513,7 @@ export function useSessionAnalysis() {
         step: 1, // Go back to recording step
       }));
     }
-  }, []);
+  }, [state.mode, triggerAnalysis]);
 
   // For direct transcript submission (pasted text)
   const handleTranscriptSubmit = useCallback((transcript: string, sessionDetails?: SessionDetails) => {
@@ -468,12 +525,19 @@ export function useSessionAnalysis() {
       transcript,
       highlightedNames: names,
       anonymizedTranscript,
-      step: 2, // Go to phase selection
+      step: 2, // Go to feedback
       sessionDetails: sessionDetails || null,
+      selectedPhases: ["full"],
     }));
     
     toast.success("Transcript loaded and anonymized successfully");
-  }, []);
+    
+    // Auto-trigger analysis
+    const fullPhases: SelectedPhase[] = ["full"];
+    setTimeout(() => {
+      triggerAnalysis(anonymizedTranscript, fullPhases, sessionDetails || null, state.mode, initialState.documents);
+    }, 0);
+  }, [state.mode, triggerAnalysis]);
 
   const confirmTranscript = useCallback((anonymizedTranscript: string) => {
     setState((prev) => ({
@@ -490,7 +554,7 @@ export function useSessionAnalysis() {
       selectedPhases,
       isAnalyzing: true,
       analysisError: null,
-      step: 3, // Go to feedback (was step 4, now step 3 since we removed transcript review)
+      step: 2, // Go to feedback
     }));
 
     try {
@@ -549,15 +613,16 @@ export function useSessionAnalysis() {
     });
   }, []);
 
-  // Handle video capture - just store the file reference
+  // Handle video capture - store file, analysis triggered by effect
   const handleVideoCapture = useCallback(async (blob: Blob, fileName: string) => {
     setState((prev) => ({
       ...prev,
       videoBlob: blob,
       videoFileName: fileName,
       isVideoAnalysis: true,
-      step: 2, // Go to phase selection
+      step: 2, // Go straight to feedback
       videoProcessingStatus: null,
+      selectedPhases: ["full"],
     }));
   }, []);
 
@@ -660,7 +725,7 @@ export function useSessionAnalysis() {
       compressionProgress: 0,
       compressionMessage: "Loading video processor...",
       compressionSavings: null,
-      step: 3,
+      step: 2,
       analysisError: null,
     }));
 
