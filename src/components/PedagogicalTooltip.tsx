@@ -300,6 +300,338 @@ export const PEDAGOGICAL_TERMS: Record<string, { short: string; detailed: string
   "all-student response": {
     short: "Every student responds simultaneously",
     detailed: "All-student response techniques (like mini whiteboards, finger voting, or response cards) require every student to provide an answer at the same time. This increases engagement and gives teachers immediate whole-class formative assessment data."
+  },
+  "adaptive teaching": {
+    short: "Adjusting instruction in response to student needs",
+    detailed: "Adaptive teaching involves modifying teaching approaches in real-time based on what students demonstrate they need. Rather than a one-size-fits-all approach, teachers adapt explanations, tasks, and support based on ongoing assessment of understanding."
+  },
+  "assessment for learning": {
+    short: "Using assessment to improve learning, not just measure it",
+    detailed: "Assessment for Learning (AfL) is the process of seeking and interpreting evidence to decide where learners are, where they need to go, and how best to get there. It's formative in nature and emphasises feedback that moves learning forward."
+  },
+  "behaviour for learning": {
+    short: "Creating conditions for productive learning behaviours",
+    detailed: "Behaviour for Learning focuses on developing students' learning dispositions rather than just managing compliance. It builds engagement, resilience, and positive attitudes towards learning through establishing routines, expectations, and a supportive environment."
+  },
+  "challenge": {
+    short: "Pushing students beyond their comfort zone",
+    detailed: "Challenge in teaching means setting high expectations and providing tasks that stretch students' thinking. Effective challenge sits within the zone of proximal development — difficult enough to promote growth, but achievable with effort and support."
+  },
+  "chunking": {
+    short: "Breaking information into smaller pieces",
+    detailed: "Chunking involves breaking complex information or tasks into smaller, manageable segments. Based on cognitive load theory, this prevents working memory overload and allows students to process and retain information more effectively before building to greater complexity."
+  },
+  "classroom climate": {
+    short: "The emotional and social atmosphere in the room",
+    detailed: "Classroom climate encompasses the social, emotional, and physical environment of the classroom. A positive climate — characterised by mutual respect, high expectations, and psychological safety — significantly impacts student engagement, willingness to take risks, and learning outcomes."
+  },
+  "co-construction": {
+    short: "Building understanding together with students",
+    detailed: "Co-construction involves teachers and students jointly developing ideas, success criteria, or knowledge. Rather than the teacher presenting finished ideas, students actively contribute to building understanding, which increases ownership, engagement, and deeper learning."
+  },
+  "convergent questions": {
+    short: "Questions with a single correct answer",
+    detailed: "Convergent questions have one right answer and test recall or comprehension. They're useful for checking factual knowledge and building foundations, but should be balanced with divergent questions that allow for multiple valid responses and deeper thinking."
+  },
+  "divergent questions": {
+    short: "Questions with multiple valid answers",
+    detailed: "Divergent questions invite a range of possible responses and encourage creative, evaluative, or analytical thinking. They promote discussion, allow students to express different perspectives, and develop higher-order thinking skills."
+  },
+  "do now": {
+    short: "Short starter activity at the beginning of a lesson",
+    detailed: "A 'Do Now' is a brief, independent activity students complete as soon as they enter the classroom. It settles students, activates prior knowledge or retrieves previous learning, and maximises learning time by establishing a purposeful start."
+  },
+  "do now activity": {
+    short: "Short starter task at lesson beginning",
+    detailed: "A 'Do Now' activity is a brief independent task completed immediately upon entering the classroom. It settles the class, establishes routines, and typically involves retrieval practice or prior knowledge activation to maximise learning time."
+  },
+  "effective explanation": {
+    short: "Clear, structured teacher input that builds understanding",
+    detailed: "Effective explanations break down complex ideas using clear language, analogies, examples, and visual aids. They manage cognitive load, connect to prior knowledge, and check understanding throughout. Good explanations are concise and avoid unnecessary information."
+  },
+  "embedding": {
+    short: "Securing knowledge in long-term memory",
+    detailed: "Embedding refers to the process of moving knowledge from short-term to long-term memory through repeated practice, revisiting, and application in different contexts. Techniques like retrieval practice, spaced repetition, and interleaving support embedding."
+  },
+  "engagement": {
+    short: "Active involvement in the learning process",
+    detailed: "Engagement goes beyond compliance — it means students are actively thinking about and processing content. Cognitive engagement (thinking hard about the right things) matters more than behavioural engagement (appearing busy). Effective tasks promote both."
+  },
+  "feedback": {
+    short: "Information given to improve performance",
+    detailed: "Effective feedback is specific, timely, and actionable. Research by Hattie and Timperley identifies three key questions: Where am I going? How am I going? Where to next? The most impactful feedback focuses on the task and process rather than the person."
+  },
+  "fading": {
+    short: "Gradually removing support as students gain confidence",
+    detailed: "Fading is the deliberate, gradual withdrawal of scaffolding as students develop competence. Teachers systematically reduce prompts, worked examples, or support structures to build student independence and self-regulation."
+  },
+  "gallery walk": {
+    short: "Students move around to view and respond to displayed work",
+    detailed: "A gallery walk involves students circulating around the classroom to view work, ideas, or information displayed on walls or tables. They discuss, comment, or build on what they see. This promotes movement, peer learning, and exposure to different perspectives."
+  },
+  "guided practice": {
+    short: "Supported practice before independent work",
+    detailed: "Guided practice is the bridge between teacher modelling and independent work. Students attempt tasks with teacher support, checking, and corrective feedback. This 'We do' phase of instruction ensures students can succeed before practising independently."
+  },
+  "i do, we do, you do": {
+    short: "Gradual release of responsibility model",
+    detailed: "This instructional framework moves from teacher demonstration ('I do'), through collaborative practice ('We do'), to independent application ('You do'). It gradually transfers responsibility to students, ensuring they have sufficient modelling and support before working alone."
+  },
+  "independent practice": {
+    short: "Students working on their own to apply learning",
+    detailed: "Independent practice is when students apply what they've learned without direct teacher support. It's the 'You do' phase that consolidates learning, builds fluency, and helps transfer knowledge to long-term memory. It should only follow adequate modelling and guided practice."
+  },
+  "knowledge organiser": {
+    short: "Summary document of key knowledge for a topic",
+    detailed: "A knowledge organiser is a document that sets out the essential knowledge students need for a topic on a single page. It typically includes key vocabulary, dates, facts, concepts, and diagrams. Students use them for self-quizzing, revision, and reference."
+  },
+  "low-stakes quiz": {
+    short: "Quick test without pressure or grades",
+    detailed: "Low-stakes quizzes are brief, ungraded assessments used to promote retrieval practice and check understanding. Because they carry no penalties, students feel safe to engage honestly, providing valuable formative data while strengthening memory through the testing effect."
+  },
+  "low-stakes testing": {
+    short: "Testing without high-pressure consequences",
+    detailed: "Low-stakes testing involves frequent, informal assessments that carry little or no grade weight. The purpose is to promote retrieval practice (strengthening memory through recall) and provide formative feedback without the anxiety associated with formal exams."
+  },
+  "mastery": {
+    short: "Deep, secure understanding of content",
+    detailed: "Mastery learning ensures students fully understand a concept before moving on. Rather than covering content at surface level, mastery approaches provide time for practice, feedback, and consolidation until students demonstrate secure, transferable understanding."
+  },
+  "misconception": {
+    short: "Incorrect understanding that feels right to the learner",
+    detailed: "Misconceptions are deeply held but incorrect ideas that students bring to learning. They're resistant to change because they often 'make sense' to the learner. Effective teaching anticipates common misconceptions and uses diagnostic questions and explicit instruction to address them."
+  },
+  "misconceptions": {
+    short: "Common incorrect understandings",
+    detailed: "Misconceptions are persistent, incorrect beliefs that students hold about concepts. They often arise from everyday experience or incomplete understanding. Good teaching anticipates misconceptions, surfaces them through diagnostic questioning, and directly addresses them."
+  },
+  "pace": {
+    short: "The speed and rhythm of a lesson",
+    detailed: "Pace refers to how quickly a lesson moves and how time is used. Effective pace isn't about rushing — it's about maintaining momentum, minimising dead time, and ensuring activities are appropriately timed so students stay engaged and learning time is maximised."
+  },
+  "plenary": {
+    short: "End-of-lesson review and consolidation",
+    detailed: "A plenary is the closing phase of a lesson where learning is reviewed, consolidated, and assessed. Effective plenaries go beyond 'what did we learn today?' to include retrieval, application, or reflection activities that check understanding and set up future learning."
+  },
+  "precision teaching": {
+    short: "Targeted intervention based on specific gaps",
+    detailed: "Precision teaching involves identifying exactly what a student can and cannot do, then providing highly targeted instruction to address specific gaps. It uses frequent assessment and data to ensure interventions are precise and effective."
+  },
+  "prior knowledge": {
+    short: "What students already know before the lesson",
+    detailed: "Prior knowledge is the existing understanding, skills, and experiences students bring to new learning. Activating and building on prior knowledge creates connections that make new learning meaningful and easier to retain. It's one of the strongest predictors of learning success."
+  },
+  "purposeful practice": {
+    short: "Deliberate, focused repetition to build skills",
+    detailed: "Purposeful practice involves focused, goal-directed repetition with feedback. Unlike mindless repetition, purposeful practice targets specific areas for improvement, involves full concentration, and includes mechanisms for identifying and correcting errors."
+  },
+  "questioning": {
+    short: "Using questions strategically to promote thinking",
+    detailed: "Effective questioning goes beyond recall to promote deep thinking. It involves planning key questions in advance, using a mix of question types, providing wait time, and following up student responses with probing or extending questions to deepen understanding."
+  },
+  "recap": {
+    short: "Reviewing previous learning",
+    detailed: "A recap involves briefly revisiting content from previous lessons. This retrieval practice strengthens memory, identifies gaps, and connects prior learning to new content. Effective recaps are interactive and require students to actively recall rather than passively listen."
+  },
+  "responsive teaching": {
+    short: "Adapting in the moment based on student needs",
+    detailed: "Responsive teaching involves making real-time adjustments based on what students demonstrate during the lesson. Teachers use formative assessment data to modify explanations, add scaffolding, adjust pace, or change tasks to better meet emerging needs."
+  },
+  "rosenshine's principles": {
+    short: "Evidence-based instructional strategies",
+    detailed: "Rosenshine's Principles of Instruction are ten research-based teaching strategies including: begin with review, present new material in small steps, ask questions, provide models, guide practice, check understanding, obtain high success rates, provide scaffolds, require independent practice, and conduct weekly/monthly review."
+  },
+  "routine": {
+    short: "Established patterns that support learning",
+    detailed: "Classroom routines are established, practised procedures that automate transitions and expectations. Well-embedded routines reduce cognitive load on non-learning tasks, minimise disruption, maximise learning time, and create a predictable, safe environment."
+  },
+  "routines": {
+    short: "Established classroom procedures",
+    detailed: "Classroom routines are practised, consistent procedures for common activities (entering, transitions, group work, etc.). When routines are well-established, they become automatic, freeing cognitive resources for learning and reducing behaviour management needs."
+  },
+  "self-assessment": {
+    short: "Students evaluating their own work",
+    detailed: "Self-assessment involves students reviewing and judging their own work against clear criteria. It develops metacognitive skills, helps students identify strengths and areas for improvement, and builds independence and self-regulation in learning."
+  },
+  "self-regulation": {
+    short: "Managing one's own learning and behaviour",
+    detailed: "Self-regulation is the ability to manage one's own behaviour, emotions, and thinking to support learning. Self-regulated learners can plan, monitor, and evaluate their learning. Teaching self-regulation strategies has a high impact on student outcomes."
+  },
+  "show call": {
+    short: "Displaying student work as a teaching tool",
+    detailed: "Show Call involves selecting and displaying a student's work to the class as a teaching tool. It can celebrate excellent work, model strong practice, or constructively discuss how to improve. When handled positively, it builds a culture of shared learning."
+  },
+  "starter activity": {
+    short: "Opening task to begin a lesson",
+    detailed: "A starter activity is a short task at the beginning of a lesson designed to engage students immediately, activate prior knowledge, or retrieve previous learning. Effective starters are self-explanatory, curriculum-connected, and set the tone for productive learning."
+  },
+  "summative assessment": {
+    short: "Measuring learning at the end of a period",
+    detailed: "Summative assessment evaluates student learning at the end of a unit, term, or course against a standard or benchmark. Unlike formative assessment, its primary purpose is to measure and report achievement rather than guide ongoing instruction."
+  },
+  "talk for writing": {
+    short: "Learning text patterns through oral rehearsal",
+    detailed: "Talk for Writing, developed by Pie Corbett, uses spoken language to support writing development. Students internalise text structures through imitation (learning a model text orally), innovation (changing elements), and independent application (creating their own)."
+  },
+  "think time": {
+    short: "Pause for students to process before responding",
+    detailed: "Think time (similar to wait time) is a deliberate pause given to students to formulate their thoughts before they're expected to respond. It improves response quality, increases participation from quieter students, and supports deeper cognitive processing."
+  },
+  "threshold concept": {
+    short: "Transformative idea that changes understanding",
+    detailed: "Threshold concepts are ideas that, once understood, fundamentally transform how students see a subject. They are often troublesome, irreversible, and integrative. Identifying and focusing on threshold concepts helps teachers prioritise the most important ideas in their subject."
+  },
+  "tiered tasks": {
+    short: "Different difficulty levels for the same learning goal",
+    detailed: "Tiered tasks provide the same core learning activity at different levels of complexity, allowing all students to work towards the same learning objective at an appropriate level of challenge. This is a key differentiation strategy that maintains high expectations for all."
+  },
+  "transition": {
+    short: "Moving between activities smoothly",
+    detailed: "Transitions are the periods between activities or phases of a lesson. Well-managed transitions are quick, clear, and practised, minimising lost learning time. Effective teachers use explicit instructions, countdowns, and routines to keep transitions under 30 seconds."
+  },
+  "transitions": {
+    short: "Movements between lesson activities",
+    detailed: "Transitions are the changeover points between activities in a lesson. Effective transitions are rehearsed, swift, and maintain momentum. Poor transitions waste significant learning time over a year. Strategies include clear signals, practised routines, and explicit instructions."
+  },
+  "visible learning": {
+    short: "Making the learning process transparent to students",
+    detailed: "Visible Learning, based on John Hattie's research, makes learning goals, success criteria, and progress visible to both teachers and students. When students can see where they are and where they're going, they become active participants in their own learning."
+  },
+  "vocabulary instruction": {
+    short: "Explicitly teaching key words and their meanings",
+    detailed: "Vocabulary instruction involves deliberately teaching important words rather than assuming students will pick them up. Effective approaches include explicit definitions, multiple exposures in context, morphological analysis (word roots and parts), and opportunities to use new words in speech and writing."
+  },
+  "whole-class feedback": {
+    short: "Feedback given to the entire class at once",
+    detailed: "Whole-class feedback involves reviewing student work and identifying common strengths, errors, and misconceptions, then addressing these with the entire class. It's more efficient than individual written marking and allows for immediate re-teaching and practice."
+  },
+  "worked example effect": {
+    short: "Learning from step-by-step demonstrations",
+    detailed: "The worked example effect, from cognitive load theory, shows that novice learners benefit more from studying completed examples than from solving problems. This reduces extraneous cognitive load and allows students to focus on understanding the process."
+  },
+  "zpd": {
+    short: "The gap between what students can do alone vs. with help",
+    detailed: "ZPD (Zone of Proximal Development) is Vygotsky's concept describing the space between what a learner can accomplish independently and what they can achieve with guidance. Effective instruction targets this zone, providing appropriate challenge with sufficient support."
+  },
+  "deliberate practice": {
+    short: "Focused effort on specific areas for improvement",
+    detailed: "Deliberate practice involves targeted, effortful practice of specific skills with immediate feedback. Unlike routine practice, it focuses on areas of weakness, requires full concentration, and involves a cycle of performance, feedback, and refinement."
+  },
+  "direct instruction": {
+    short: "Explicit, teacher-led teaching of content",
+    detailed: "Direct instruction involves the teacher explicitly teaching content through clear explanations, demonstrations, and structured practice. When done well, it's highly effective for teaching new concepts, particularly for novice learners who benefit from clear, sequenced instruction."
+  },
+  "explicit instruction": {
+    short: "Clear, direct teaching with no ambiguity",
+    detailed: "Explicit instruction involves clearly stating what students will learn, demonstrating skills step-by-step, providing guided practice with feedback, and then moving to independent practice. It leaves nothing to chance and is particularly effective for foundational skills."
+  },
+  "flipped learning": {
+    short: "Students learn content at home, apply in class",
+    detailed: "Flipped learning reverses the traditional model: students engage with new content (videos, readings) at home, freeing class time for application, discussion, and practice with teacher support. This maximises the value of face-to-face time for deeper learning."
+  },
+  "jigsaw": {
+    short: "Students become experts on one piece, then teach others",
+    detailed: "The Jigsaw strategy divides content among groups — each group becomes expert on their piece, then members re-form into mixed groups to teach each other. It develops both understanding (through teaching) and interdependence (everyone's piece is needed)."
+  },
+  "kagan structures": {
+    short: "Cooperative learning frameworks",
+    detailed: "Kagan Structures are step-by-step cooperative learning strategies (like Rally Robin, Timed Pair Share, Stand Up Hand Up Pair Up) that ensure equal participation and individual accountability. They provide ready-made interaction patterns that promote engagement."
+  },
+  "mark-plan-teach": {
+    short: "Using assessment to inform next steps",
+    detailed: "Mark-Plan-Teach is a responsive cycle where teachers review student work (mark), use insights to plan targeted lessons (plan), and deliver instruction that addresses identified needs (teach). It ensures teaching is driven by evidence of student learning."
+  },
+  "memory": {
+    short: "How information is stored and retrieved",
+    detailed: "Understanding memory — working memory (limited, temporary) and long-term memory (vast, permanent) — is fundamental to effective teaching. Strategies like retrieval practice, spaced repetition, and dual coding are designed to support the transfer from working to long-term memory."
+  },
+  "narrate the positive": {
+    short: "Publicly describing desired behaviours you can see",
+    detailed: "Narrate the positive involves verbally acknowledging students who are demonstrating expected behaviours ('I can see Aisha has already opened her book'). This reinforces expectations, redirects off-task students without confrontation, and creates a positive classroom atmosphere."
+  },
+  "oracy skills": {
+    short: "Developing students' speaking and listening abilities",
+    detailed: "Oracy skills encompass the ability to articulate ideas clearly, listen actively, build on others' contributions, and use academic language. Teaching oracy explicitly — through structured talk, discussion frameworks, and presentation skills — supports learning across all subjects."
+  },
+  "pair work": {
+    short: "Students working in twos",
+    detailed: "Pair work involves students collaborating with a partner on a task. It provides a low-risk opportunity for all students to process ideas, rehearse responses, and develop understanding through dialogue before sharing with the wider class."
+  },
+  "positive framing": {
+    short: "Phrasing instructions and feedback constructively",
+    detailed: "Positive framing involves stating expectations in terms of what students should do rather than what they shouldn't. 'Walking feet in the corridor' rather than 'Don't run'. This sets clear expectations, maintains relationships, and creates a more positive learning environment."
+  },
+  "scaffold": {
+    short: "Temporary support structure for learning",
+    detailed: "A scaffold is any temporary support that helps students access content or complete tasks they couldn't manage independently. Examples include writing frames, word banks, worked examples, sentence starters, graphic organisers, and partially completed models."
+  },
+  "scaffolds": {
+    short: "Support structures to help students access learning",
+    detailed: "Scaffolds are temporary supports provided to help students engage with challenging content. These can include visual aids, sentence starters, writing frames, worked examples, graphic organisers, and structured templates. They are gradually removed as competence develops."
+  },
+  "semantic wave": {
+    short: "Moving between abstract and concrete understanding",
+    detailed: "A semantic wave describes the movement between abstract concepts and concrete examples in teaching. Effective instruction 'unpacks' abstract ideas into concrete examples (going down the wave) then 'repacks' understanding back to the abstract level (going up), deepening comprehension."
+  },
+  "spiral curriculum": {
+    short: "Revisiting topics at increasing complexity",
+    detailed: "A spiral curriculum, proposed by Jerome Bruner, introduces key concepts at a basic level and revisits them repeatedly with increasing depth and complexity. This builds on prior knowledge, reinforces learning, and allows students to develop more sophisticated understanding over time."
+  },
+  "student agency": {
+    short: "Students taking ownership of their learning",
+    detailed: "Student agency is the capacity and willingness of students to take purposeful action in their learning. It involves choice, voice, and ownership. Teachers develop agency by providing meaningful choices, encouraging self-assessment, and gradually releasing responsibility."
+  },
+  "end-of-unit assessment": {
+    short: "Assessment at the end of a learning unit",
+    detailed: "End-of-unit assessments measure what students have learned at the conclusion of a topic or unit. They help evaluate the effectiveness of teaching, identify remaining gaps, and inform future planning. They should align closely with the learning objectives covered."
+  },
+  "warm-strict": {
+    short: "Being caring and demanding at the same time",
+    detailed: "Warm-strict teaching combines high expectations with genuine care and support. Teachers maintain firm, consistent boundaries while building positive relationships. Students know the teacher believes in them AND won't accept anything less than their best effort."
+  },
+  "checking understanding": {
+    short: "Verifying students have grasped the content",
+    detailed: "Checking understanding involves using techniques beyond 'Does everyone get it?' to genuinely assess comprehension. Effective methods include targeted questions, mini whiteboards, exit tickets, and think-pair-share — all providing evidence of actual understanding rather than assumed understanding."
+  },
+  "high expectations": {
+    short: "Believing all students can achieve and insisting they do",
+    detailed: "High expectations means consistently communicating belief in every student's ability to succeed and maintaining standards that reflect this belief. Research shows teacher expectations significantly impact student outcomes — students rise or fall to meet the expectations set for them."
+  },
+  "key vocabulary": {
+    short: "Essential subject-specific words students must know",
+    detailed: "Key vocabulary refers to the critical terms and concepts students need to understand and use within a topic. Explicit teaching of key vocabulary — with definitions, examples, and repeated use in context — is essential for accessing curriculum content, especially for disadvantaged learners."
+  },
+  "live modelling": {
+    short: "Demonstrating thinking and processes in real-time",
+    detailed: "Live modelling involves the teacher demonstrating a task or process in real-time, talking through their thinking as they go. Unlike showing a pre-prepared example, live modelling reveals the messy, iterative process of expert thinking, normalises making and fixing mistakes, and makes cognitive processes visible."
+  },
+  "questioning sequence": {
+    short: "Planned series of questions building understanding",
+    detailed: "A questioning sequence is a planned progression of questions that moves from surface to deep understanding. It might start with recall, build through comprehension and application, and culminate in analysis or evaluation. Well-designed sequences scaffold thinking."
+  },
+  "consolidation": {
+    short: "Securing and strengthening new learning",
+    detailed: "Consolidation is the process of strengthening newly learned information so it becomes firmly established in long-term memory. Activities like summarising, applying knowledge to new contexts, practice exercises, and retrieval tasks all support consolidation."
+  },
+  "curriculum": {
+    short: "The planned sequence of learning",
+    detailed: "The curriculum encompasses what is taught, in what order, and why. An effective curriculum is carefully sequenced to build knowledge cumulatively, with each lesson connecting to prior and future learning. It considers both content (what) and pedagogy (how)."
+  },
+  "equity": {
+    short: "Ensuring fair access and outcomes for all students",
+    detailed: "Equity in education means ensuring every student has what they need to succeed, which may differ between students. Unlike equality (same for all), equity recognises that different students need different levels of support to achieve the same outcomes."
+  },
+  "group work": {
+    short: "Students collaborating in small teams",
+    detailed: "Effective group work involves structured collaboration where each member has a clear role and accountability. When well-designed, it develops communication skills, exposes students to different perspectives, and enables peer teaching. Without structure, it can lead to social loafing."
+  },
+  "hook": {
+    short: "Engaging opening to capture student interest",
+    detailed: "A hook is a compelling introduction to a lesson or topic designed to spark curiosity and engagement. It might be a provocative question, surprising fact, visual stimulus, story, or real-world problem. Effective hooks create a 'need to know' that drives learning."
+  },
+  "making connections": {
+    short: "Linking new learning to existing knowledge",
+    detailed: "Making connections involves explicitly helping students see relationships between new content and what they already know, other subjects, or the real world. These connections create stronger neural pathways, making new learning more meaningful and memorable."
   }
 };
 
