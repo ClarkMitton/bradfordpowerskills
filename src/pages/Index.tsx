@@ -6,10 +6,11 @@ import { SessionCapture } from "@/components/SessionCapture";
 import { VideoCapture } from "@/components/VideoCapture";
 import { FeedbackReport } from "@/components/FeedbackReport";
 import { PreviousReportUploader } from "@/components/PreviousReportUploader";
+import { ProcessingLoader } from "@/components/ProcessingLoader";
 import { RotatingInsight } from "@/components/RotatingInsight";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, Loader2, Clock, Video, Upload, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, Home, Loader2, Video, Upload, Sparkles, Zap } from "lucide-react";
 
 const getStepsForMode = (mode: string | null) => {
   switch (mode) {
@@ -38,11 +39,6 @@ const getStepsForMode = (mode: string | null) => {
   }
 };
 
-const formatTime = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-};
 
 const Index = () => {
   const [feedbackPath, setFeedbackPath] = useState<FeedbackPath | null>(null);
@@ -89,27 +85,14 @@ const Index = () => {
 
   const steps = getStepsForMode(state.mode);
 
-  // Show transcription loading state
-  const TranscriptionLoader = () => (
-    <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
-      <div className="relative">
-        <Loader2 className="w-16 h-16 text-primary animate-spin" />
-        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-mono px-3 py-1 rounded-full flex items-center gap-2">
-          <Clock className="w-4 h-4" />
-          {formatTime(state.transcriptionElapsed)}
-        </div>
-      </div>
-      <div className="text-center space-y-3">
-        <h3 className="text-2xl font-heading font-semibold text-foreground">
-          Transcribing Your Session
-        </h3>
-        <p className="text-muted-foreground max-w-md">
-          Converting your audio to text and automatically anonymising student names...
-        </p>
-      </div>
-      <RotatingInsight />
-    </div>
-  );
+  // Unified loading state for transcription + analysis
+  const isProcessing = state.isTranscribing || (state.isAnalyzing && state.mode !== "video-analysis");
+  const processingTitle = state.isTranscribing 
+    ? "Processing Your Session" 
+    : "Generating Your Feedback";
+  const processingMessage = state.isTranscribing
+    ? "Transcribing audio, anonymising names, and preparing your personalised feedback..."
+    : "Our AI is crafting detailed, actionable teaching feedback just for you...";
 
   // Show video processing loading state
   const VideoProcessingLoader = () => {
@@ -246,9 +229,15 @@ const Index = () => {
         case 1:
           return <AudioRecorder onFastFeedback={handleAudioReady} onTranscriptSubmit={handleTranscriptSubmit} />;
         case 2:
-          // Show transcription loading or feedback
-          if (state.isTranscribing) {
-            return <TranscriptionLoader />;
+          // Show processing (transcription + analysis) or feedback
+          if (state.isTranscribing || (state.isAnalyzing && !state.feedback)) {
+            return (
+              <ProcessingLoader
+                title={processingTitle}
+                message={processingMessage}
+                elapsed={state.isTranscribing ? state.transcriptionElapsed : undefined}
+              />
+            );
           }
           return (
             <FeedbackReport
@@ -276,9 +265,15 @@ const Index = () => {
             />
           );
         case 2:
-          // Show transcription loading or feedback
-          if (state.isTranscribing) {
-            return <TranscriptionLoader />;
+          // Show processing (transcription + analysis) or feedback
+          if (state.isTranscribing || (state.isAnalyzing && !state.feedback)) {
+            return (
+              <ProcessingLoader
+                title={processingTitle}
+                message={processingMessage}
+                elapsed={state.isTranscribing ? state.transcriptionElapsed : undefined}
+              />
+            );
           }
           return (
             <FeedbackReport
