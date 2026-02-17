@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { StepIndicator } from "@/components/StepIndicator";
 import { WelcomeScreen, FeedbackPath } from "@/components/WelcomeScreen";
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { SessionCapture } from "@/components/SessionCapture";
 import { VideoCapture } from "@/components/VideoCapture";
-import { PhaseSelector } from "@/components/PhaseSelector";
 import { FeedbackReport } from "@/components/FeedbackReport";
 import { PreviousReportUploader } from "@/components/PreviousReportUploader";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
@@ -16,26 +15,22 @@ const getStepsForMode = (mode: string | null) => {
     case "quick":
       return [
         { id: 1, label: "Record Audio", shortLabel: "Audio" },
-        { id: 2, label: "Select Phases", shortLabel: "Phases" },
-        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
+        { id: 2, label: "View Feedback", shortLabel: "Feedback" },
       ];
     case "deep-dive":
       return [
         { id: 1, label: "Capture Session", shortLabel: "Capture" },
-        { id: 2, label: "Select Phases", shortLabel: "Phases" },
-        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
+        { id: 2, label: "View Feedback", shortLabel: "Feedback" },
       ];
     case "full-review":
       return [
         { id: 1, label: "Capture Session", shortLabel: "Capture" },
-        { id: 2, label: "Select Phases", shortLabel: "Phases" },
-        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
+        { id: 2, label: "View Feedback", shortLabel: "Feedback" },
       ];
     case "video-analysis":
       return [
         { id: 1, label: "Upload Video", shortLabel: "Video" },
-        { id: 2, label: "Select Phases", shortLabel: "Phases" },
-        { id: 3, label: "View Feedback", shortLabel: "Feedback" },
+        { id: 2, label: "View Feedback", shortLabel: "Feedback" },
       ];
     default:
       return [];
@@ -66,11 +61,30 @@ const Index = () => {
     goBack,
   } = useSessionAnalysis();
 
+  const videoAutoAnalyzedRef = useRef(false);
+  
   const handleReset = () => {
     setFeedbackPath(null);
     setPreviousReport(null);
+    videoAutoAnalyzedRef.current = false;
     resetSession();
   };
+
+  // Auto-trigger video analysis when video capture completes
+  useEffect(() => {
+    if (
+      state.mode === "video-analysis" &&
+      state.step === 2 &&
+      state.videoBlob &&
+      !state.isAnalyzing &&
+      !state.feedback &&
+      !state.analysisError &&
+      !videoAutoAnalyzedRef.current
+    ) {
+      videoAutoAnalyzedRef.current = true;
+      analyzeVideo(["full"]);
+    }
+  }, [state.mode, state.step, state.videoBlob, state.isAnalyzing, state.feedback, state.analysisError, analyzeVideo]);
 
   const steps = getStepsForMode(state.mode);
 
@@ -245,17 +259,10 @@ const Index = () => {
         case 1:
           return <AudioRecorder onFastFeedback={handleAudioReady} onTranscriptSubmit={handleTranscriptSubmit} />;
         case 2:
-          // Show transcription loading or phase selector
+          // Show transcription loading or feedback
           if (state.isTranscribing) {
             return <TranscriptionLoader />;
           }
-          return (
-            <PhaseSelector
-              onConfirm={handlePhaseSelection}
-              isLoading={false}
-            />
-          );
-        case 3:
           return (
             <FeedbackReport
               feedback={state.feedback}
@@ -282,17 +289,10 @@ const Index = () => {
             />
           );
         case 2:
-          // Show transcription loading or phase selector
+          // Show transcription loading or feedback
           if (state.isTranscribing) {
             return <TranscriptionLoader />;
           }
-          return (
-            <PhaseSelector
-              onConfirm={handlePhaseSelection}
-              isLoading={false}
-            />
-          );
-        case 3:
           return (
             <FeedbackReport
               feedback={state.feedback}
@@ -318,13 +318,6 @@ const Index = () => {
             />
           );
         case 2:
-          return (
-            <PhaseSelector
-              onConfirm={analyzeVideo}
-              isLoading={false}
-            />
-          );
-        case 3:
           if (state.isAnalyzing) {
             return <VideoProcessingLoader />;
           }
