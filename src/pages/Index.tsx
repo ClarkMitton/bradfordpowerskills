@@ -346,12 +346,12 @@ const Index = () => {
         <div className="container max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">PS</span>
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">PE</span>
               </div>
               <div>
                 <h1 className="font-heading font-semibold text-foreground text-lg">
-                  Power Skills
+                  PowerED
                 </h1>
                 <p className="text-xs text-muted-foreground">Session Analysis</p>
               </div>
@@ -390,7 +390,7 @@ const Index = () => {
       <footer className="border-t border-border bg-muted/30 mt-auto">
         <div className="container max-w-4xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} Power Skills Session Analysis Tool</p>
+            <p>© {new Date().getFullYear()} PowerED Session Analysis Tool</p>
             <p>Built for Bradford College LEAD Model</p>
           </div>
         </div>

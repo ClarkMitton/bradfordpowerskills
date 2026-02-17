@@ -1,5 +1,7 @@
-import { Mic, FileText, Layers, Sparkles, GitCompare, ArrowRight, Video } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Mic, Layers, Sparkles, GitCompare, ArrowRight } from "lucide-react";
+import heroFlow from "@/assets/hero-flow.jpg";
+import cardFlow1 from "@/assets/card-flow-1.jpg";
+import cardFlow2 from "@/assets/card-flow-2.jpg";
 
 export type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis";
 export type FeedbackPath = "new" | "comparative";
@@ -25,6 +27,7 @@ export function WelcomeScreen({
       title: "I Want Feedback",
       description: "Get fresh feedback on a teaching session",
       encouragement: "Perfect for standalone reflection on any lesson.",
+      image: cardFlow1,
     },
     {
       id: "comparative" as const,
@@ -32,6 +35,7 @@ export function WelcomeScreen({
       title: "I Want Feedback Against a Previous Session",
       description: "Compare your progress since your last analysis",
       encouragement: "See how you've grown and what to focus on next.",
+      image: cardFlow2,
     },
   ];
 
@@ -43,6 +47,7 @@ export function WelcomeScreen({
       description: "Get instant feedback on any teaching moment — a full lesson, a short activity, or just a segment you want to reflect on.",
       details: ["Record or upload audio", "Auto-transcription", "Delivery-focused feedback"],
       encouragement: "Perfect for everyday practice — use it anytime you want a quick reflection on your delivery.",
+      image: cardFlow1,
     },
     {
       id: "full-review" as const,
@@ -51,30 +56,27 @@ export function WelcomeScreen({
       description: "Comprehensive analysis of the complete teaching cycle — from planning through delivery to student outcomes.",
       details: ["Audio recording", "Lesson plan & scaffolding", "3 pieces of student work"],
       encouragement: "Perfect for deep reflection — connect your planning, delivery, and student outcomes for powerful professional growth.",
+      image: cardFlow2,
     },
-    // Video analysis hidden for now
-    // {
-    //   id: "video-analysis" as const,
-    //   icon: Video,
-    //   title: "Video Analysis",
-    //   description: "Upload a video of your teaching session for comprehensive visual and audio analysis.",
-    //   details: ["Upload MP4/WebM video", "Visual + audio analysis", "Body language feedback"],
-    //   encouragement: "See your teaching from your students' perspective — get insights on presence, movement, and visual delivery.",
-    // },
   ];
 
   // If path selection is enabled and no path is selected yet, show path selection
   if (showPathSelection && !selectedPath && onSelectPath) {
     return (
       <div className="section-fade-in space-y-8">
-        {/* Hero Section */}
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground text-balance">
-            Power Skills Session Analysis
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
-            Get AI-powered feedback aligned to Bradford College's LEAD model.
-          </p>
+        {/* Hero Section with flowing image */}
+        <div className="relative rounded-[2rem] overflow-hidden">
+          <img src={heroFlow} alt="" className="w-full h-48 sm:h-64 object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background flex items-center justify-center">
+            <div className="text-center space-y-3 px-4">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground text-balance drop-shadow-sm">
+                PowerED Session Analysis
+              </h1>
+              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
+                Get AI-powered feedback aligned to Bradford College's LEAD model.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Path Selection */}
@@ -89,12 +91,16 @@ export function WelcomeScreen({
             <button
               key={option.id}
               onClick={() => onSelectPath(option.id)}
-              className="card-elevated p-8 text-left hover:border-primary/50 transition-all duration-300 hover:shadow-lg group animate-fade-in"
+              className="card-elevated overflow-hidden text-left hover:border-primary/50 hover:shadow-lg group animate-fade-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="flex flex-col h-full">
-                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
-                  <option.icon className="w-8 h-8 text-primary" />
+              {/* Card image strip */}
+              <div className="h-24 overflow-hidden">
+                <img src={option.image} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <div className="p-6 flex flex-col">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                  <option.icon className="w-7 h-7 text-primary" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground text-xl mb-3">
                   {option.title}
@@ -103,7 +109,7 @@ export function WelcomeScreen({
                   {option.description}
                 </p>
                 
-                <div className="flex items-start gap-2 mt-auto p-3 rounded-lg bg-success/10 border border-success/20">
+                <div className="flex items-start gap-2 mt-auto p-3 rounded-2xl bg-success/10 border border-success/20">
                   <Sparkles className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-success font-medium">
                     {option.encouragement}
@@ -120,7 +126,7 @@ export function WelcomeScreen({
         </div>
 
         {/* Privacy Notice */}
-        <div className="bg-accent-soft border border-accent/20 rounded-lg p-4 text-center">
+        <div className="bg-accent-soft border border-accent/20 rounded-2xl p-4 text-center">
           <p className="text-sm text-foreground">
             <strong>Privacy First:</strong> No data is stored permanently. All audio files are deleted 
             after transcription, and your session data is cleared when you close the browser.
@@ -132,15 +138,20 @@ export function WelcomeScreen({
 
   return (
     <div className="section-fade-in space-y-8">
-      {/* Hero Section */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground text-balance">
-          Power Skills Session Analysis
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
-          Get AI-powered feedback aligned to Bradford College's LEAD model.
-          Choose the type of analysis you'd like to receive.
-        </p>
+      {/* Hero Section with flowing image */}
+      <div className="relative rounded-[2rem] overflow-hidden">
+        <img src={heroFlow} alt="" className="w-full h-48 sm:h-64 object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background flex items-center justify-center">
+          <div className="text-center space-y-3 px-4">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-foreground text-balance drop-shadow-sm">
+              PowerED Session Analysis
+            </h1>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
+              Get AI-powered feedback aligned to Bradford College's LEAD model.
+              Choose the type of analysis you'd like to receive.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Analysis Options */}
@@ -155,17 +166,21 @@ export function WelcomeScreen({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
         {analysisOptions.map((option, index) => (
           <button
             key={option.id}
             onClick={() => onSelectMode(option.id)}
-            className="card-elevated p-6 text-left hover:border-primary/50 transition-all duration-300 hover:shadow-lg group animate-fade-in"
+            className="card-elevated overflow-hidden text-left hover:border-primary/50 hover:shadow-lg group animate-fade-in"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div className="flex flex-col h-full">
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <option.icon className="w-7 h-7 text-primary" />
+            {/* Card image strip */}
+            <div className="h-24 overflow-hidden">
+              <img src={option.image} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity group-hover:scale-105 transition-transform duration-500" />
+            </div>
+            <div className="p-6 flex flex-col">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <option.icon className="w-6 h-6 text-primary" />
               </div>
               <h3 className="font-heading font-semibold text-foreground text-lg mb-2">
                 {option.title}
@@ -175,7 +190,7 @@ export function WelcomeScreen({
               </p>
               
               {option.encouragement && (
-                <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-success/10 border border-success/20">
+                <div className="flex items-start gap-2 mb-4 p-3 rounded-2xl bg-success/10 border border-success/20">
                   <Sparkles className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-success font-medium">
                     {option.encouragement}
@@ -183,10 +198,10 @@ export function WelcomeScreen({
                 </div>
               )}
               
-              <ul className="space-y-1 mt-auto">
+              <ul className="space-y-1.5 mt-auto">
                 {option.details.map((detail, i) => (
                   <li key={i} className="text-xs text-muted-foreground flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                    <span className="w-2 h-2 rounded-full bg-primary/50" />
                     {detail}
                   </li>
                 ))}
@@ -197,7 +212,7 @@ export function WelcomeScreen({
       </div>
 
       {/* Privacy Notice */}
-      <div className="bg-accent-soft border border-accent/20 rounded-lg p-4 text-center">
+      <div className="bg-accent-soft border border-accent/20 rounded-2xl p-4 text-center">
         <p className="text-sm text-foreground">
           <strong>Privacy First:</strong> No data is stored permanently. All audio files are deleted 
           after transcription, and your session data is cleared when you close the browser.
