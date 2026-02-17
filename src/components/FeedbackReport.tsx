@@ -211,18 +211,19 @@ const renderWithTooltips = (text: string): React.ReactNode => {
     const matchedTerm = terms.find((t) => termLower.includes(t.toLowerCase()));
 
     if (matchedTerm) {
-      // It's a pedagogical term - wrap in tooltip
+      // It's a known pedagogical term - wrap in tooltip
       parts.push(
         <PedagogicalTooltip key={`italic-${key++}`} term={matchedTerm}>
           {italicContent}
         </PedagogicalTooltip>
       );
     } else {
-      // Just render as italic with emphasis styling
+      // Unknown italic term - render as plain text, no special styling
+      // This prevents terms from looking highlighted/clickable without being hoverable
       parts.push(
-        <em key={`italic-em-${key++}`} className="text-primary/80 font-medium">
+        <span key={`italic-plain-${key++}`}>
           {italicContent}
-        </em>
+        </span>
       );
     }
 
@@ -854,6 +855,25 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
 
       {/* Overall Summary - Warm Card */}
       <div className="card-elevated p-8 bg-gradient-to-br from-primary/5 via-background to-accent/5 border-primary/20">
+        {/* Ofsted Grade Badge - if available */}
+        {feedback.ofstedGrade && (
+          <div className="flex items-center justify-center mb-6">
+            <div className={cn(
+              "px-5 py-2.5 rounded-full text-base font-bold border-2",
+              feedback.ofstedGrade.grade === "exceptional" && "bg-emerald-500/20 text-emerald-700 border-emerald-500/40",
+              feedback.ofstedGrade.grade === "strong_standard" && "bg-blue-500/20 text-blue-700 border-blue-500/40",
+              feedback.ofstedGrade.grade === "expected_standard" && "bg-amber-500/20 text-amber-700 border-amber-500/40",
+              feedback.ofstedGrade.grade === "needs_attention" && "bg-orange-500/20 text-orange-700 border-orange-500/40",
+              feedback.ofstedGrade.grade === "urgent_improvement" && "bg-red-500/20 text-red-700 border-red-500/40"
+            )}>
+              {feedback.ofstedGrade.grade === "exceptional" && "✨ Exceptional"}
+              {feedback.ofstedGrade.grade === "strong_standard" && "⭐ Strong Standard"}
+              {feedback.ofstedGrade.grade === "expected_standard" && "✓ Expected Standard"}
+              {feedback.ofstedGrade.grade === "needs_attention" && "⚠ Needs Attention"}
+              {feedback.ofstedGrade.grade === "urgent_improvement" && "🚨 Urgent Improvement"}
+            </div>
+          </div>
+        )}
         <p className="text-lg text-foreground leading-relaxed mb-6">{feedback.overallSummary}</p>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="p-5 bg-success/10 rounded-xl border border-success/20">
@@ -1157,89 +1177,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
         </div>
       )}
 
-      {/* Ofsted Grade Section */}
-      {feedback.ofstedGrade && (
-        <div className="card-elevated overflow-hidden border-2 border-indigo-500/30">
-          <div className="p-5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-b border-border">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                <span className="text-xl">🎓</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground text-lg">How Would Ofsted Rate This?</h3>
-                <p className="text-sm text-muted-foreground">Based on the "Developing Teaching" criteria (November 2025 Framework)</p>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 space-y-6">
-            {/* Grade Badge */}
-            <div className="flex items-center justify-center">
-              <div className={cn(
-                "px-6 py-3 rounded-full text-lg font-bold border-2",
-                feedback.ofstedGrade.grade === "exceptional" && "bg-emerald-500/20 text-emerald-700 border-emerald-500/40",
-                feedback.ofstedGrade.grade === "strong_standard" && "bg-blue-500/20 text-blue-700 border-blue-500/40",
-                feedback.ofstedGrade.grade === "expected_standard" && "bg-amber-500/20 text-amber-700 border-amber-500/40",
-                feedback.ofstedGrade.grade === "needs_attention" && "bg-orange-500/20 text-orange-700 border-orange-500/40",
-                feedback.ofstedGrade.grade === "urgent_improvement" && "bg-red-500/20 text-red-700 border-red-500/40"
-              )}>
-                {feedback.ofstedGrade.grade === "exceptional" && "✨ Exceptional"}
-                {feedback.ofstedGrade.grade === "strong_standard" && "⭐ Strong Standard"}
-                {feedback.ofstedGrade.grade === "expected_standard" && "✓ Expected Standard"}
-                {feedback.ofstedGrade.grade === "needs_attention" && "⚠ Needs Attention"}
-                {feedback.ofstedGrade.grade === "urgent_improvement" && "🚨 Urgent Improvement"}
-              </div>
-            </div>
-
-            {/* Summary */}
-            <div className="p-4 bg-secondary/30 rounded-xl">
-              <p className="text-foreground leading-relaxed">{renderWithTooltips(feedback.ofstedGrade.summary)}</p>
-            </div>
-
-            {/* Strengths */}
-            {feedback.ofstedGrade.strengths && feedback.ofstedGrade.strengths.length > 0 && (
-              <div className="p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/15">
-                <h4 className="text-sm font-semibold text-emerald-600 mb-3 flex items-center gap-2">
-                  <span className="text-base">✓</span> Observable Strengths
-                </h4>
-                <ul className="space-y-2">
-                  {feedback.ofstedGrade.strengths.map((strength, i) => (
-                    <li key={i} className="text-foreground flex items-start gap-2">
-                      <span className="text-emerald-500 mt-0.5">•</span>
-                      {renderWithTooltips(strength)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Areas for Development */}
-            {feedback.ofstedGrade.areasForDevelopment && feedback.ofstedGrade.areasForDevelopment.length > 0 && (
-              <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/15">
-                <h4 className="text-sm font-semibold text-amber-600 mb-3 flex items-center gap-2">
-                  <span className="text-base">→</span> Areas for Development
-                </h4>
-                <ul className="space-y-2">
-                  {feedback.ofstedGrade.areasForDevelopment.map((area, i) => (
-                    <li key={i} className="text-foreground flex items-start gap-2">
-                      <span className="text-amber-500 mt-0.5">•</span>
-                      {renderWithTooltips(area)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Caveat */}
-            {feedback.ofstedGrade.caveat && (
-              <div className="p-3 bg-muted/50 rounded-lg border border-border">
-                <p className="text-sm text-muted-foreground italic">
-                  <strong className="not-italic">Note:</strong> {feedback.ofstedGrade.caveat}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Ofsted Grade Section - removed, grade badge now shown in summary */}
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
