@@ -418,8 +418,27 @@ Respond with valid JSON matching this exact structure:
       });
     }
 
-    const aiResponse = await response.json();
+    const responseText = await response.text();
+    let aiResponse;
+    try {
+      aiResponse = JSON.parse(responseText);
+    } catch (e) {
+      console.error("Failed to parse AI gateway response:", responseText?.slice(0, 500));
+      return new Response(JSON.stringify({ error: "Invalid response from AI. Please try again." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const content = aiResponse.choices?.[0]?.message?.content;
+    
+    if (!content) {
+      console.error("No content in AI response:", JSON.stringify(aiResponse).slice(0, 500));
+      return new Response(JSON.stringify({ error: "AI returned an empty response. Please try again." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Parse the JSON from the response
     let feedback;
