@@ -22,6 +22,9 @@ const FEEDBACK_CATEGORIES = [
 ];
 
 const LEARNER_LEVELS = [
+  { value: "primary", label: "Primary (Reception - Year 2)" },
+  { value: "ks1", label: "KS1 (Years 1-2)" },
+  { value: "ks2", label: "KS2 (Years 3-6)" },
   { value: "ks3", label: "KS3 (Years 7-9)" },
   { value: "ks4", label: "KS4 (Years 10-11 / GCSE)" },
   { value: "ks5", label: "KS5 (Years 12-13 / A-Level)" },
