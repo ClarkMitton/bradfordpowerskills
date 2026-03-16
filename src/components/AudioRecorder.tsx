@@ -222,7 +222,7 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
           Record or Upload Your Session
         </h2>
         <p className="text-muted-foreground">
-          Record a live session or upload a pre-recorded audio file (15-20 minutes recommended)
+          Record a live session or upload a pre-recorded audio file (8-12 minutes recommended)
         </p>
       </div>
 
