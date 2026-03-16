@@ -960,10 +960,21 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                   <div className="flex items-center gap-4">
                     <span className="font-semibold text-foreground text-left">{category.name}</span>
                     <div className="flex items-center gap-2">
-                      {renderStars(category.rating)}
-                      <span className={cn("text-sm font-medium", starRatingColors[category.rating])}>
-                        {starRatingLabels[category.rating]}
-                      </span>
+                      {typeof category.rating === 'number' ? (
+                        <>
+                          {renderStars(category.rating)}
+                          <span className={cn("text-sm font-medium", starRatingColors[category.rating])}>
+                            {starRatingLabels[category.rating]}
+                          </span>
+                        </>
+                      ) : (
+                        <span className={cn(
+                          "text-sm px-3 py-1 rounded-full border-2 font-semibold",
+                          progressionStageColors[category.rating as string] || ""
+                        )}>
+                          {progressionStageLabels[category.rating as string] || category.rating}
+                        </span>
+                      )}
                     </div>
                   </div>
                   {category.summary && (
