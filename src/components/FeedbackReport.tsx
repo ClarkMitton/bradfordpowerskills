@@ -1233,6 +1233,106 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
 
       {/* Ofsted Grade Section - removed, grade badge now shown in summary */}
 
+      {/* Standard English Usage - trainee only */}
+      {userRole === "trainee" && feedback.standardEnglish && (
+        <div className="card-elevated overflow-hidden">
+          <div className="p-5 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground text-lg">Standard English Usage</h3>
+                <p className="text-sm text-muted-foreground">Rating and timestamped instances</p>
+              </div>
+              <div className={cn(
+                "px-4 py-2 rounded-full font-bold text-lg border-2",
+                (feedback.standardEnglish?.rating ?? 0) >= 8 ? "bg-emerald-500/20 text-emerald-700 border-emerald-500/40" :
+                (feedback.standardEnglish?.rating ?? 0) >= 5 ? "bg-amber-500/20 text-amber-700 border-amber-500/40" :
+                "bg-red-500/20 text-red-700 border-red-500/40"
+              )}>
+                {feedback.standardEnglish.rating}/10
+              </div>
+            </div>
+          </div>
+          {feedback.standardEnglish.instances && feedback.standardEnglish.instances.length > 0 && (
+            <div className="p-5 space-y-3">
+              {feedback.standardEnglish.instances.map((instance, i) => (
+                <div key={i} className="p-4 bg-secondary/30 rounded-xl border border-border space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono px-2 py-0.5 bg-blue-500/20 rounded text-blue-700">{instance.timestamp}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-2 bg-red-500/5 rounded-lg border border-red-500/10">
+                      <p className="text-xs font-semibold text-red-600 mb-1">What was said:</p>
+                      <p className="text-sm text-foreground italic">"{instance.original}"</p>
+                    </div>
+                    <div className="p-2 bg-emerald-500/5 rounded-lg border border-emerald-500/10">
+                      <p className="text-xs font-semibold text-emerald-600 mb-1">Standard English:</p>
+                      <p className="text-sm text-foreground italic">"{instance.corrected}"</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{instance.explanation}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {(!feedback.standardEnglish.instances || feedback.standardEnglish.instances.length === 0) && (
+            <div className="p-5 text-center text-muted-foreground">
+              <p className="text-sm">No instances of non-standard English detected. Excellent modelling! ✨</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ITTECF Indicators - trainee only */}
+      {userRole === "trainee" && feedback.ittecfIndicators && feedback.ittecfIndicators.length > 0 && (
+        <div className="card-elevated overflow-hidden">
+          <div className="p-5 bg-gradient-to-r from-purple-500/10 to-purple-500/5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <Target className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground text-lg">📋 ITT & Early Career Framework</h3>
+                <p className="text-sm text-muted-foreground">"Learn How To..." Indicators evidenced in your session</p>
+              </div>
+            </div>
+          </div>
+          <div className="divide-y divide-border">
+            {feedback.ittecfIndicators.map((indicator, i) => (
+              <div key={i} className="p-4 flex items-start gap-4">
+                <div className={cn(
+                  "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
+                  indicator.status === "demonstrated" 
+                    ? "bg-emerald-500/20 text-emerald-700" 
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {indicator.status === "demonstrated" ? "✓" : "○"}
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-mono px-2 py-0.5 bg-purple-500/20 rounded text-purple-700">
+                      {indicator.standard} {indicator.subCode}
+                    </span>
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded-full font-medium",
+                      indicator.status === "demonstrated" 
+                        ? "bg-emerald-500/10 text-emerald-700" 
+                        : "bg-muted text-muted-foreground"
+                    )}>
+                      {indicator.status === "demonstrated" ? "Demonstrated" : "Not yet evidenced"}
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium text-foreground">{indicator.statement}</p>
+                  <p className="text-xs text-muted-foreground">{indicator.evidence}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
         <Button onClick={handleDownload} size="lg" className="gap-2">
