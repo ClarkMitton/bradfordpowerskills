@@ -146,18 +146,30 @@ const ratingColors: Record<string, string> = {
   emerging: "bg-accent/10 text-accent border-accent/30",
 };
 
-const starRatingLabels: Record<number, string> = {
+const starRatingLabels: Record<number | string, string> = {
   4: "Exemplary Practice",
   3: "Solid Foundation",
   2: "Developing Practice",
   1: "Emerging Practice",
 };
 
-const starRatingColors: Record<number, string> = {
+const starRatingColors: Record<number | string, string> = {
   4: "text-success",
   3: "text-primary",
   2: "text-warning",
   1: "text-accent",
+};
+
+const progressionStageLabels: Record<string, string> = {
+  developing: "Developing",
+  establishing: "Establishing",
+  embedding: "Embedding",
+};
+
+const progressionStageColors: Record<string, string> = {
+  developing: "bg-amber-500/20 text-amber-700 border-amber-500/40",
+  establishing: "bg-blue-500/20 text-blue-700 border-blue-500/40",
+  embedding: "bg-emerald-500/20 text-emerald-700 border-emerald-500/40",
 };
 
 // Helper to highlight quotes in text (non-pedagogical formatting)
