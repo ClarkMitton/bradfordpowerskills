@@ -38,7 +38,7 @@ interface TranscriptExample {
 
 interface CategoryFeedback {
   name: string;
-  rating: number;
+  rating: number | string;
   summary?: string;
   whatsWorking: string;
   whatsWorkingExamples?: TranscriptExample[];
