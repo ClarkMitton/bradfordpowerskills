@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StepIndicator } from "@/components/StepIndicator";
-import { WelcomeScreen, FeedbackPath } from "@/components/WelcomeScreen";
+import { WelcomeScreen, FeedbackPath, UserRole } from "@/components/WelcomeScreen";
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { SessionCapture } from "@/components/SessionCapture";
 import { VideoCapture } from "@/components/VideoCapture";
@@ -42,6 +42,7 @@ const getStepsForMode = (mode: string | null) => {
 
 const Index = () => {
   const [feedbackPath, setFeedbackPath] = useState<FeedbackPath | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [previousReport, setPreviousReport] = useState<string | null>(null);
   
   const {
@@ -56,16 +57,25 @@ const Index = () => {
     retryAnalysis,
     resetSession,
     goBack,
+    setUserRole: setHookUserRole,
   } = useSessionAnalysis();
 
   const videoAutoAnalyzedRef = useRef(false);
   
   const handleReset = () => {
     setFeedbackPath(null);
+    setUserRole(null);
     setPreviousReport(null);
     videoAutoAnalyzedRef.current = false;
     resetSession();
   };
+
+  // Sync userRole to hook
+  useEffect(() => {
+    if (userRole) {
+      setHookUserRole(userRole);
+    }
+  }, [userRole, setHookUserRole]);
 
   // Auto-trigger video analysis when video capture completes
   useEffect(() => {
@@ -99,68 +109,24 @@ const Index = () => {
     const getStatusText = () => {
       switch (state.videoProcessingStatus) {
         case "loading":
-          return {
-            title: "Loading Video Processor",
-            message: state.compressionMessage || "Loading video processor...",
-            icon: Zap,
-            detail: "Downloading processing engine",
-            showProgress: false,
-          };
+          return { title: "Loading Video Processor", message: state.compressionMessage || "Loading video processor...", icon: Zap, detail: "Downloading processing engine", showProgress: false };
         case "preparing":
-          return {
-            title: "Preparing Video",
-            message: state.compressionMessage || "Copying video to processor...",
-            icon: Upload,
-            detail: `${state.compressionProgress}% complete`,
-            showProgress: true,
-          };
+          return { title: "Preparing Video", message: state.compressionMessage || "Copying video to processor...", icon: Upload, detail: `${state.compressionProgress}% complete`, showProgress: true };
         case "compressing":
-          return {
-            title: "Compressing Video",
-            message: state.compressionMessage || "Optimizing for upload...",
-            icon: Zap,
-            detail: `${state.compressionProgress}% complete`,
-            showProgress: true,
-          };
+          return { title: "Compressing Video", message: state.compressionMessage || "Optimizing for upload...", icon: Zap, detail: `${state.compressionProgress}% complete`, showProgress: true };
         case "uploading":
-          return {
-            title: "Uploading Video",
-            message: state.compressionSavings || "Sending your video to our servers...",
-            icon: Upload,
-            detail: "This depends on your connection speed",
-            showProgress: false,
-          };
+          return { title: "Uploading Video", message: state.compressionSavings || "Sending your video to our servers...", icon: Upload, detail: "This depends on your connection speed", showProgress: false };
         case "processing":
-          return {
-            title: "Indexing Video",
-            message: "Processing your video content...",
-            icon: Video,
-            detail: "This typically takes 60-90 seconds",
-            showProgress: false,
-          };
+          return { title: "Indexing Video", message: "Processing your video content...", icon: Video, detail: "This typically takes 60-90 seconds", showProgress: false };
         case "analyzing":
-          return {
-            title: "Analyzing Pedagogy",
-            message: "AI is extracting teaching insights from visual and audio...",
-            icon: Sparkles,
-            detail: "Almost done...",
-            showProgress: false,
-          };
+          return { title: "Analyzing Pedagogy", message: "AI is extracting teaching insights from visual and audio...", icon: Sparkles, detail: "Almost done...", showProgress: false };
         default:
-          return {
-            title: "Preparing Analysis",
-            message: "Setting up video analysis...",
-            icon: Video,
-            detail: "Please wait",
-            showProgress: false,
-          };
+          return { title: "Preparing Analysis", message: "Setting up video analysis...", icon: Video, detail: "Please wait", showProgress: false };
       }
     };
 
     const status = getStatusText();
     const StatusIcon = status.icon;
-
-    // Progress stages for visual feedback
     const stages = ["loading", "preparing", "compressing", "uploading", "processing", "analyzing"];
     const currentStageIndex = stages.indexOf(state.videoProcessingStatus || "loading");
 
@@ -173,27 +139,16 @@ const Index = () => {
             <span className="capitalize">{state.videoProcessingStatus || "preparing"}</span>
           </div>
         </div>
-
-        {/* Progress indicator */}
         <div className="flex items-center gap-2 w-full max-w-xs">
           {stages.map((stage, index) => (
             <React.Fragment key={stage}>
-              <div
-                className={`h-2 flex-1 rounded-full transition-colors ${
-                  index <= currentStageIndex ? "bg-primary" : "bg-muted"
-                }`}
-              />
+              <div className={`h-2 flex-1 rounded-full transition-colors ${index <= currentStageIndex ? "bg-primary" : "bg-muted"}`} />
               {index < stages.length - 1 && (
-                <div
-                  className={`w-1 h-1 rounded-full ${
-                    index < currentStageIndex ? "bg-primary" : "bg-muted"
-                  }`}
-                />
+                <div className={`w-1 h-1 rounded-full ${index < currentStageIndex ? "bg-primary" : "bg-muted"}`} />
               )}
             </React.Fragment>
           ))}
         </div>
-
         <div className="text-center space-y-3">
           <h3 className="text-2xl font-heading font-semibold text-foreground">{status.title}</h3>
           <p className="text-muted-foreground max-w-md">{status.message}</p>
@@ -202,9 +157,10 @@ const Index = () => {
       </div>
     );
   };
+
   const renderStep = () => {
     if (state.step === 0) {
-      // Show path selection first, then mode selection
+      // Show path selection first, then role, then mode
       if (feedbackPath === "comparative" && !previousReport) {
         return (
           <PreviousReportUploader 
@@ -217,8 +173,10 @@ const Index = () => {
         <WelcomeScreen 
           onSelectMode={selectMode} 
           onSelectPath={setFeedbackPath}
+          onSelectRole={setUserRole}
           showPathSelection={true}
           selectedPath={feedbackPath}
+          selectedRole={userRole}
         />
       );
     }
@@ -229,7 +187,6 @@ const Index = () => {
         case 1:
           return <AudioRecorder onFastFeedback={handleAudioReady} onTranscriptSubmit={handleTranscriptSubmit} />;
         case 2:
-          // Show processing (transcription + analysis) or feedback
           if (state.isTranscribing || (state.isAnalyzing && !state.feedback)) {
             return (
               <ProcessingLoader
@@ -249,23 +206,18 @@ const Index = () => {
               error={state.analysisError}
               mode={state.mode}
               selectedPhases={state.selectedPhases}
+              userRole={userRole}
             />
           );
       }
     }
 
-    // Deep dive and full review modes (combined audio + documents)
+    // Deep dive and full review modes
     if (state.mode === "deep-dive" || state.mode === "full-review") {
       switch (state.step) {
         case 1:
-          return (
-            <SessionCapture
-              mode={state.mode}
-              onComplete={handleSessionCapture}
-            />
-          );
+          return <SessionCapture mode={state.mode} onComplete={handleSessionCapture} />;
         case 2:
-          // Show processing (transcription + analysis) or feedback
           if (state.isTranscribing || (state.isAnalyzing && !state.feedback)) {
             return (
               <ProcessingLoader
@@ -285,6 +237,7 @@ const Index = () => {
               error={state.analysisError}
               mode={state.mode}
               selectedPhases={state.selectedPhases}
+              userRole={userRole}
             />
           );
       }
@@ -294,11 +247,7 @@ const Index = () => {
     if (state.mode === "video-analysis") {
       switch (state.step) {
         case 1:
-          return (
-            <VideoCapture
-              onComplete={handleVideoCapture}
-            />
-          );
+          return <VideoCapture onComplete={handleVideoCapture} />;
         case 2:
           if (state.isAnalyzing) {
             return <VideoProcessingLoader />;
@@ -313,6 +262,7 @@ const Index = () => {
               error={state.analysisError}
               mode={state.mode}
               selectedPhases={state.selectedPhases}
+              userRole={userRole}
             />
           );
       }
@@ -323,7 +273,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
         <div className="container max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
@@ -332,26 +281,18 @@ const Index = () => {
                 <span className="text-primary-foreground font-bold text-lg">PE</span>
               </div>
               <div>
-                <h1 className="font-heading font-semibold text-foreground text-lg">
-                  PowerED
-                </h1>
+                <h1 className="font-heading font-semibold text-foreground text-lg">PowerED</h1>
                 <p className="text-xs text-muted-foreground">Teaching Feedback</p>
               </div>
             </div>
             {state.step > 0 && (
-              <span className="text-sm text-muted-foreground">
-                Bradford College
-              </span>
+              <span className="text-sm text-muted-foreground">Bradford College</span>
             )}
           </div>
-          
-          {state.step > 0 && (
-            <StepIndicator steps={steps} currentStep={state.step} />
-          )}
+          {state.step > 0 && <StepIndicator steps={steps} currentStep={state.step} />}
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container max-w-4xl mx-auto px-4 py-8">
         {state.step > 0 && !state.isTranscribing && (
           <div className="flex gap-2 mb-6">
@@ -368,7 +309,6 @@ const Index = () => {
         {renderStep()}
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border bg-muted/30 mt-auto rounded-t-3xl">
         <div className="container max-w-4xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
