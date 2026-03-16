@@ -378,7 +378,7 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
         <h3 className="font-semibold text-foreground mb-2">Tips for Best Results</h3>
         <ul className="text-sm text-muted-foreground space-y-1">
           <li>• Ensure a quiet environment for best transcription quality</li>
-          <li>• Sessions of 15-20 minutes work best for detailed analysis</li>
+          <li>• Sessions of 8-12 minutes work best for detailed analysis</li>
           <li>• Upload the lesson plan you intended to deliver for accurate comparison</li>
           {mode === "full-review" && (
             <li>• Include work samples that show a range of abilities for differentiation analysis</li>

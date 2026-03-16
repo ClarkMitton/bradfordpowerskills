@@ -414,7 +414,7 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
         <h3 className="font-semibold text-foreground mb-2">Recording Tips</h3>
         <ul className="text-sm text-muted-foreground space-y-1">
           <li>• Ensure a quiet environment for best transcription quality</li>
-          <li>• Sessions of 15-20 minutes work best for detailed feedback</li>
+          <li>• Sessions of 8-12 minutes work best for detailed feedback</li>
           <li>• Speak clearly and at a natural pace</li>
           <li>• Position your device close to the main speaker</li>
         </ul>

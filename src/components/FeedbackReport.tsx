@@ -83,21 +83,46 @@ interface OfstedGrade {
   caveat?: string;
 }
 
+interface StandardEnglishInstance {
+  timestamp: string;
+  original: string;
+  corrected: string;
+  explanation: string;
+}
+
+interface StandardEnglishData {
+  rating: number;
+  instances: StandardEnglishInstance[];
+}
+
+interface ITTECFIndicator {
+  standard: string;
+  subCode: string;
+  statement: string;
+  status: "demonstrated" | "not_yet_evidenced";
+  evidence: string;
+}
+
 interface FeedbackData {
   sessionMvp?: SessionMvp;
   categories: CategoryFeedback[];
   leadPhases?: LEADPhaseFeedback[];
   lessonPhases?: LEADPhaseFeedback[];
   ofstedGrade?: OfstedGrade;
+  standardEnglish?: StandardEnglishData;
+  ittecfIndicators?: ITTECFIndicator[];
   overallSummary: string;
   topStrength: string;
   priorityGrowthArea: string;
+  [key: string]: unknown;
 }
 
 type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis";
+type UserRole = "trainee" | "staff";
 
 interface FeedbackReportProps {
   feedback: FeedbackData | null;
+  userRole?: UserRole | null;
   transcript: string;
   isLoading: boolean;
   onReset: () => void;
