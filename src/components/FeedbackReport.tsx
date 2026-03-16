@@ -38,7 +38,7 @@ interface TranscriptExample {
 
 interface CategoryFeedback {
   name: string;
-  rating: number;
+  rating: number | string;
   summary?: string;
   whatsWorking: string;
   whatsWorkingExamples?: TranscriptExample[];
@@ -83,21 +83,46 @@ interface OfstedGrade {
   caveat?: string;
 }
 
+interface StandardEnglishInstance {
+  timestamp: string;
+  original: string;
+  corrected: string;
+  explanation: string;
+}
+
+interface StandardEnglishData {
+  rating: number;
+  instances: StandardEnglishInstance[];
+}
+
+interface ITTECFIndicator {
+  standard: string;
+  subCode: string;
+  statement: string;
+  status: "demonstrated" | "not_yet_evidenced";
+  evidence: string;
+}
+
 interface FeedbackData {
   sessionMvp?: SessionMvp;
   categories: CategoryFeedback[];
   leadPhases?: LEADPhaseFeedback[];
   lessonPhases?: LEADPhaseFeedback[];
   ofstedGrade?: OfstedGrade;
+  standardEnglish?: StandardEnglishData;
+  ittecfIndicators?: ITTECFIndicator[];
   overallSummary: string;
   topStrength: string;
   priorityGrowthArea: string;
+  [key: string]: unknown;
 }
 
 type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis";
+type UserRole = "trainee" | "staff";
 
 interface FeedbackReportProps {
   feedback: FeedbackData | null;
+  userRole?: UserRole | null;
   transcript: string;
   isLoading: boolean;
   onReset: () => void;
@@ -121,18 +146,30 @@ const ratingColors: Record<string, string> = {
   emerging: "bg-accent/10 text-accent border-accent/30",
 };
 
-const starRatingLabels: Record<number, string> = {
+const starRatingLabels: Record<number | string, string> = {
   4: "Exemplary Practice",
   3: "Solid Foundation",
   2: "Developing Practice",
   1: "Emerging Practice",
 };
 
-const starRatingColors: Record<number, string> = {
+const starRatingColors: Record<number | string, string> = {
   4: "text-success",
   3: "text-primary",
   2: "text-warning",
   1: "text-accent",
+};
+
+const progressionStageLabels: Record<string, string> = {
+  developing: "Developing",
+  establishing: "Establishing",
+  embedding: "Embedding",
+};
+
+const progressionStageColors: Record<string, string> = {
+  developing: "bg-amber-500/20 text-amber-700 border-amber-500/40",
+  establishing: "bg-blue-500/20 text-blue-700 border-blue-500/40",
+  embedding: "bg-emerald-500/20 text-emerald-700 border-emerald-500/40",
 };
 
 // Helper to highlight quotes in text (non-pedagogical formatting)
@@ -297,6 +334,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
   error,
   mode,
   selectedPhases,
+  userRole,
 }, ref) => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [expandedPhases, setExpandedPhases] = useState<string[]>([]);
@@ -622,8 +660,15 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
     <div class="category">
       <div class="category-header">
         <div class="category-name">${cat.name}</div>
-        <div class="stars">${'★'.repeat(cat.rating)}${'☆'.repeat(4 - cat.rating)}</div>
-        <div class="rating-label">${starRatingLabels[cat.rating]}</div>
+        ${typeof cat.rating === 'number' 
+          ? `<div class="stars">${'★'.repeat(cat.rating as number)}${'☆'.repeat(4 - (cat.rating as number))}</div>
+             <div class="rating-label">${starRatingLabels[cat.rating]}</div>`
+          : `<div class="rating-label" style="display:inline-block;padding:4px 12px;border-radius:50px;font-weight:600;${
+              cat.rating === 'embedding' ? 'background:#d1fae5;color:#047857;' :
+              cat.rating === 'establishing' ? 'background:#dbeafe;color:#1d4ed8;' :
+              'background:#fef3c7;color:#b45309;'
+            }">Progression Stage: ${progressionStageLabels[cat.rating as string] || cat.rating}</div>`
+        }
         ${cat.summary ? `<div class="category-summary">${cat.summary}</div>` : ''}
       </div>
       <div class="category-content">
@@ -853,8 +898,8 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
 
       {/* Overall Summary - Warm Card */}
       <div className="card-elevated p-8 bg-gradient-to-br from-primary/5 via-background to-accent/5 border-primary/20">
-        {/* Ofsted Grade Badge - if available */}
-        {feedback.ofstedGrade && (
+        {/* Ofsted Grade Badge - staff only */}
+        {userRole !== "trainee" && feedback.ofstedGrade && (
           <div className="flex items-center justify-center mb-6">
             <div className={cn(
               "px-5 py-2.5 rounded-full text-base font-bold border-2",
@@ -915,10 +960,21 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                   <div className="flex items-center gap-4">
                     <span className="font-semibold text-foreground text-left">{category.name}</span>
                     <div className="flex items-center gap-2">
-                      {renderStars(category.rating)}
-                      <span className={cn("text-sm font-medium", starRatingColors[category.rating])}>
-                        {starRatingLabels[category.rating]}
-                      </span>
+                      {typeof category.rating === 'number' ? (
+                        <>
+                          {renderStars(category.rating)}
+                          <span className={cn("text-sm font-medium", starRatingColors[category.rating])}>
+                            {starRatingLabels[category.rating]}
+                          </span>
+                        </>
+                      ) : (
+                        <span className={cn(
+                          "text-sm px-3 py-1 rounded-full border-2 font-semibold",
+                          progressionStageColors[category.rating as string] || ""
+                        )}>
+                          {progressionStageLabels[category.rating as string] || category.rating}
+                        </span>
+                      )}
                     </div>
                   </div>
                   {category.summary && (
@@ -1090,8 +1146,8 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
         </div>
       </div>
 
-      {/* Lesson Phase Feedback */}
-      {(feedback.lessonPhases || feedback.leadPhases || []).length > 0 && (
+      {/* Lesson Phase Feedback - staff only */}
+      {userRole !== "trainee" && (feedback.lessonPhases || feedback.leadPhases || []).length > 0 && (
         <div className="card-elevated overflow-hidden">
           <div className="p-5 bg-gradient-to-r from-accent/10 to-accent/5 border-b border-border">
             <div className="flex items-center gap-3">
@@ -1176,6 +1232,106 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
       )}
 
       {/* Ofsted Grade Section - removed, grade badge now shown in summary */}
+
+      {/* Standard English Usage - trainee only */}
+      {userRole === "trainee" && feedback.standardEnglish && (
+        <div className="card-elevated overflow-hidden">
+          <div className="p-5 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground text-lg">Standard English Usage</h3>
+                <p className="text-sm text-muted-foreground">Rating and timestamped instances</p>
+              </div>
+              <div className={cn(
+                "px-4 py-2 rounded-full font-bold text-lg border-2",
+                (feedback.standardEnglish?.rating ?? 0) >= 8 ? "bg-emerald-500/20 text-emerald-700 border-emerald-500/40" :
+                (feedback.standardEnglish?.rating ?? 0) >= 5 ? "bg-amber-500/20 text-amber-700 border-amber-500/40" :
+                "bg-red-500/20 text-red-700 border-red-500/40"
+              )}>
+                {feedback.standardEnglish.rating}/10
+              </div>
+            </div>
+          </div>
+          {feedback.standardEnglish.instances && feedback.standardEnglish.instances.length > 0 && (
+            <div className="p-5 space-y-3">
+              {feedback.standardEnglish.instances.map((instance, i) => (
+                <div key={i} className="p-4 bg-secondary/30 rounded-xl border border-border space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono px-2 py-0.5 bg-blue-500/20 rounded text-blue-700">{instance.timestamp}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-2 bg-red-500/5 rounded-lg border border-red-500/10">
+                      <p className="text-xs font-semibold text-red-600 mb-1">What was said:</p>
+                      <p className="text-sm text-foreground italic">"{instance.original}"</p>
+                    </div>
+                    <div className="p-2 bg-emerald-500/5 rounded-lg border border-emerald-500/10">
+                      <p className="text-xs font-semibold text-emerald-600 mb-1">Standard English:</p>
+                      <p className="text-sm text-foreground italic">"{instance.corrected}"</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{instance.explanation}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {(!feedback.standardEnglish.instances || feedback.standardEnglish.instances.length === 0) && (
+            <div className="p-5 text-center text-muted-foreground">
+              <p className="text-sm">No instances of non-standard English detected. Excellent modelling! ✨</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ITTECF Indicators - trainee only */}
+      {userRole === "trainee" && feedback.ittecfIndicators && feedback.ittecfIndicators.length > 0 && (
+        <div className="card-elevated overflow-hidden">
+          <div className="p-5 bg-gradient-to-r from-purple-500/10 to-purple-500/5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <Target className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground text-lg">📋 ITT & Early Career Framework</h3>
+                <p className="text-sm text-muted-foreground">"Learn How To..." Indicators evidenced in your session</p>
+              </div>
+            </div>
+          </div>
+          <div className="divide-y divide-border">
+            {feedback.ittecfIndicators.map((indicator, i) => (
+              <div key={i} className="p-4 flex items-start gap-4">
+                <div className={cn(
+                  "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
+                  indicator.status === "demonstrated" 
+                    ? "bg-emerald-500/20 text-emerald-700" 
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {indicator.status === "demonstrated" ? "✓" : "○"}
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-mono px-2 py-0.5 bg-purple-500/20 rounded text-purple-700">
+                      {indicator.standard} {indicator.subCode}
+                    </span>
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded-full font-medium",
+                      indicator.status === "demonstrated" 
+                        ? "bg-emerald-500/10 text-emerald-700" 
+                        : "bg-muted text-muted-foreground"
+                    )}>
+                      {indicator.status === "demonstrated" ? "Demonstrated" : "Not yet evidenced"}
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium text-foreground">{indicator.statement}</p>
+                  <p className="text-xs text-muted-foreground">{indicator.evidence}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">

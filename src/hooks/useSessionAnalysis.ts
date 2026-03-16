@@ -5,6 +5,7 @@ import { compressVideo, formatBytes } from "@/lib/videoCompressor";
 import { usePrivacyCleanup } from "@/hooks/usePrivacyCleanup";
 import type { SelectedPhase } from "@/components/PhaseSelector";
 import type { SessionDetails } from "@/components/AudioRecorder";
+import type { UserRole } from "@/components/WelcomeScreen";
 
 interface HighlightedName {
   id: string;
@@ -16,7 +17,7 @@ interface HighlightedName {
 
 interface CategoryFeedback {
   name: string;
-  rating: number;
+  rating: number | string;
   whatsWorking: string;
   toMakeStronger: string;
   tryThisNext: string;
@@ -29,12 +30,35 @@ interface LEADPhaseFeedback {
   suggestions: string[];
 }
 
+interface StandardEnglishInstance {
+  timestamp: string;
+  original: string;
+  corrected: string;
+  explanation: string;
+}
+
+interface StandardEnglishData {
+  rating: number;
+  instances: StandardEnglishInstance[];
+}
+
+interface ITTECFIndicator {
+  standard: string;
+  subCode: string;
+  statement: string;
+  status: "demonstrated" | "not_yet_evidenced";
+  evidence: string;
+}
+
 interface FeedbackData {
   categories: CategoryFeedback[];
   leadPhases: LEADPhaseFeedback[];
   overallSummary: string;
   topStrength: string;
   priorityGrowthArea: string;
+  standardEnglish?: StandardEnglishData;
+  ittecfIndicators?: ITTECFIndicator[];
+  [key: string]: unknown;
 }
 
 export type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis" | null;
@@ -62,6 +86,7 @@ interface SessionState {
   transcriptionElapsed: number;
   sessionDetails: SessionDetails | null;
   analysisError: string | null;
+  userRole: UserRole | null;
   // Video analysis state
   videoBlob: Blob | null;
   videoFileName: string;
@@ -97,6 +122,7 @@ const initialState: SessionState = {
   transcriptionElapsed: 0,
   sessionDetails: null,
   analysisError: null,
+  userRole: null,
   // Video analysis initial state
   videoBlob: null,
   videoFileName: "",
@@ -141,7 +167,6 @@ const autoAnonymizeTranscript = (text: string, names: HighlightedName[]): string
   if (names.length === 0) return text;
   
   let result = text;
-  // Sort by start index descending to replace from end to start (preserves indices)
   const sortedNames = [...names].sort((a, b) => b.startIndex - a.startIndex);
   
   sortedNames.forEach((name) => {
@@ -174,7 +199,6 @@ const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
 
   const data = await response.json();
   
-  // Format transcript with timestamps from word data
   if (data.words && data.words.length > 0) {
     return formatTranscriptWithTimestamps(data.text, data.words);
   }
@@ -198,7 +222,6 @@ const formatTranscriptWithTimestamps = (
     const currentTime = word.start;
     const speaker = word.speaker || "";
     
-    // Add timestamp every ~30 seconds or on speaker change
     const shouldAddTimestamp = 
       currentTime - lastTimestamp >= 30 || 
       (speaker && speaker !== lastSpeaker && lastSpeaker !== "");
@@ -219,7 +242,6 @@ const formatTranscriptWithTimestamps = (
     
     currentLine += word.text + " ";
     
-    // Break on sentence endings
     if (word.text.match(/[.!?]$/) && index < words.length - 1) {
       lines.push(currentLine.trim());
       currentLine = "";
@@ -239,9 +261,9 @@ const generateFeedback = async (
   selectedPhases: SelectedPhase[],
   mode: AnalysisMode,
   documents: SessionState["documents"],
-  sessionDetails: SessionDetails | null
+  sessionDetails: SessionDetails | null,
+  userRole: UserRole | null
 ): Promise<FeedbackData> => {
-  // Read document contents if available
   let lessonPlanText = "";
   let scaffoldingText = "";
   let studentWorkText = "";
@@ -253,7 +275,6 @@ const generateFeedback = async (
     scaffoldingText = await documents.scaffolding.text().catch(() => "");
   }
 
-  // Combine student work descriptions
   const studentWorkParts = [];
   if (documents.lowerAbility) studentWorkParts.push("Lower ability student work sample provided");
   if (documents.middleAbility) studentWorkParts.push("Middle ability student work sample provided");
@@ -271,6 +292,7 @@ const generateFeedback = async (
       learnerLevel: sessionDetails?.learnerLevel || "",
       subject: sessionDetails?.subject || "",
       selectedCategories: sessionDetails?.selectedCategories || [],
+      userRole: userRole || "staff",
     },
   });
 
@@ -309,7 +331,6 @@ export function useSessionAnalysis() {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingAbortRef = useRef<boolean>(false);
   
-  // Privacy cleanup hook
   const { 
     trackVideoStoragePath, 
     trackBlobs, 
@@ -317,12 +338,10 @@ export function useSessionAnalysis() {
     performFullCleanup 
   } = usePrivacyCleanup();
 
-  // Track blobs when they change
   useEffect(() => {
     trackBlobs(state.audioBlob, state.videoBlob);
   }, [state.audioBlob, state.videoBlob, trackBlobs]);
 
-  // Track video storage path when it changes
   useEffect(() => {
     trackVideoStoragePath(state.videoStoragePath);
   }, [state.videoStoragePath, trackVideoStoragePath]);
@@ -358,17 +377,21 @@ export function useSessionAnalysis() {
     };
   }, []);
 
+  const setUserRole = useCallback((role: UserRole) => {
+    setState((prev) => ({ ...prev, userRole: role }));
+  }, []);
+
   const selectMode = useCallback((mode: AnalysisMode) => {
     setState((prev) => ({ ...prev, mode, step: 1 }));
   }, []);
 
-  // Internal helper to trigger analysis after transcription
   const triggerAnalysis = useCallback(async (
     anonymizedTranscript: string,
     selectedPhases: SelectedPhase[],
     sessionDetails: SessionDetails | null,
     mode: AnalysisMode,
-    documents: SessionState["documents"]
+    documents: SessionState["documents"],
+    userRole: UserRole | null
   ) => {
     setState((prev) => ({
       ...prev,
@@ -382,7 +405,8 @@ export function useSessionAnalysis() {
         selectedPhases,
         mode,
         documents,
-        sessionDetails
+        sessionDetails,
+        userRole
       );
       
       setState((prev) => ({
@@ -403,13 +427,12 @@ export function useSessionAnalysis() {
     }
   }, []);
 
-  // For quick mode - audio only with session details
   const handleAudioReady = useCallback(async (blob: Blob, fileName: string, sessionDetails?: SessionDetails) => {
     setState((prev) => ({
       ...prev,
       audioBlob: blob,
       audioFileName: fileName,
-      step: 2, // Go straight to feedback step
+      step: 2,
       isTranscribing: true,
       transcriptionStartTime: Date.now(),
       transcriptionElapsed: 0,
@@ -438,12 +461,14 @@ export function useSessionAnalysis() {
       
       toast.success("Audio transcribed and anonymized successfully");
       
-      // Auto-trigger analysis with full phases
       const fullPhases: SelectedPhase[] = ["full"];
-      // We need to trigger analysis after state update, so use a microtask
-      setTimeout(() => {
-        triggerAnalysis(anonymizedTranscript, fullPhases, sessionDetails || null, "quick", initialState.documents);
-      }, 0);
+      // Need to read userRole from state at call time
+      setState((prev) => {
+        setTimeout(() => {
+          triggerAnalysis(anonymizedTranscript, fullPhases, sessionDetails || null, "quick", initialState.documents, prev.userRole);
+        }, 0);
+        return prev;
+      });
     } catch (error) {
       console.error("Transcription failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Transcription failed. Please try again.";
@@ -452,12 +477,11 @@ export function useSessionAnalysis() {
         ...prev,
         isTranscribing: false,
         transcriptionStartTime: null,
-        step: 1, // Go back to recording step
+        step: 1,
       }));
     }
-  }, []);
+  }, [triggerAnalysis]);
 
-  // For deep-dive and full-review modes - audio + documents combined
   const handleSessionCapture = useCallback(async (
     blob: Blob, 
     fileName: string, 
@@ -469,7 +493,7 @@ export function useSessionAnalysis() {
       audioBlob: blob,
       audioFileName: fileName,
       documents,
-      step: 2, // Go straight to feedback
+      step: 2,
       isTranscribing: true,
       transcriptionStartTime: Date.now(),
       transcriptionElapsed: 0,
@@ -497,11 +521,13 @@ export function useSessionAnalysis() {
       
       toast.success("Audio transcribed and anonymized successfully");
       
-      // Auto-trigger analysis with full phases
       const fullPhases: SelectedPhase[] = ["full"];
-      setTimeout(() => {
-        triggerAnalysis(anonymizedTranscript, fullPhases, null, currentMode, documents);
-      }, 0);
+      setState((prev) => {
+        setTimeout(() => {
+          triggerAnalysis(anonymizedTranscript, fullPhases, null, currentMode, documents, prev.userRole);
+        }, 0);
+        return prev;
+      });
     } catch (error) {
       console.error("Transcription failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Transcription failed. Please try again.";
@@ -510,12 +536,11 @@ export function useSessionAnalysis() {
         ...prev,
         isTranscribing: false,
         transcriptionStartTime: null,
-        step: 1, // Go back to recording step
+        step: 1,
       }));
     }
   }, [state.mode, triggerAnalysis]);
 
-  // For direct transcript submission (pasted text)
   const handleTranscriptSubmit = useCallback((transcript: string, sessionDetails?: SessionDetails) => {
     const names = detectNames(transcript);
     const anonymizedTranscript = autoAnonymizeTranscript(transcript, names);
@@ -525,26 +550,28 @@ export function useSessionAnalysis() {
       transcript,
       highlightedNames: names,
       anonymizedTranscript,
-      step: 2, // Go to feedback
+      step: 2,
       sessionDetails: sessionDetails || null,
       selectedPhases: ["full"],
     }));
     
     toast.success("Transcript loaded and anonymized successfully");
     
-    // Auto-trigger analysis
     const fullPhases: SelectedPhase[] = ["full"];
-    setTimeout(() => {
-      triggerAnalysis(anonymizedTranscript, fullPhases, sessionDetails || null, state.mode, initialState.documents);
-    }, 0);
-  }, [state.mode, triggerAnalysis]);
+    setState((prev) => {
+      setTimeout(() => {
+        triggerAnalysis(anonymizedTranscript, fullPhases, sessionDetails || null, prev.mode, initialState.documents, prev.userRole);
+      }, 0);
+      return prev;
+    });
+  }, [triggerAnalysis]);
 
   const confirmTranscript = useCallback((anonymizedTranscript: string) => {
     setState((prev) => ({
       ...prev,
       anonymizedTranscript,
-      audioBlob: null, // Delete audio after transcript confirmed
-      step: 2, // Go to phase selection
+      audioBlob: null,
+      step: 2,
     }));
   }, []);
 
@@ -554,7 +581,7 @@ export function useSessionAnalysis() {
       selectedPhases,
       isAnalyzing: true,
       analysisError: null,
-      step: 2, // Go to feedback
+      step: 2,
     }));
 
     try {
@@ -563,7 +590,8 @@ export function useSessionAnalysis() {
         selectedPhases,
         state.mode,
         state.documents,
-        state.sessionDetails
+        state.sessionDetails,
+        state.userRole
       );
       
       setState((prev) => ({
@@ -582,7 +610,7 @@ export function useSessionAnalysis() {
         analysisError: errorMessage,
       }));
     }
-  }, [state.anonymizedTranscript, state.mode, state.documents, state.sessionDetails]);
+  }, [state.anonymizedTranscript, state.mode, state.documents, state.sessionDetails, state.userRole]);
 
   const retryAnalysis = useCallback(() => {
     if (state.selectedPhases.length > 0) {
@@ -595,7 +623,6 @@ export function useSessionAnalysis() {
     if (pollingRef.current) {
       clearTimeout(pollingRef.current);
     }
-    // Perform privacy cleanup on reset
     performFullCleanup();
     setState(initialState);
   }, [performFullCleanup]);
@@ -613,24 +640,22 @@ export function useSessionAnalysis() {
     });
   }, []);
 
-  // Handle video capture - store file, analysis triggered by effect
   const handleVideoCapture = useCallback(async (blob: Blob, fileName: string) => {
     setState((prev) => ({
       ...prev,
       videoBlob: blob,
       videoFileName: fileName,
       isVideoAnalysis: true,
-      step: 2, // Go straight to feedback
+      step: 2,
       videoProcessingStatus: null,
       selectedPhases: ["full"],
     }));
   }, []);
 
-  // Poll for video analysis status
   const pollVideoStatus = useCallback(async (
     taskId: string, 
     selectedPhases: SelectedPhase[],
-    maxAttempts = 60 // 5 minutes max (60 * 5s)
+    maxAttempts = 60
   ) => {
     let attempts = 0;
     pollingAbortRef.current = false;
@@ -653,10 +678,7 @@ export function useSessionAnalysis() {
 
       try {
         const { data, error } = await supabase.functions.invoke("video-analysis-status", {
-          body: {
-            taskId,
-            selectedPhases: selectedPhases,
-          },
+          body: { taskId, selectedPhases },
         });
 
         if (error) {
@@ -664,7 +686,6 @@ export function useSessionAnalysis() {
         }
 
         if (data.status === "complete") {
-          // Delete video from storage after successful analysis
           if (state.videoStoragePath) {
             console.log("[Privacy] Deleting video after successful analysis");
             deleteVideoFromStorage(state.videoStoragePath);
@@ -687,13 +708,12 @@ export function useSessionAnalysis() {
           throw new Error(data.error || "Video processing failed");
         }
 
-        // Still processing, update status and poll again
         setState((prev) => ({
           ...prev,
           videoProcessingStatus: data.taskStatus === "indexing" ? "analyzing" : "processing",
         }));
 
-        pollingRef.current = setTimeout(poll, 5000); // Poll every 5 seconds
+        pollingRef.current = setTimeout(poll, 5000);
       } catch (error) {
         console.error("Polling error:", error);
         const errorMessage = error instanceof Error ? error.message : "Video analysis failed. Please try again.";
@@ -710,7 +730,6 @@ export function useSessionAnalysis() {
     poll();
   }, []);
 
-  // Analyze video with TwelveLabs - new async flow
   const analyzeVideo = useCallback(async (selectedPhases: SelectedPhase[]) => {
     if (!state.videoBlob) {
       toast.error("No video to analyze");
@@ -730,7 +749,6 @@ export function useSessionAnalysis() {
     }));
 
     try {
-      // Step 1: Compress video first
       const compressionResult = await compressVideo(
         state.videoBlob as unknown as File,
         (progress) => {
@@ -743,7 +761,6 @@ export function useSessionAnalysis() {
         }
       );
 
-      // Calculate savings
       const savings = compressionResult.originalSize > compressionResult.compressedSize
         ? `Reduced from ${formatBytes(compressionResult.originalSize)} to ${formatBytes(compressionResult.compressedSize)}`
         : null;
@@ -755,12 +772,10 @@ export function useSessionAnalysis() {
         compressionSavings: savings,
       }));
 
-      // Step 2: Upload compressed video to storage
       const videoFile = new File([compressionResult.blob], state.videoFileName.replace(/\.\w+$/, ".mp4"), {
         type: "video/mp4",
       });
       const storagePath = await uploadVideoToStorage(videoFile);
-      console.log("Video uploaded to storage:", storagePath);
 
       setState((prev) => ({
         ...prev,
@@ -768,12 +783,11 @@ export function useSessionAnalysis() {
         videoProcessingStatus: "processing",
       }));
 
-      // Step 2: Start video analysis task
       const { data, error } = await supabase.functions.invoke("start-video-analysis", {
         body: {
           storagePath,
           fileName: state.videoFileName,
-          selectedPhases: selectedPhases,
+          selectedPhases,
         },
       });
 
@@ -785,14 +799,11 @@ export function useSessionAnalysis() {
         throw new Error("No task ID returned from server");
       }
 
-      console.log("Video analysis task started:", data.taskId);
-
       setState((prev) => ({
         ...prev,
         videoTaskId: data.taskId,
       }));
 
-      // Step 3: Poll for completion
       pollVideoStatus(data.taskId, selectedPhases);
 
     } catch (error) {
@@ -821,5 +832,6 @@ export function useSessionAnalysis() {
     retryAnalysis,
     resetSession,
     goBack,
+    setUserRole,
   };
 }

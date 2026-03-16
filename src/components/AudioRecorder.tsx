@@ -22,6 +22,9 @@ const FEEDBACK_CATEGORIES = [
 ];
 
 const LEARNER_LEVELS = [
+  { value: "primary", label: "Primary (Reception - Year 2)" },
+  { value: "ks1", label: "KS1 (Years 1-2)" },
+  { value: "ks2", label: "KS2 (Years 3-6)" },
   { value: "ks3", label: "KS3 (Years 7-9)" },
   { value: "ks4", label: "KS4 (Years 10-11 / GCSE)" },
   { value: "ks5", label: "KS5 (Years 12-13 / A-Level)" },
@@ -219,7 +222,7 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
           Record or Upload Your Session
         </h2>
         <p className="text-muted-foreground">
-          Record a live session or upload a pre-recorded audio file (15-20 minutes recommended)
+          Record a live session or upload a pre-recorded audio file (8-12 minutes recommended)
         </p>
       </div>
 
@@ -411,7 +414,7 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
         <h3 className="font-semibold text-foreground mb-2">Recording Tips</h3>
         <ul className="text-sm text-muted-foreground space-y-1">
           <li>• Ensure a quiet environment for best transcription quality</li>
-          <li>• Sessions of 15-20 minutes work best for detailed feedback</li>
+          <li>• Sessions of 8-12 minutes work best for detailed feedback</li>
           <li>• Speak clearly and at a natural pace</li>
           <li>• Position your device close to the main speaker</li>
         </ul>

@@ -104,6 +104,133 @@ CRITICAL RATING RULES:
 7. Be specific - always reference exact timestamps and quote what was said.
 `;
 
+const TRAINEE_PROGRESSION_CRITERIA = `
+## Progression Stage Criteria
+
+For each domain, assign ONE of these progression stages:
+
+### Developing
+The approach is emerging but inconsistent or not yet fully effective.
+- Some awareness of the technique but limited or inconsistent application
+- May attempt strategies but not yet with confidence or impact
+- Significant room to grow — this is expected and normal for trainees
+
+### Establishing
+The approach is evident and mostly effective, with some opportunities to strengthen or extend it.
+- Clear pedagogical intent with generally effective execution
+- Some areas where practice could be more consistent or sophisticated
+- Good foundation that can be built upon
+
+### Embedding
+The approach is confident, consistent, and having clear impact on learners.
+- Multiple strong examples demonstrating consistent application
+- Techniques used with confidence and clear impact on learning
+- Practice that shows secure understanding of pedagogy
+
+CRITICAL RULES:
+1. Be honest but supportive — trainees need accurate feedback to grow
+2. "Developing" is NOT a criticism — it's an expected stage of professional growth
+3. Focus on what they ARE doing, not just what's missing
+4. Tailor all feedback to the learner level they are teaching (Primary, KS1, KS2, etc.)
+5. Consider the trainee's stage — they are learning to teach, so expectations should reflect that
+`;
+
+const STANDARD_ENGLISH_SECTION = `
+## Standard English Usage Rating
+
+Rate the teacher's use of Standard English out of 10. This is important for professional development.
+
+Listen for:
+- Non-standard grammar (e.g., "we was", "they done", "could of", "less" instead of "fewer")
+- Colloquialisms that could model incorrect language for learners
+- Filler words and verbal tics that affect clarity
+- Regional dialect features used in formal instruction (note: dialect is not inherently wrong, but teachers should be able to model Standard English when appropriate)
+
+For EACH instance of non-standard English:
+- Provide the timestamp [MM:SS]
+- Quote what was actually said
+- Provide the corrected Standard English version
+- Brief explanation of why this matters
+
+A score of 10 = consistently models Standard English throughout
+A score of 1 = frequent non-standard usage that could impact learners' language development
+
+Be fair and supportive — the goal is awareness, not criticism.
+`;
+
+const ITTECF_LEARN_HOW_TO = `
+## ITT & Early Career Framework — "Learn How To..." Indicators
+
+Below are key "Learn how to..." statements from the ITT & Early Career Framework (Standards 1-8).
+Identify 6-10 statements that are DIRECTLY evidenced in the transcript — either demonstrated or notably absent.
+
+### Standard 1: High Expectations
+- 1a: Set tasks that stretch pupils, but which are achievable, within a challenging curriculum
+- 1b: Use intentional and consistent language that promotes challenge and aspiration
+- 1c: Create a positive environment where making mistakes and learning from them is encouraged
+- 1d: Seek opportunities to engage parents and carers in supporting their children's learning
+
+### Standard 2: How Pupils Learn
+- 2a: Avoid overloading working memory by taking into account pupils' prior knowledge
+- 2b: Build on pupils' prior knowledge by linking what pupils already know to what is being taught
+- 2c: Introduce new material in steps, explicitly linking new ideas to what has been previously studied and learned
+- 2d: Increase the challenge and support withdrawn as knowledge becomes more secure (through rehearsal and practice)
+- 2e: Plan regular review and practice of key ideas and concepts over time
+- 2f: Design practice, generation, and retrieval tasks that provide just enough support
+
+### Standard 3: Subject and Curriculum
+- 3a: Deliver a carefully sequenced and coherent curriculum
+- 3b: Identify essential concepts, knowledge, skills and principles of the subject
+- 3c: Use curriculum knowledge to inform the use of explicit teaching, scaffolding, and practice
+- 3d: Provide opportunity for all pupils to learn and master essential concepts, knowledge, skills and principles
+- 3e: Work with experienced colleagues to accumulate and refine a collection of powerful analogies, illustrations, examples, explanations and demonstrations
+
+### Standard 4: Classroom Practice
+- 4a: Plan effective lessons, making use of explicit teaching, guided practice, and independent practice
+- 4b: Use modelling, explanations, and scaffolds, acknowledging that novices need more structure early
+- 4c: Enable critical thinking and problem solving by first ensuring pupils have a secure foundation of knowledge
+- 4d: Use questioning to check pupils' understanding, using scaffolded and targeted questions
+- 4e: Prompt pupils to elaborate when responding to questioning to check that a correct answer reflects true understanding
+- 4f: Monitor pupil work during lessons, including checking for misconceptions
+- 4g: Plan activities around what you want pupils to think hard about
+- 4h: Discuss and apply the research evidence on how to effectively sequence lessons within a topic
+- 4i: Break complex material into smaller steps
+- 4j: Combine a+verbal explanation with a+relevant graphical representation of the concept or process
+- 4k: Reduce distractions that take attention away from what is being taught
+- 4l: Use worked examples that take pupils through each step of a new process
+- 4m: Design and implement desirable difficulties such as spacing, interleaving, and retrieval practice
+- 4n: Start expositions at the point of current pupil understanding
+- 4o: Use concrete representation of abstract ideas (e.g. making use of analogies, metaphors, examples and non-examples)
+- 4p: Include a range of types of questions in class discussions to extend and challenge pupils
+- 4q: Elaborate on and query pupil contributions to support pupils' oral language skills
+
+### Standard 5: Adaptive Teaching
+- 5a: Identify pupils who need new content further broken down
+- 5b: Make use of well-designed resources (e.g. scaffolds, sentence frames, word banks, learning strategies)
+- 5c: Make use of formative assessment to adapt teaching within and between lessons
+- 5d: Adapt lessons, whilst maintaining high expectations for all, so all pupils have the opportunity to meet expectations
+- 5e: Balance input of new content so pupils' cognitive load is not exceeded
+- 5f: Provide targeted support to pupils who are struggling using scaffolding
+
+### Standard 6: Assessment
+- 6a: Plan formative assessment tasks linked to lesson objectives and think ahead about what would indicate understanding
+- 6b: Draw conclusions about what pupils have learned by looking at patterns of performance over a number of assessments
+- 6c: Choose, where possible, parsing assessment approaches which give detailed and accurate information
+- 6d: Structure tasks and questions to enable the identification of knowledge gaps and misconceptions
+- 6e: Prompt pupils to elaborate when responding to questions to check that a correct answer reflects true understanding
+
+### Standard 7: Managing Behaviour
+- 7a: Establish a supportive and inclusive environment with a predictable system of reward and consequence
+- 7b: Give manageable, specific, and sequential instructions
+- 7c: Check pupils' understanding of instructions before a task begins
+- 7d: Use consistent language and non-verbal signals for common classroom directions
+- 7e: Acknowledge and praise pupil effort and emphasising progress being made
+
+### Standard 8: Professional Behaviours
+- 8a: Engage critically with research and discuss evidence with colleagues
+- 8b: Reflect on progress made, recognise strengths and weaknesses, and identify next steps for further improvement
+`;
+
 const FEEDBACK_STRUCTURE = `
 ## Feedback Structure for Each Domain
 
@@ -235,7 +362,7 @@ serve(async (req) => {
   }
 
   try {
-    const { transcript, selectedPhases, lessonPlan, scaffolding, studentWork, mode, learnerLevel, subject, selectedCategories } = await req.json();
+    const { transcript, selectedPhases, lessonPlan, scaffolding, studentWork, mode, learnerLevel, subject, selectedCategories, userRole } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -245,6 +372,8 @@ serve(async (req) => {
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const isTrainee = userRole === "trainee";
 
     // Build phase context based on selection
     let phaseContext = "Analyse the session holistically, covering all natural lesson phases: opening, core teaching, application, and closing.";
@@ -266,13 +395,24 @@ serve(async (req) => {
       categoryContext = `\n\nONLY provide feedback for these specific domains: ${domainsToAnalyse.join(", ")}. Do NOT include feedback for other domains.`;
     }
 
-    // Build learner context
+    // Build learner context — more explicit for trainees
     let learnerContext = "";
     if (learnerLevel || subject) {
       learnerContext = "\n\nADDITIONAL CONTEXT:\n";
       if (learnerLevel) learnerContext += `Learner Level: ${learnerLevel}\n`;
       if (subject) learnerContext += `Subject/Topic: ${subject}\n`;
-      learnerContext += "Consider this context when providing feedback - tailor suggestions appropriately for this audience and subject matter.";
+      
+      if (isTrainee) {
+        learnerContext += `\nCRITICAL: You MUST tailor ALL feedback specifically to the "${learnerLevel}" learner level. Consider:
+- What pedagogical approaches are most effective for this age group/level?
+- How should the teacher pitch their language, explanations, and questioning for these learners?
+- What classroom management strategies are appropriate for this level?
+- How does differentiation look at this level?
+- What does effective practice specifically look like when teaching ${learnerLevel} learners?
+Adjust ALL your feedback, examples, and suggestions to be relevant and practical for someone teaching at this level.`;
+      } else {
+        learnerContext += "Consider this context when providing feedback - tailor suggestions appropriately for this audience and subject matter.";
+      }
     }
 
     // Build additional context based on mode
@@ -288,26 +428,108 @@ Analyse alignment between planned activities and actual delivery.
     
     if (mode === "full-review") {
       if (lessonPlan) {
-        additionalContext += `
-Lesson Plan:
-${lessonPlan}
-`;
+        additionalContext += `\nLesson Plan:\n${lessonPlan}\n`;
       }
       if (scaffolding) {
-        additionalContext += `
-Scaffolding Materials:
-${scaffolding}
-`;
+        additionalContext += `\nScaffolding Materials:\n${scaffolding}\n`;
       }
       if (studentWork) {
-        additionalContext += `
-Student Work Analysis Context:
-${studentWork}
-`;
+        additionalContext += `\nStudent Work Analysis Context:\n${studentWork}\n`;
       }
     }
 
-    const systemPrompt = `You are a supportive, encouraging teaching coach providing feedback on a classroom session transcript. Your feedback should feel like it comes from a trusted colleague who genuinely wants to help teachers grow. You are based in the UK and use British English spelling throughout.
+    // Build the system prompt conditionally based on role
+    let systemPrompt: string;
+    let jsonSchema: string;
+
+    if (isTrainee) {
+      // TRAINEE PROMPT — progression stages, ITTECF, Standard English, no Ofsted, no lesson phases
+      systemPrompt = `You are a supportive, encouraging teaching coach providing feedback to a TRAINEE TEACHER on a classroom session transcript. Your feedback should feel like it comes from a trusted mentor who genuinely wants to help them grow in their training. You are based in the UK and use British English spelling throughout.
+
+This is a trainee teacher — they are LEARNING to teach. Be encouraging, supportive, and frame everything as part of their professional development journey. Celebrate what they are doing well and provide clear, actionable next steps.
+
+${LESSON_STRUCTURE}
+
+${DOMAIN_DEFINITIONS}
+
+${TRAINEE_PROGRESSION_CRITERIA}
+
+${FEEDBACK_STRUCTURE}
+
+${STANDARD_ENGLISH_SECTION}
+
+${ITTECF_LEARN_HOW_TO}
+
+${ANALYSIS_RULES}
+
+${phaseContext}
+${categoryContext}
+${learnerContext}
+${additionalContext}
+
+CRITICAL: Return ONLY valid JSON. No text before or after. No markdown code blocks. Start directly with { and end with }.`;
+
+      jsonSchema = `
+Respond with valid JSON matching this exact structure:
+{
+  "sessionMvp": {
+    "moment": "Describe the SINGLE BEST teaching moment focusing on WHAT the teacher did pedagogically and WHY it was effective. 4-6 sentences.",
+    "pedagogyHighlight": "Name the specific technique"
+  },
+  "categories": [
+    {
+      "name": "Domain name",
+      "rating": "developing" | "establishing" | "embedding",
+      "summary": "2-3 sentence summary explaining the progression stage",
+      "whatsWorking": "GENERAL explanation. NO timestamps. Max 4-5 sentences.",
+      "whatsWorkingExamples": [
+        {"timestamp": "[MM:SS]", "quote": "Exact words spoken", "explanation": "Why this demonstrates the strength"}
+      ],
+      "toMakeStronger": "GENERAL explanation. NO timestamps. ONE actionable technique. Max 4-5 sentences.",
+      "toMakeStrongerExamples": [
+        {"timestamp": "[MM:SS]", "quote": "Exact words or description", "explanation": "What could be done differently"}
+      ],
+      "areasForDevelopment": ["General pattern - improvement suggestion"],
+      "missedOpportunities": ["Strategy not used - when it could have been employed"],
+      "tryThisNext": "Concrete strategy. Max 4-5 sentences.",
+      "tryThisNextExamples": [
+        {"timestamp": "[MM:SS]", "quote": "Moment where this could have been applied", "explanation": "How the technique would work here"}
+      ],
+      "researchSuggestion": {
+        "technique": "Name of the technique",
+        "howToImplement": "Concrete steps",
+        "whyItWorks": "Research evidence",
+        "example": "What it would sound like"
+      }
+    }
+  ],
+  "standardEnglish": {
+    "rating": 1-10,
+    "instances": [
+      {
+        "timestamp": "[MM:SS]",
+        "original": "What was actually said",
+        "corrected": "The Standard English version",
+        "explanation": "Brief explanation of why this matters for learners"
+      }
+    ]
+  },
+  "ittecfIndicators": [
+    {
+      "standard": "Standard 4",
+      "subCode": "4q",
+      "statement": "Elaborate on and query pupil contributions to support pupils' oral language skills",
+      "status": "demonstrated" | "not_yet_evidenced",
+      "evidence": "One sentence of specific evidence from the transcript explaining why you assigned this status"
+    }
+  ],
+  "overallSummary": "Brief 2-3 sentence summary. Encouraging tone for a trainee.",
+  "topStrength": "Single biggest strength with evidence",
+  "priorityGrowthArea": "Most impactful development area, framed positively as a growth opportunity"
+}`;
+    } else {
+      // STAFF PROMPT — star ratings, Ofsted, lesson phases (unchanged from original)
+      systemPrompt = `You are a supportive, encouraging teaching coach providing feedback on a classroom session transcript. Your feedback should feel like it comes from a trusted colleague who genuinely wants to help teachers grow. You are based in the UK and use British English spelling throughout.
 
 ${LESSON_STRUCTURE}
 
@@ -326,12 +548,13 @@ ${categoryContext}
 ${learnerContext}
 ${additionalContext}
 
-CRITICAL: Return ONLY valid JSON. No text before or after. No markdown code blocks. Start directly with { and end with }.
+CRITICAL: Return ONLY valid JSON. No text before or after. No markdown code blocks. Start directly with { and end with }.`;
 
+      jsonSchema = `
 Respond with valid JSON matching this exact structure:
 {
   "sessionMvp": {
-    "moment": "Describe the SINGLE BEST teaching moment focusing on WHAT the teacher did pedagogically and WHY it was effective. Explain the technique used, how it impacted student learning, and the pedagogical principle behind it. Do NOT start with a timestamp - instead, paint a picture of the moment (e.g., 'Your use of *cold calling* here was masterful because...'). Reference the specific words or actions briefly to ground the feedback, then explain the impact. 4-6 sentences.",
+    "moment": "Describe the SINGLE BEST teaching moment focusing on WHAT the teacher did pedagogically and WHY it was effective. Do NOT start with a timestamp. 4-6 sentences.",
     "pedagogyHighlight": "Name the specific technique (e.g., 'Expert Socratic questioning', 'Perfect wait time')"
   },
   "categories": [
@@ -339,19 +562,19 @@ Respond with valid JSON matching this exact structure:
       "name": "Domain name",
       "rating": 1-4,
       "summary": "2-3 sentence summary explaining the rating",
-      "whatsWorking": "GENERAL explanation of why their practice is strong in this area. NO timestamps. Focus on pedagogical principles. Use *asterisks* for pedagogical terms. Max 4-5 sentences.",
+      "whatsWorking": "GENERAL explanation. NO timestamps. Max 4-5 sentences.",
       "whatsWorkingExamples": [
-        {"timestamp": "[MM:SS]", "quote": "Exact words spoken", "explanation": "Why this moment demonstrates the strength"}
+        {"timestamp": "[MM:SS]", "quote": "Exact words spoken", "explanation": "Why this demonstrates the strength"}
       ],
-      "toMakeStronger": "GENERAL explanation of the area for improvement. NO timestamps. ONE actionable technique with pedagogical justification. Max 4-5 sentences.",
+      "toMakeStronger": "GENERAL explanation. NO timestamps. ONE actionable technique. Max 4-5 sentences.",
       "toMakeStrongerExamples": [
-        {"timestamp": "[MM:SS]", "quote": "Exact words or description of moment", "explanation": "Why this moment shows the area for development and what could be done differently"}
+        {"timestamp": "[MM:SS]", "quote": "Exact words or description", "explanation": "What could be done differently"}
       ],
-      "areasForDevelopment": ["General pattern description - improvement suggestion (NO timestamps)"],
+      "areasForDevelopment": ["General pattern - improvement suggestion"],
       "missedOpportunities": ["Strategy not used - when it could have been employed"],
-      "tryThisNext": "Concrete strategy building on their strength. Max 4-5 sentences.",
+      "tryThisNext": "Concrete strategy. Max 4-5 sentences.",
       "tryThisNextExamples": [
-        {"timestamp": "[MM:SS]", "quote": "Moment where this could have been applied", "explanation": "How the suggested technique would work here"}
+        {"timestamp": "[MM:SS]", "quote": "Moment where this could have been applied", "explanation": "How the technique would work here"}
       ],
       "researchSuggestion": {
         "technique": "Name of the technique",
@@ -380,6 +603,7 @@ Respond with valid JSON matching this exact structure:
   "topStrength": "Single biggest strength with evidence",
   "priorityGrowthArea": "Most impactful development area, framed positively"
 }`;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -390,7 +614,7 @@ Respond with valid JSON matching this exact structure:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: systemPrompt + "\n\n" + jsonSchema },
           { role: "user", content: `Please analyse this classroom session transcript:\n\n${transcript}` }
         ],
         temperature: 0.3,
@@ -443,15 +667,12 @@ Respond with valid JSON matching this exact structure:
     // Parse the JSON from the response
     let feedback;
     try {
-      // Try multiple extraction strategies
       let jsonStr = content.trim();
       
-      // Strategy 1: Extract from markdown code blocks
       const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (codeBlockMatch) {
         jsonStr = codeBlockMatch[1].trim();
       } else {
-        // Strategy 2: Find the first { and last } to extract JSON
         const firstBrace = content.indexOf('{');
         const lastBrace = content.lastIndexOf('}');
         if (firstBrace !== -1 && lastBrace > firstBrace) {
