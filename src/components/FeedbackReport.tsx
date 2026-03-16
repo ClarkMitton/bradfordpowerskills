@@ -322,6 +322,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
   error,
   mode,
   selectedPhases,
+  userRole,
 }, ref) => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [expandedPhases, setExpandedPhases] = useState<string[]>([]);
