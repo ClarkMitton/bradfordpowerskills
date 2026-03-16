@@ -898,8 +898,8 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
 
       {/* Overall Summary - Warm Card */}
       <div className="card-elevated p-8 bg-gradient-to-br from-primary/5 via-background to-accent/5 border-primary/20">
-        {/* Ofsted Grade Badge - if available */}
-        {feedback.ofstedGrade && (
+        {/* Ofsted Grade Badge - staff only */}
+        {userRole !== "trainee" && feedback.ofstedGrade && (
           <div className="flex items-center justify-center mb-6">
             <div className={cn(
               "px-5 py-2.5 rounded-full text-base font-bold border-2",
