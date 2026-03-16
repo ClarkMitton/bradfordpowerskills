@@ -660,8 +660,15 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
     <div class="category">
       <div class="category-header">
         <div class="category-name">${cat.name}</div>
-        <div class="stars">${'★'.repeat(cat.rating)}${'☆'.repeat(4 - cat.rating)}</div>
-        <div class="rating-label">${starRatingLabels[cat.rating]}</div>
+        ${typeof cat.rating === 'number' 
+          ? `<div class="stars">${'★'.repeat(cat.rating as number)}${'☆'.repeat(4 - (cat.rating as number))}</div>
+             <div class="rating-label">${starRatingLabels[cat.rating]}</div>`
+          : `<div class="rating-label" style="display:inline-block;padding:4px 12px;border-radius:50px;font-weight:600;${
+              cat.rating === 'embedding' ? 'background:#d1fae5;color:#047857;' :
+              cat.rating === 'establishing' ? 'background:#dbeafe;color:#1d4ed8;' :
+              'background:#fef3c7;color:#b45309;'
+            }">Progression Stage: ${progressionStageLabels[cat.rating as string] || cat.rating}</div>`
+        }
         ${cat.summary ? `<div class="category-summary">${cat.summary}</div>` : ''}
       </div>
       <div class="category-content">
