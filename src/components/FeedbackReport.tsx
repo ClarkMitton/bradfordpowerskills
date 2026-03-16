@@ -1146,8 +1146,8 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
         </div>
       </div>
 
-      {/* Lesson Phase Feedback */}
-      {(feedback.lessonPhases || feedback.leadPhases || []).length > 0 && (
+      {/* Lesson Phase Feedback - staff only */}
+      {userRole !== "trainee" && (feedback.lessonPhases || feedback.leadPhases || []).length > 0 && (
         <div className="card-elevated overflow-hidden">
           <div className="p-5 bg-gradient-to-r from-accent/10 to-accent/5 border-b border-border">
             <div className="flex items-center gap-3">
