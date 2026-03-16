@@ -305,8 +305,8 @@ const uploadVideoToStorage = async (file: File): Promise<string> => {
 
 export function useSessionAnalysis() {
   const [state, setState] = useState<SessionState>(initialState);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingAbortRef = useRef<boolean>(false);
   
   // Privacy cleanup hook
