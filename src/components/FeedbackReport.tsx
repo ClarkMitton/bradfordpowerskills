@@ -557,7 +557,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
             )}>
               {feedback.ofstedGrade.grade === "exceptional" && "âœ¨ Exceptional"}
               {feedback.ofstedGrade.grade === "strong_standard" && "â­ Strong Standard"}
-              {feedback.ofstedGrade.grade === "expected_standard" && "âœ“ Expected Standard"}
+              {feedback.ofstedGrade.grade === "expected_standard" && "✓ Expected Standard"}
               {feedback.ofstedGrade.grade === "needs_attention" && "âš  Needs Attention"}
               {feedback.ofstedGrade.grade === "urgent_improvement" && "ðŸš¨ Urgent Improvement"}
             </div>
@@ -638,7 +638,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                   {/* What's Working Well */}
                   <div className="p-4 bg-success/5 rounded-xl border border-success/15">
                     <h4 className="text-sm font-semibold text-success mb-3 flex items-center gap-2">
-                      <span className="text-base">âœ“</span> What's Working Well
+                      <span className="text-base">✓</span> What's Working Well
                     </h4>
                     <p className="text-foreground leading-relaxed mb-3">
                       {renderWithTooltips(category.whatsWorking)}
@@ -676,7 +676,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                   {/* To Make It Even Stronger */}
                   <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/15">
                     <h4 className="text-sm font-semibold text-amber-600 mb-3 flex items-center gap-2">
-                      <span className="text-base">â†’</span> To Make It Even Stronger
+                      <span className="text-base">→</span> To Make It Even Stronger
                     </h4>
                     <p className="text-foreground leading-relaxed mb-3">
                       {renderWithTooltips(category.toMakeStronger || category.growthEdge || "")}
@@ -845,7 +845,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                             key={i} 
                             className="text-foreground flex items-start gap-3"
                           >
-                            <span className="text-primary mt-1">â€¢</span>
+                            <span className="text-primary mt-1">{"\u2022"}</span>
                             {renderFormattedText(obs)}
                           </li>
                         ))}
@@ -862,7 +862,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                               key={i} 
                               className="text-foreground flex items-start gap-3"
                             >
-                              <span className="text-accent mt-1">â†’</span>
+                              <span className="text-accent mt-1">→</span>
                               {renderFormattedText(sug)}
                             </li>
                           ))}
@@ -933,7 +933,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                 <Target className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground text-lg">ðŸ“‹ ITT & Early Career Framework</h3>
+                <h3 className="font-semibold text-foreground text-lg">ITT & Early Career Framework</h3>
                 <p className="text-sm text-muted-foreground">"Learn How To..." Indicators evidenced in your session</p>
               </div>
             </div>
@@ -947,7 +947,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                     ? "bg-emerald-500/20 text-emerald-700" 
                     : "bg-muted text-muted-foreground"
                 )}>
-                  {indicator.status === "demonstrated" ? "âœ“" : "â—‹"}
+                  {indicator.status === "demonstrated" ? "✓" : "○"}
                 </div>
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -990,7 +990,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
           Remember: Great teaching is a journey, not a destination. 
         </p>
         <p className="text-muted-foreground text-sm">
-          Every lesson is an opportunity to grow. Keep up the fantastic work! ðŸ’ª
+          Every lesson is an opportunity to grow. Keep up the fantastic work! 
         </p>
       </div>
 
