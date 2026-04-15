@@ -433,7 +433,6 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
         .save();
     } finally {
       container.style.backgroundColor = prevBg;
-      container.style.backgroundColor = prevBg;
       // â”€â”€ Step 5: Restore previous open/closed states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       flushSync(() => {
         setExpandedCategories(prevCategories);
