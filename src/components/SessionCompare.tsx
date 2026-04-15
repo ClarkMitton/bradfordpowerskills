@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Upload, FileText, X, AlertCircle, Loader2, Sparkles, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import * as pdfjsLib from "pdfjs-dist";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 // ── Shared types ──────────────────────────────────────────────────────────────
 
@@ -16,29 +19,12 @@ export interface ComparisonData {
   standardEnglishTrajectory?: string | null;
 }
 
-interface ReportForComparison {
-  mvpMoment: string;
-  overallSummary: string;
-  ittecfIndicators: Array<{
-    standard: string;
-    subCode: string;
-    statement: string;
-    status: "demonstrated" | "not_yet_evidenced";
-  }>;
-  categories: Array<{
-    name: string;
-    toMakeStronger: string;
-    rating: string | number;
-  }>;
-  standardEnglishFeedback: string;
-}
-
 interface ParsedReport {
   filename: string;
   date: Date | null;
   mvpLabel: string;
   summaryPreview: string;
-  forComparison: ReportForComparison;
+  rawText: string;
 }
 
 interface UploadedSlot {
@@ -48,61 +34,70 @@ interface UploadedSlot {
 
 // ── Parsing ───────────────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const extractComparisonData = (data: any): ReportForComparison => ({
-  mvpMoment: data.sessionMvp?.pedagogyHighlight || data.sessionMvp?.moment?.split(".")[0] || "Teaching session",
-  overallSummary: data.overallSummary || "",
-  ittecfIndicators: (data.ittecfIndicators || []).map((ind: any) => ({
-    standard: ind.standard || "",
-    subCode: ind.subCode || "",
-    statement: ind.statement || "",
-    status: ind.status === "demonstrated" ? "demonstrated" : "not_yet_evidenced",
-  })),
-  categories: (data.categories || []).map((cat: any) => ({
-    name: cat.name || "",
-    toMakeStronger: cat.toMakeStronger || cat.growthEdge || "",
-    rating: cat.rating,
-  })),
-  standardEnglishFeedback: data.standardEnglish?.feedback || "",
-});
+const extractTextFromPdf = async (file: File): Promise<string> => {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pages: string[] = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pages.push(textContent.items.map((item: any) => item.str).join(" "));
+  }
+  return pages.join("\n\n");
+};
 
-const parseHtmlReport = (htmlContent: string, filename: string): ParsedReport => {
+const extractTextFromHtml = async (file: File): Promise<string> => {
+  const content = await file.text();
   const parser = new DOMParser();
-  const doc = parser.parseFromString(htmlContent, "text/html");
+  const doc = parser.parseFromString(content, "text/html");
+  
+  // Try embedded JSON first
   const scriptEl = doc.getElementById("powered-report-data");
+  if (scriptEl?.textContent?.trim()) {
+    return scriptEl.textContent.trim();
+  }
+  
+  // Fall back to body text
+  return doc.body?.textContent?.trim() || content;
+};
 
-  if (!scriptEl?.textContent?.trim()) {
-    throw new Error(
-      'This file doesn\'t contain embedded report data. Use the "Save for Comparison" button in a PowerED report to download a compatible HTML file.'
-    );
+const parseReport = async (file: File): Promise<ParsedReport> => {
+  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  const isHtml = file.name.toLowerCase().endsWith(".html") || file.name.toLowerCase().endsWith(".htm");
+
+  if (!isPdf && !isHtml) {
+    throw new Error("Please upload a PDF or HTML report file.");
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let data: any;
-  try {
-    data = JSON.parse(scriptEl.textContent);
-  } catch {
-    throw new Error("The report file appears corrupted. Please re-download it from PowerED.");
+  const rawText = isPdf ? await extractTextFromPdf(file) : await extractTextFromHtml(file);
+
+  if (!rawText || rawText.trim().length < 50) {
+    throw new Error("The file doesn't appear to contain enough report content. Please check it's a PowerED report.");
   }
 
-  // Determine date: _generatedAt in JSON first, then filename timestamp
+  // Try to extract a date from the text
   let date: Date | null = null;
-  if (data._generatedAt) {
-    date = new Date(data._generatedAt);
-  } else {
-    const m = filename.match(/powered-report-(\d+)\.html?/i);
-    if (m) date = new Date(parseInt(m[1]));
+  const dateMatch = rawText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})/i);
+  if (dateMatch) {
+    date = new Date(`${dateMatch[2]} ${dateMatch[1]}, ${dateMatch[3]}`);
   }
 
-  const forComparison = extractComparisonData(data);
-  const summary = data.overallSummary || "";
+  // Try to extract MVP moment
+  const mvpMatch = rawText.match(/MVP\s*Moment[:\s]*([^\n.]+)/i) || rawText.match(/Session\s*MVP[:\s]*([^\n.]+)/i);
+  const mvpLabel = mvpMatch?.[1]?.trim() || "Teaching session";
+
+  // Try to extract summary
+  const summaryMatch = rawText.match(/Overall\s*Summary[:\s]*([^\n]+)/i);
+  const summary = summaryMatch?.[1]?.trim() || rawText.slice(0, 140);
+  const summaryPreview = summary.length > 140 ? summary.slice(0, 140) + "\u2026" : summary;
 
   return {
-    filename,
+    filename: file.name,
     date,
-    mvpLabel: forComparison.mvpMoment,
-    summaryPreview: summary.length > 140 ? summary.slice(0, 140) + "…" : summary,
-    forComparison,
+    mvpLabel,
+    summaryPreview,
+    rawText,
   };
 };
 
@@ -112,11 +107,12 @@ interface UploadZoneProps {
   label: string;
   slot: UploadedSlot | null;
   error: string | null;
+  isLoading: boolean;
   onFile: (file: File) => void;
   onClear: () => void;
 }
 
-function UploadZone({ label, slot, error, onFile, onClear }: UploadZoneProps) {
+function UploadZone({ label, slot, error, isLoading, onFile, onClear }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -186,11 +182,16 @@ function UploadZone({ label, slot, error, onFile, onClear }: UploadZoneProps) {
               <X className="w-4 h-4" />
             </Button>
           </div>
+        ) : isLoading ? (
+          <div className="space-y-3">
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+            <p className="text-sm text-muted-foreground">Reading PDF...</p>
+          </div>
         ) : (
           <>
             <input
               type="file"
-              accept=".html,.htm"
+              accept=".pdf,.html,.htm"
               onChange={handleChange}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
@@ -227,32 +228,30 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
   const [slotB, setSlotB] = useState<UploadedSlot | null>(null);
   const [errorA, setErrorA] = useState<string | null>(null);
   const [errorB, setErrorB] = useState<string | null>(null);
+  const [loadingA, setLoadingA] = useState(false);
+  const [loadingB, setLoadingB] = useState(false);
   const [needsManualOrder, setNeedsManualOrder] = useState(false);
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   const handleFile = useCallback(
-    (file: File, slot: "A" | "B") => {
+    async (file: File, slot: "A" | "B") => {
       const setError = slot === "A" ? setErrorA : setErrorB;
       const setSlot = slot === "A" ? setSlotA : setSlotB;
+      const setLoading = slot === "A" ? setLoadingA : setLoadingB;
       setError(null);
       setAnalysisError(null);
       setNeedsManualOrder(false);
+      setLoading(true);
 
-      if (!file.name.toLowerCase().endsWith(".html") && !file.name.toLowerCase().endsWith(".htm")) {
-        setError('Please upload an HTML file. Use "Save for Comparison" in a PowerED report to get one.');
-        return;
+      try {
+        const parsed = await parseReport(file);
+        setSlot({ file, parsed });
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to read the report file.");
+      } finally {
+        setLoading(false);
       }
-
-      file
-        .text()
-        .then((content) => {
-          const parsed = parseHtmlReport(content, file.name);
-          setSlot({ file, parsed });
-        })
-        .catch((err: unknown) => {
-          setError(err instanceof Error ? err.message : "Failed to read the report file.");
-        });
     },
     []
   );
@@ -280,8 +279,8 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
     try {
       const { data, error } = await supabase.functions.invoke("compare-sessions", {
         body: {
-          reportA: earlier.forComparison,
-          reportB: later.forComparison,
+          reportAText: earlier.rawText,
+          reportBText: later.rawText,
         },
       });
 
@@ -318,7 +317,7 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
             Analysing Your Teaching Journey
           </h3>
           <p className="text-muted-foreground max-w-md">
-            Comparing both sessions to identify growth, embedded practice, and your next development focus…
+            Comparing both sessions to identify growth, embedded practice, and your next development focus...
           </p>
         </div>
       </div>
@@ -389,22 +388,24 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
           Upload Your Two Reports
         </h2>
         <p className="text-muted-foreground max-w-lg mx-auto">
-          Upload two reports you've previously downloaded from PowerED using <strong>Save for Comparison</strong>. We'll work out which came first automatically.
+          Upload two PDF reports you've previously downloaded from PowerED. We'll work out which came first automatically.
         </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6">
         <UploadZone
-          label="First Report (HTML file)"
+          label="First Report"
           slot={slotA}
           error={errorA}
+          isLoading={loadingA}
           onFile={(f) => handleFile(f, "A")}
           onClear={() => { setSlotA(null); setErrorA(null); setNeedsManualOrder(false); }}
         />
         <UploadZone
-          label="Second Report (HTML file)"
+          label="Second Report"
           slot={slotB}
           error={errorB}
+          isLoading={loadingB}
           onFile={(f) => handleFile(f, "B")}
           onClear={() => { setSlotB(null); setErrorB(null); setNeedsManualOrder(false); }}
         />
@@ -420,12 +421,12 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
         )}>
           {autoOrder ? (
             <p>
-              ✓ Order detected automatically — <strong>{autoOrder.earlier.filename}</strong> is earlier,{" "}
+              Order detected automatically — <strong>{autoOrder.earlier.filename}</strong> is earlier,{" "}
               <strong>{autoOrder.later.filename}</strong> is later.
             </p>
           ) : (
             <p>
-              ⚠ Couldn't determine order automatically — you'll be asked to confirm which session came first.
+              Couldn't determine order automatically — you'll be asked to confirm which session came first.
             </p>
           )}
         </div>
@@ -443,8 +444,8 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
         <p className="text-sm font-semibold text-foreground">How to get compatible reports</p>
         <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
           <li>Run a PowerED feedback session (Audio Only or Deep Dive)</li>
-          <li>On the results page, click <strong>Save for Comparison</strong></li>
-          <li>Upload both saved HTML files here to compare your progress</li>
+          <li>On the results page, click <strong>Download Report</strong> to save the PDF</li>
+          <li>Upload both saved PDF files here to compare your progress</li>
         </ol>
       </div>
 
