@@ -384,7 +384,7 @@ serve(async (req) => {
     const isTrainee = userRole === "trainee";
 
     // Build phase context based on selection
-    let phaseContext = "Analyse only the lesson phases genuinely evidenced in this recording. These are snapshots — phases may be absent and that is expected. Do NOT fabricate or include a Closing phase. Only include Opening, Core Teaching, and Application if they are actually present in the transcript.";
+    let phaseContext = "Analyse only the lesson phases genuinely evidenced in this recording. These are snapshots — phases may be absent and that is expected. Do NOT fabricate or include a Closing phase. If there is no clear Opening, omit it entirely. Only include phases (Opening, Core Teaching, Application) that are actually present and evidenced in the transcript.";
 
     // Map category names to domain names
     const categoryToDomain: Record<string, string> = {
@@ -587,7 +587,7 @@ Respond with valid JSON matching this exact structure:
   ],
   "lessonPhases": [
     {
-      "phase": "Opening, Core Teaching, or Application only — never Closing",
+      "phase": "Opening, Core Teaching, or Application only — never Closing. Only include phases genuinely evidenced. If no Opening is present, omit it.",
       "rating": "exemplary | solid | developing | emerging — these are the ONLY valid values, never use ITTECF status values here",
       "observations": ["observation with [MM:SS] timestamp"],
       "suggestions": ["suggestion"]
@@ -619,6 +619,7 @@ Respond with valid JSON matching this exact structure:
           { role: "user", content: `Please analyse this classroom session transcript:\n\n${transcript}` }
         ],
         temperature: 0.3,
+        max_tokens: 8192,
       }),
     });
 

@@ -845,7 +845,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                             key={i} 
                             className="text-foreground flex items-start gap-3"
                           >
-                            <span className="text-primary mt-1">â€¢</span>
+                            <span className="text-primary mt-1">{"\u2022"}</span>
                             {renderFormattedText(obs)}
                           </li>
                         ))}
