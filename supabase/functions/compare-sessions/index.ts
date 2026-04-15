@@ -76,35 +76,38 @@ serve(async (req) => {
     }
 
     // Build the request based on what we received
+    // Supports: both PDFs, both text, or one of each (mixed)
+    const hasPdfA = !!body.pdfA;
+    const hasPdfB = !!body.pdfB;
+    const hasTextA = !!body.reportAText;
+    const hasTextB = !!body.reportBText;
+
+    if (!(hasPdfA || hasTextA) || !(hasPdfB || hasTextB)) {
+      return new Response(
+        JSON.stringify({ error: "Two reports are required for comparison" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     let messages: Array<{ role: string; content: any }>;
 
-    if (body.pdfA && body.pdfB) {
-      // New PDF-based flow: send PDFs as inline documents to Gemini
+    if (hasPdfA && hasPdfB) {
+      // Both PDFs — vision flow
       messages = [
         {
           role: "user",
           content: [
             { type: "text", text: COMPARISON_PROMPT },
             { type: "text", text: "\n\nHere is PDF A (the EARLIER session report):" },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:application/pdf;base64,${body.pdfA}`,
-              },
-            },
+            { type: "image_url", image_url: { url: `data:application/pdf;base64,${body.pdfA}` } },
             { type: "text", text: "\n\nHere is PDF B (the LATER session report):" },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:application/pdf;base64,${body.pdfB}`,
-              },
-            },
+            { type: "image_url", image_url: { url: `data:application/pdf;base64,${body.pdfB}` } },
             { type: "text", text: "\n\nPlease read both reports and generate the comparison JSON." },
           ],
         },
       ];
-    } else if (body.reportAText && body.reportBText) {
-      // Text-based flow
+    } else if (hasTextA && hasTextB) {
+      // Both text
       messages = [
         { role: "system", content: COMPARISON_PROMPT },
         {
@@ -113,10 +116,26 @@ serve(async (req) => {
         },
       ];
     } else {
-      return new Response(
-        JSON.stringify({ error: "Two reports are required for comparison" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // Mixed: one PDF + one text
+      const contentParts: any[] = [{ type: "text", text: COMPARISON_PROMPT }];
+
+      if (hasPdfA) {
+        contentParts.push({ type: "text", text: "\n\nHere is PDF A (the EARLIER session report):" });
+        contentParts.push({ type: "image_url", image_url: { url: `data:application/pdf;base64,${body.pdfA}` } });
+      } else {
+        contentParts.push({ type: "text", text: `\n\nHere is Session A (the EARLIER session report) as text:\n\n${body.reportAText}` });
+      }
+
+      if (hasPdfB) {
+        contentParts.push({ type: "text", text: "\n\nHere is PDF B (the LATER session report):" });
+        contentParts.push({ type: "image_url", image_url: { url: `data:application/pdf;base64,${body.pdfB}` } });
+      } else {
+        contentParts.push({ type: "text", text: `\n\nHere is Session B (the LATER session report) as text:\n\n${body.reportBText}` });
+      }
+
+      contentParts.push({ type: "text", text: "\n\nPlease read both reports and generate the comparison JSON." });
+
+      messages = [{ role: "user", content: contentParts }];
     }
 
     console.log("Sending comparison request to AI gateway...");
