@@ -87,11 +87,32 @@ serve(async (req) => {
   }
 
   try {
-    const { reportA, reportB }: { reportA: ReportData; reportB: ReportData } = await req.json();
+    const body = await req.json();
+    
+    // Support both old structured format and new raw text format
+    let reportAText: string;
+    let reportBText: string;
+    let mvpA = "Teaching session";
+    let mvpB = "Teaching session";
 
-    if (!reportA || !reportB) {
+    if (body.reportAText && body.reportBText) {
+      // New PDF-based flow: raw extracted text
+      reportAText = `### Session A (Earlier)\n\n${body.reportAText}`;
+      reportBText = `### Session B (Later)\n\n${body.reportBText}`;
+      // Try to extract MVP moments from text
+      const mvpMatchA = body.reportAText.match(/MVP\s*Moment[:\s]*([^\n.]+)/i) || body.reportAText.match(/Session\s*MVP[:\s]*([^\n.]+)/i);
+      const mvpMatchB = body.reportBText.match(/MVP\s*Moment[:\s]*([^\n.]+)/i) || body.reportBText.match(/Session\s*MVP[:\s]*([^\n.]+)/i);
+      if (mvpMatchA) mvpA = mvpMatchA[1].trim();
+      if (mvpMatchB) mvpB = mvpMatchB[1].trim();
+    } else if (body.reportA && body.reportB) {
+      // Legacy structured format
+      reportAText = formatReport(body.reportA, "Session A (Earlier)");
+      reportBText = formatReport(body.reportB, "Session B (Later)");
+      mvpA = body.reportA.mvpMoment || mvpA;
+      mvpB = body.reportB.mvpMoment || mvpB;
+    } else {
       return new Response(
-        JSON.stringify({ error: "Both reportA and reportB are required" }),
+        JSON.stringify({ error: "Two reports are required for comparison" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -104,9 +125,6 @@ serve(async (req) => {
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const reportAText = formatReport(reportA, "Session A (Earlier)");
-    const reportBText = formatReport(reportB, "Session B (Later)");
 
     const userMessage = `Here are the two teaching session reports to compare:
 
@@ -125,10 +143,10 @@ Respond with valid JSON matching this exact structure. For any section where you
 
 {
   "sessionA": {
-    "mvpMoment": "${reportA.mvpMoment.replace(/"/g, '\\"')}"
+    "mvpMoment": "${mvpA.replace(/"/g, '\\"')}"
   },
   "sessionB": {
-    "mvpMoment": "${reportB.mvpMoment.replace(/"/g, '\\"')}"
+    "mvpMoment": "${mvpB.replace(/"/g, '\\"')}"
   },
   "embedding": "2-4 sentence paragraph about indicators/skills present in both sessions, OR null if insufficient evidence",
   "growth": "2-4 sentence paragraph about new developments in Session B not present in Session A, OR null",
