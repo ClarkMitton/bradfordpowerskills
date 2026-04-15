@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StepIndicator } from "@/components/StepIndicator";
-import { WelcomeScreen, FeedbackPath, UserRole } from "@/components/WelcomeScreen";
+import { WelcomeScreen, UserRole } from "@/components/WelcomeScreen";
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { SessionCapture } from "@/components/SessionCapture";
 import { VideoCapture } from "@/components/VideoCapture";
 import { FeedbackReport } from "@/components/FeedbackReport";
-import { PreviousReportUploader } from "@/components/PreviousReportUploader";
+import { SessionCompare } from "@/components/SessionCompare";
+import { ComparisonReport } from "@/components/ComparisonReport";
 import { ProcessingLoader } from "@/components/ProcessingLoader";
 import { RotatingInsight } from "@/components/RotatingInsight";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, Loader2, Video, Upload, Sparkles, Zap } from "lucide-react";
+import type { ComparisonData } from "@/components/SessionCompare";
 
 const getStepsForMode = (mode: string | null) => {
   switch (mode) {
@@ -34,6 +36,11 @@ const getStepsForMode = (mode: string | null) => {
         { id: 1, label: "Upload Video", shortLabel: "Video" },
         { id: 2, label: "View Feedback", shortLabel: "Feedback" },
       ];
+    case "compare-sessions":
+      return [
+        { id: 1, label: "Upload Reports", shortLabel: "Upload" },
+        { id: 2, label: "View Comparison", shortLabel: "Compare" },
+      ];
     default:
       return [];
   }
@@ -41,10 +48,9 @@ const getStepsForMode = (mode: string | null) => {
 
 
 const Index = () => {
-  const [feedbackPath, setFeedbackPath] = useState<FeedbackPath | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [previousReport, setPreviousReport] = useState<string | null>(null);
-  
+  const [comparisonResult, setComparisonResult] = useState<ComparisonData | null>(null);
+
   const {
     state,
     selectMode,
@@ -57,15 +63,15 @@ const Index = () => {
     retryAnalysis,
     resetSession,
     goBack,
+    advanceStep,
     setUserRole: setHookUserRole,
   } = useSessionAnalysis();
 
   const videoAutoAnalyzedRef = useRef(false);
-  
+
   const handleReset = () => {
-    setFeedbackPath(null);
     setUserRole(null);
-    setPreviousReport(null);
+    setComparisonResult(null);
     videoAutoAnalyzedRef.current = false;
     resetSession();
   };
@@ -95,7 +101,7 @@ const Index = () => {
 
   const steps = getStepsForMode(state.mode);
 
-  // Show video processing loading state
+  // Video processing loading state
   const VideoProcessingLoader = () => {
     const getStatusText = () => {
       switch (state.videoProcessingStatus) {
@@ -104,13 +110,13 @@ const Index = () => {
         case "preparing":
           return { title: "Preparing Video", message: state.compressionMessage || "Copying video to processor...", icon: Upload, detail: `${state.compressionProgress}% complete`, showProgress: true };
         case "compressing":
-          return { title: "Compressing Video", message: state.compressionMessage || "Optimizing for upload...", icon: Zap, detail: `${state.compressionProgress}% complete`, showProgress: true };
+          return { title: "Compressing Video", message: state.compressionMessage || "Optimising for upload...", icon: Zap, detail: `${state.compressionProgress}% complete`, showProgress: true };
         case "uploading":
           return { title: "Uploading Video", message: state.compressionSavings || "Sending your video to our servers...", icon: Upload, detail: "This depends on your connection speed", showProgress: false };
         case "processing":
-          return { title: "Indexing Video", message: "Processing your video content...", icon: Video, detail: "This typically takes 60-90 seconds", showProgress: false };
+          return { title: "Indexing Video", message: "Processing your video content...", icon: Video, detail: "This typically takes 60–90 seconds", showProgress: false };
         case "analyzing":
-          return { title: "Analyzing Pedagogy", message: "AI is extracting teaching insights from visual and audio...", icon: Sparkles, detail: "Almost done...", showProgress: false };
+          return { title: "Analysing Pedagogy", message: "AI is extracting teaching insights from visual and audio...", icon: Sparkles, detail: "Almost done...", showProgress: false };
         default:
           return { title: "Preparing Analysis", message: "Setting up video analysis...", icon: Video, detail: "Please wait", showProgress: false };
       }
@@ -151,22 +157,10 @@ const Index = () => {
 
   const renderStep = () => {
     if (state.step === 0) {
-      // Show path selection first, then role, then mode
-      if (feedbackPath === "comparative" && !previousReport) {
-        return (
-          <PreviousReportUploader 
-            onReportUploaded={(data, raw) => setPreviousReport(raw)}
-            onSkip={() => setFeedbackPath("new")}
-          />
-        );
-      }
       return (
-        <WelcomeScreen 
-          onSelectMode={selectMode} 
-          onSelectPath={setFeedbackPath}
+        <WelcomeScreen
+          onSelectMode={selectMode}
           onSelectRole={setUserRole}
-          showPathSelection={true}
-          selectedPath={feedbackPath}
           selectedRole={userRole}
         />
       );
@@ -257,7 +251,34 @@ const Index = () => {
       }
     }
 
-    return <WelcomeScreen onSelectMode={selectMode} />;
+    // Compare sessions mode
+    if (state.mode === "compare-sessions") {
+      switch (state.step) {
+        case 1:
+          return (
+            <SessionCompare
+              onComplete={(result) => {
+                setComparisonResult(result);
+                advanceStep();
+              }}
+            />
+          );
+        case 2:
+          if (!comparisonResult) {
+            return (
+              <ProcessingLoader isTranscribing={false} />
+            );
+          }
+          return (
+            <ComparisonReport
+              result={comparisonResult}
+              onReset={handleReset}
+            />
+          );
+      }
+    }
+
+    return <WelcomeScreen onSelectMode={selectMode} selectedRole={userRole} />;
   };
 
   return (

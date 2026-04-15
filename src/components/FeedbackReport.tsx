@@ -1,10 +1,10 @@
 ﻿import React, { useState, useRef, useCallback, forwardRef } from "react";
 import { flushSync } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  Download, 
-  RotateCcw, 
-  ChevronDown, 
+import {
+  Download,
+  RotateCcw,
+  ChevronDown,
   ChevronUp,
   Loader2,
   Target,
@@ -18,7 +18,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Minus,
-  MessageSquareQuote
+  MessageSquareQuote,
+  FileDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SelectedPhase } from "./PhaseSelector";
@@ -447,6 +448,60 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
       });
     }
 
+  };
+
+  const handleDownloadHtml = async () => {
+    if (!feedback || !containerRef.current) return;
+
+    const timestamp = Date.now();
+
+    // Expand all sections before capturing HTML
+    const prevCategories = [...expandedCategories];
+    const prevPhases = [...expandedPhases];
+    const detailsElements = Array.from(containerRef.current.querySelectorAll<HTMLDetailsElement>("details"));
+    const detailsStates = detailsElements.map((d) => d.open);
+
+    flushSync(() => {
+      setExpandedCategories(feedback.categories.map((c) => c.name));
+      setExpandedPhases((feedback.lessonPhases || feedback.leadPhases || []).map((p) => p.phase));
+    });
+
+    const expandedDetails = Array.from(containerRef.current.querySelectorAll<HTMLDetailsElement>("details"));
+    expandedDetails.forEach((d) => (d.open = true));
+
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    // Embed the raw feedback JSON so SessionCompare can parse it back
+    const reportPayload = { ...feedback, _generatedAt: timestamp };
+    const safeJson = JSON.stringify(reportPayload).replace(/<\/script>/gi, "<\\/script>");
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>PowerED Report</title>
+  <script type="application/json" id="powered-report-data">${safeJson}<\/script>
+</head>
+<body>
+${containerRef.current.innerHTML}
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `powered-report-${timestamp}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Restore previous states
+    flushSync(() => {
+      setExpandedCategories(prevCategories);
+      setExpandedPhases(prevPhases);
+    });
+    const currentDetails = Array.from(containerRef.current.querySelectorAll<HTMLDetailsElement>("details"));
+    currentDetails.forEach((d, i) => { d.open = detailsStates[i] ?? false; });
   };
 
   if (isLoading) {
@@ -981,6 +1036,10 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
         <Button onClick={handleDownload} size="lg" className="gap-2">
           <Download className="w-5 h-5" />
           Download Report
+        </Button>
+        <Button onClick={handleDownloadHtml} variant="outline" size="lg" className="gap-2">
+          <FileDown className="w-5 h-5" />
+          Save for Comparison
         </Button>
         <Button onClick={onReset} variant="outline" size="lg" className="gap-2">
           <RotateCcw className="w-5 h-5" />

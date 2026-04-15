@@ -55,7 +55,7 @@ interface FeedbackData {
   [key: string]: unknown;
 }
 
-export type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis" | null;
+export type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis" | "compare-sessions" | null;
 
 interface SessionState {
   step: number;
@@ -627,6 +627,10 @@ export function useSessionAnalysis() {
     setState(initialState);
   }, [performFullCleanup]);
 
+  const advanceStep = useCallback(() => {
+    setState((prev) => ({ ...prev, step: prev.step + 1 }));
+  }, []);
+
   const goBack = useCallback(() => {
     setState((prev) => {
       if (prev.step <= 1) {
@@ -832,6 +836,7 @@ export function useSessionAnalysis() {
     retryAnalysis,
     resetSession,
     goBack,
+    advanceStep,
     setUserRole,
   };
 }
