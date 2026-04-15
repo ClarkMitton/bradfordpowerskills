@@ -3,9 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Upload, FileText, X, AlertCircle, Loader2, Sparkles, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import * as pdfjsLib from "pdfjs-dist";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 // ── Shared types ──────────────────────────────────────────────────────────────
 
@@ -19,87 +16,11 @@ export interface ComparisonData {
   standardEnglishTrajectory?: string | null;
 }
 
-interface ParsedReport {
-  filename: string;
-  date: Date | null;
-  mvpLabel: string;
-  summaryPreview: string;
-  rawText: string;
-}
-
 interface UploadedSlot {
   file: File;
-  parsed: ParsedReport;
+  base64: string;
+  filename: string;
 }
-
-// ── Parsing ───────────────────────────────────────────────────────────────────
-
-const extractTextFromPdf = async (file: File): Promise<string> => {
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const pages: string[] = [];
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    pages.push(textContent.items.map((item: any) => item.str).join(" "));
-  }
-  return pages.join("\n\n");
-};
-
-const extractTextFromHtml = async (file: File): Promise<string> => {
-  const content = await file.text();
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(content, "text/html");
-  
-  // Try embedded JSON first
-  const scriptEl = doc.getElementById("powered-report-data");
-  if (scriptEl?.textContent?.trim()) {
-    return scriptEl.textContent.trim();
-  }
-  
-  // Fall back to body text
-  return doc.body?.textContent?.trim() || content;
-};
-
-const parseReport = async (file: File): Promise<ParsedReport> => {
-  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-  const isHtml = file.name.toLowerCase().endsWith(".html") || file.name.toLowerCase().endsWith(".htm");
-
-  if (!isPdf && !isHtml) {
-    throw new Error("Please upload a PDF or HTML report file.");
-  }
-
-  const rawText = isPdf ? await extractTextFromPdf(file) : await extractTextFromHtml(file);
-
-  if (!rawText || rawText.trim().length < 50) {
-    throw new Error("The file doesn't appear to contain enough report content. Please check it's a PowerED report.");
-  }
-
-  // Try to extract a date from the text
-  let date: Date | null = null;
-  const dateMatch = rawText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})/i);
-  if (dateMatch) {
-    date = new Date(`${dateMatch[2]} ${dateMatch[1]}, ${dateMatch[3]}`);
-  }
-
-  // Try to extract MVP moment
-  const mvpMatch = rawText.match(/MVP\s*Moment[:\s]*([^\n.]+)/i) || rawText.match(/Session\s*MVP[:\s]*([^\n.]+)/i);
-  const mvpLabel = mvpMatch?.[1]?.trim() || "Teaching session";
-
-  // Try to extract summary
-  const summaryMatch = rawText.match(/Overall\s*Summary[:\s]*([^\n]+)/i);
-  const summary = summaryMatch?.[1]?.trim() || rawText.slice(0, 140);
-  const summaryPreview = summary.length > 140 ? summary.slice(0, 140) + "\u2026" : summary;
-
-  return {
-    filename: file.name,
-    date,
-    mvpLabel,
-    summaryPreview,
-    rawText,
-  };
-};
 
 // ── Upload zone sub-component ─────────────────────────────────────────────────
 
@@ -165,13 +86,8 @@ function UploadZone({ label, slot, error, isLoading, onFile, onClear }: UploadZo
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-foreground text-sm truncate max-w-[200px] mx-auto">
-                {slot.parsed.filename}
+                {slot.filename}
               </p>
-              {slot.parsed.date && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {slot.parsed.date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                </p>
-              )}
             </div>
             <Button
               variant="ghost"
@@ -191,7 +107,7 @@ function UploadZone({ label, slot, error, isLoading, onFile, onClear }: UploadZo
           <>
             <input
               type="file"
-              accept=".pdf,.html,.htm"
+              accept=".pdf"
               onChange={handleChange}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
@@ -201,7 +117,7 @@ function UploadZone({ label, slot, error, isLoading, onFile, onClear }: UploadZo
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">Drop report here</p>
-                <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
+                <p className="text-xs text-muted-foreground mt-1">or click to browse (PDF)</p>
               </div>
             </div>
           </>
@@ -217,6 +133,21 @@ function UploadZone({ label, slot, error, isLoading, onFile, onClear }: UploadZo
   );
 }
 
+// ── Helper: file to base64 ───────────────────────────────────────────────────
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Strip data URL prefix to get raw base64
+      const base64 = result.split(",")[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 interface SessionCompareProps {
@@ -230,7 +161,6 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
   const [errorB, setErrorB] = useState<string | null>(null);
   const [loadingA, setLoadingA] = useState(false);
   const [loadingB, setLoadingB] = useState(false);
-  const [needsManualOrder, setNeedsManualOrder] = useState(false);
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
@@ -241,14 +171,26 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
       const setLoading = slot === "A" ? setLoadingA : setLoadingB;
       setError(null);
       setAnalysisError(null);
-      setNeedsManualOrder(false);
       setLoading(true);
 
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      if (!isPdf) {
+        setError("Please upload a PDF report file.");
+        setLoading(false);
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        setError("File is too large. Please upload a PDF under 10MB.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const parsed = await parseReport(file);
-        setSlot({ file, parsed });
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to read the report file.");
+        const base64 = await fileToBase64(file);
+        setSlot({ file, base64, filename: file.name });
+      } catch {
+        setError("Failed to read the PDF file.");
       } finally {
         setLoading(false);
       }
@@ -258,29 +200,18 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
 
   const bothReady = slotA && slotB;
 
-  // Auto-determine order from timestamps
-  const getAutoOrdering = (): { earlier: ParsedReport; later: ParsedReport } | null => {
-    if (!slotA || !slotB) return null;
-    if (slotA.parsed.date && slotB.parsed.date) {
-      if (slotA.parsed.date.getTime() !== slotB.parsed.date.getTime()) {
-        return slotA.parsed.date < slotB.parsed.date
-          ? { earlier: slotA.parsed, later: slotB.parsed }
-          : { earlier: slotB.parsed, later: slotA.parsed };
-      }
-    }
-    return null;
-  };
-
-  const runAnalysis = async (earlier: ParsedReport, later: ParsedReport) => {
+  const handleAnalyse = async () => {
+    if (!slotA || !slotB) return;
     setIsAnalysing(true);
     setAnalysisError(null);
-    setNeedsManualOrder(false);
 
     try {
       const { data, error } = await supabase.functions.invoke("compare-sessions", {
         body: {
-          reportAText: earlier.rawText,
-          reportBText: later.rawText,
+          pdfA: slotA.base64,
+          pdfB: slotB.base64,
+          filenameA: slotA.filename,
+          filenameB: slotB.filename,
         },
       });
 
@@ -291,16 +222,6 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
       setAnalysisError(
         err instanceof Error ? err.message : "Comparison failed. Please try again."
       );
-    }
-  };
-
-  const handleAnalyse = () => {
-    if (!bothReady) return;
-    const autoOrder = getAutoOrdering();
-    if (autoOrder) {
-      runAnalysis(autoOrder.earlier, autoOrder.later);
-    } else {
-      setNeedsManualOrder(true);
     }
   };
 
@@ -317,69 +238,12 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
             Analysing Your Teaching Journey
           </h3>
           <p className="text-muted-foreground max-w-md">
-            Comparing both sessions to identify growth, embedded practice, and your next development focus...
+            Reading both reports and comparing your sessions to identify growth, embedded practice, and your next development focus...
           </p>
         </div>
       </div>
     );
   }
-
-  // ── Manual order picker
-  if (needsManualOrder && slotA && slotB) {
-    return (
-      <div className="section-fade-in space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-heading font-semibold text-foreground">
-            Which Session Came First?
-          </h2>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            We couldn't determine the order automatically. Select which session was earlier in your teaching.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {[slotA, slotB].map((slot) => (
-            <div key={slot.file.name} className="card-elevated p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-4 h-4 text-primary" />
-                </div>
-                <p className="text-sm font-medium text-foreground truncate">{slot.parsed.filename}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">MVP Moment</p>
-                <p className="text-sm font-medium text-foreground">{slot.parsed.mvpLabel}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Summary</p>
-                <p className="text-sm text-muted-foreground">{slot.parsed.summaryPreview}</p>
-              </div>
-              <Button
-                className="w-full gap-2"
-                onClick={() => {
-                  const earlier = slot.parsed;
-                  const later = slot === slotA ? slotB.parsed : slotA.parsed;
-                  runAnalysis(earlier, later);
-                }}
-              >
-                This one was first
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center">
-          <Button variant="ghost" size="sm" onClick={() => setNeedsManualOrder(false)}>
-            ← Go back
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Main upload view
-  const autoOrder = bothReady ? getAutoOrdering() : null;
 
   return (
     <div className="section-fade-in space-y-8 max-w-3xl mx-auto">
@@ -388,7 +252,7 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
           Upload Your Two Reports
         </h2>
         <p className="text-muted-foreground max-w-lg mx-auto">
-          Upload two PDF reports you've previously downloaded from PowerED. We'll work out which came first automatically.
+          Upload two PDF reports you've previously downloaded from PowerED. The AI will read and compare them automatically.
         </p>
       </div>
 
@@ -399,7 +263,7 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
           error={errorA}
           isLoading={loadingA}
           onFile={(f) => handleFile(f, "A")}
-          onClear={() => { setSlotA(null); setErrorA(null); setNeedsManualOrder(false); }}
+          onClear={() => { setSlotA(null); setErrorA(null); }}
         />
         <UploadZone
           label="Second Report"
@@ -407,30 +271,9 @@ export function SessionCompare({ onComplete }: SessionCompareProps) {
           error={errorB}
           isLoading={loadingB}
           onFile={(f) => handleFile(f, "B")}
-          onClear={() => { setSlotB(null); setErrorB(null); setNeedsManualOrder(false); }}
+          onClear={() => { setSlotB(null); setErrorB(null); }}
         />
       </div>
-
-      {/* Order status */}
-      {bothReady && (
-        <div className={cn(
-          "p-4 rounded-xl border text-sm",
-          autoOrder
-            ? "bg-success/5 border-success/20 text-success"
-            : "bg-amber-500/5 border-amber-500/20 text-amber-700"
-        )}>
-          {autoOrder ? (
-            <p>
-              Order detected automatically — <strong>{autoOrder.earlier.filename}</strong> is earlier,{" "}
-              <strong>{autoOrder.later.filename}</strong> is later.
-            </p>
-          ) : (
-            <p>
-              Couldn't determine order automatically — you'll be asked to confirm which session came first.
-            </p>
-          )}
-        </div>
-      )}
 
       {analysisError && (
         <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl">
