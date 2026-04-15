@@ -257,6 +257,7 @@ const Index = () => {
         case 1:
           return (
             <SessionCompare
+              userRole={userRole}
               onComplete={(result) => {
                 setComparisonResult(result);
                 advanceStep();
