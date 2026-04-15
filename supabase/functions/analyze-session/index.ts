@@ -8,13 +8,14 @@ const corsHeaders = {
 const LESSON_STRUCTURE = `
 ## Lesson Structure Guidance
 
-Analyse the teaching session holistically, looking at how the lesson flows through its natural phases:
+These recordings are snapshots of teaching sessions — they may not contain every lesson phase, and that is entirely expected. Do NOT force feedback on phases that are not genuinely evidenced.
+
+Analyse only the phases that are clearly present in the transcript:
 - **Opening**: How the lesson begins — student welcome, engagement hooks, gauging starting points
 - **Core Teaching**: How new learning is introduced — explanations, modelling, guided practice
 - **Application**: How students practise and apply learning — independent work, differentiated tasks
-- **Closing**: How learning is consolidated — checking understanding, summarising, next steps
 
-Identify which phases are present in the transcript and provide feedback on each.
+IMPORTANT: Do NOT include a Closing phase. If a phase above is not evidenced in the recording, omit it entirely from the lessonPhases array rather than fabricating commentary.
 `;
 
 
@@ -140,12 +141,14 @@ const STANDARD_ENGLISH_SECTION = `
 
 Provide a star rating out of 5 and a single qualitative paragraph of feedback on the teacher's use of Standard English.
 
+IMPORTANT: You MUST return "stars" as a whole number integer between 1 and 5 inclusive — never null, never a range, never a string.
+
 Star rating guidance:
-- 5 stars: Consistently models Standard English throughout with clear, precise language
-- 4 stars: Mostly strong Standard English with only minor or very occasional slips
-- 3 stars: Generally appropriate but with some noticeable patterns worth addressing
-- 2 stars: Several instances of non-standard usage that could impact learners' language development
-- 1 star: Frequent non-standard usage requiring focused development
+- 5 = Consistently models Standard English throughout with clear, precise language
+- 4 = Mostly strong Standard English with only minor or very occasional slips
+- 3 = Generally appropriate but with some noticeable patterns worth addressing
+- 2 = Several instances of non-standard usage that could impact learners' language development
+- 1 = Frequent non-standard usage requiring focused development
 
 Listen for:
 - Non-standard grammar (e.g., "we was", "they done", "could of", "less" instead of "fewer")
@@ -153,7 +156,7 @@ Listen for:
 - Filler words and verbal tics that affect clarity
 - Regional dialect features used in formal instruction (note: dialect is not inherently wrong, but teachers should be able to model Standard English when appropriate)
 
-Write a single qualitative paragraph that:
+Write a single qualitative paragraph (the "feedback" field) that:
 - Acknowledges what the teacher did well in terms of language use
 - Highlights only meaningful patterns, key terms, or genuine slip-ups worth addressing — do not force or inflate these
 - Is written in an encouraging, coaching tone consistent with the rest of the report
@@ -381,7 +384,7 @@ serve(async (req) => {
     const isTrainee = userRole === "trainee";
 
     // Build phase context based on selection
-    let phaseContext = "Analyse the session holistically, covering all natural lesson phases: opening, core teaching, application, and closing.";
+    let phaseContext = "Analyse only the lesson phases genuinely evidenced in this recording. These are snapshots — phases may be absent and that is expected. Do NOT fabricate or include a Closing phase. Only include Opening, Core Teaching, and Application if they are actually present in the transcript.";
 
     // Map category names to domain names
     const categoryToDomain: Record<string, string> = {
@@ -509,8 +512,8 @@ Respond with valid JSON matching this exact structure:
     }
   ],
   "standardEnglish": {
-    "stars": 1-5,
-    "feedback": "A single qualitative paragraph acknowledging strengths and highlighting meaningful patterns or slip-ups in an encouraging, coaching tone."
+    "stars": 4,
+    "feedback": "A single qualitative paragraph acknowledging strengths and highlighting meaningful patterns or slip-ups in an encouraging, coaching tone. This field must be a non-empty string."
   },
   "ittecfIndicators": [
     {
@@ -584,8 +587,8 @@ Respond with valid JSON matching this exact structure:
   ],
   "lessonPhases": [
     {
-      "phase": "Phase name (e.g., Opening, Core Teaching, Application, Closing)",
-      "rating": "exemplary" | "solid" | "developing" | "emerging",
+      "phase": "Opening, Core Teaching, or Application only — never Closing",
+      "rating": "exemplary | solid | developing | emerging — these are the ONLY valid values, never use ITTECF status values here",
       "observations": ["observation with [MM:SS] timestamp"],
       "suggestions": ["suggestion"]
     }

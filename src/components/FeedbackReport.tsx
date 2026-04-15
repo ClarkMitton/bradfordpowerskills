@@ -85,8 +85,8 @@ interface OfstedGrade {
 }
 
 interface StandardEnglishData {
-  stars: number;
-  feedback: string;
+  stars?: number;
+  feedback?: string;
 }
 
 interface ITTECFIndicator {
@@ -821,10 +821,10 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                     <span
                       className={cn(
                         "text-sm px-3 py-1.5 rounded-full border font-medium",
-                        ratingColors[phase.rating]
+                        ratingColors[phase.rating] || "bg-muted text-muted-foreground border-border"
                       )}
                     >
-                      {ratingLabels[phase.rating]}
+                      {ratingLabels[phase.rating] || phase.rating}
                     </span>
                   </div>
                   {expandedPhases.includes(phase.phase) ? (
@@ -891,24 +891,35 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                 <h3 className="font-semibold text-foreground text-lg">Standard English Usage</h3>
                 <p className="text-sm text-muted-foreground">Language modelling in your session</p>
               </div>
-              <div className="flex items-center gap-0.5">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star
-                    key={i}
-                    className={cn(
-                      "w-5 h-5",
-                      i <= (feedback.standardEnglish?.stars ?? 0) ? "text-yellow-500" : "text-muted-foreground/30"
-                    )}
-                    fill={i <= (feedback.standardEnglish?.stars ?? 0) ? "currentColor" : "none"}
-                  />
-                ))}
-              </div>
+              {(() => {
+                const seStars = Math.max(0, Math.min(5, Number(feedback.standardEnglish?.stars) || 0));
+                return (
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star
+                        key={i}
+                        className={cn(
+                          "w-5 h-5",
+                          i <= seStars ? "text-yellow-500" : "text-muted-foreground/30"
+                        )}
+                        fill={i <= seStars ? "currentColor" : "none"}
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
           <div className="p-5">
-            <p className="text-foreground leading-relaxed">
-              {feedback.standardEnglish.feedback}
-            </p>
+            {feedback.standardEnglish.feedback ? (
+              <p className="text-foreground leading-relaxed">
+                {feedback.standardEnglish.feedback}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                Re-run analysis to generate Standard English feedback.
+              </p>
+            )}
           </div>
         </div>
       )}
