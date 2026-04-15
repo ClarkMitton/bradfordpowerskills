@@ -107,20 +107,7 @@ export function PreviousReportUploader({ onReportUploaded, onSkip }: PreviousRep
     }
 
     try {
-      let content: string;
-      if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const pages: string[] = [];
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          pages.push(textContent.items.map((item: any) => item.str).join(' '));
-        }
-        content = pages.join('\n\n');
-      } else {
-        content = await file.text();
-      }
+      const content = await file.text();
       const reportData = await parseReportContent(content);
       setUploadedFile(file);
       onReportUploaded(reportData, content);
