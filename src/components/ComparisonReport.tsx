@@ -1,9 +1,8 @@
-import { useRef, useState, useCallback } from "react";
-import { flushSync } from "react-dom";
+import { useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ComparisonData } from "./SessionCompare";
+import type { ComparisonData, ITTECFEvidence } from "./SessionCompare";
 
 interface ComparisonReportProps {
   result: ComparisonData;
@@ -68,12 +67,75 @@ const SECTIONS: Section[] = [
   },
 ];
 
+function ITTECFTable({ evidence }: { evidence: ITTECFEvidence[] }) {
+  if (!evidence || evidence.length === 0) return null;
+
+  return (
+    <div className="card-elevated p-6 border border-border space-y-4">
+      <div className="space-y-1">
+        <h3 className="font-semibold text-lg text-foreground">ITTECF Standards Evidenced</h3>
+        <p className="text-sm text-muted-foreground">Standards observed across your two sessions</p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Standard</th>
+              <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Indicator</th>
+              <th className="text-center py-2 px-3 font-medium text-muted-foreground">Session 1</th>
+              <th className="text-center py-2 px-3 font-medium text-muted-foreground">Session 2</th>
+            </tr>
+          </thead>
+          <tbody>
+            {evidence.map((row, i) => (
+              <tr key={i} className="border-b border-border/50 last:border-0">
+                <td className="py-2.5 pr-4 font-mono text-xs font-semibold text-foreground whitespace-nowrap">
+                  {row.standard}
+                </td>
+                <td className="py-2.5 pr-4 text-foreground">{row.title}</td>
+                <td className="py-2.5 px-3 text-center">
+                  {row.sessionA ? (
+                    <span className="text-emerald-600 font-bold">✓</span>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </td>
+                <td className="py-2.5 px-3 text-center">
+                  {row.sessionB ? (
+                    <span className="text-emerald-600 font-bold">✓</span>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-muted-foreground italic">
+        Standards shown as evidenced were observed in your transcript. Absence does not mean a standard wasn't met — it may simply not have been captured in this recording.
+      </p>
+    </div>
+  );
+}
+
+function FocusCallout({ text }: { text: string }) {
+  return (
+    <div className="border-l-4 border-primary bg-primary/5 rounded-r-xl p-5 space-y-1">
+      <div className="flex items-center gap-2">
+        <span className="text-lg">🎯</span>
+        <h3 className="font-semibold text-foreground">Focus for Next Session</h3>
+      </div>
+      <p className="text-foreground text-sm sm:text-base leading-relaxed">{text}</p>
+    </div>
+  );
+}
+
 export function ComparisonReport({ result, onReset }: ComparisonReportProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isExpanded] = useState(true);
 
   const getSectionContent = (key: keyof ComparisonData): string | null => {
-    if (key === "sessionA" || key === "sessionB") return null;
+    if (key === "sessionA" || key === "sessionB" || key === "ittecfEvidence" || key === "focusForNextSession") return null;
     const value = result[key];
     if (!value || typeof value !== "string") return null;
     return value;
@@ -137,15 +199,17 @@ ${containerRef.current.innerHTML}
           <div className="flex items-center justify-center sm:hidden">
             <span className="text-muted-foreground text-xl">↓</span>
           </div>
-          <div className="hidden sm:flex items-center justify-center absolute left-1/2 -translate-x-1/2 z-10">
-            <span className="text-primary text-xl font-bold">→</span>
-          </div>
           <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-1">
             <p className="text-xs text-primary font-medium">Session 2 (Later)</p>
             <p className="text-sm font-semibold text-foreground">{result.sessionB.mvpMoment}</p>
           </div>
         </div>
       </div>
+
+      {/* ITTECF Evidence Table */}
+      {result.ittecfEvidence && result.ittecfEvidence.length > 0 && (
+        <ITTECFTable evidence={result.ittecfEvidence} />
+      )}
 
       {/* Comparison sections */}
       {visibleSections.length > 0 ? (
@@ -191,6 +255,11 @@ ${containerRef.current.innerHTML}
             The AI found limited direct comparisons between these two sessions. This can happen when the sessions cover very different content or learner groups.
           </p>
         </div>
+      )}
+
+      {/* Focus for Next Session */}
+      {result.focusForNextSession && (
+        <FocusCallout text={result.focusForNextSession} />
       )}
 
       {/* Closing line */}
