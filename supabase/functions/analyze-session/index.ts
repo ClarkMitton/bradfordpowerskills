@@ -136,9 +136,16 @@ CRITICAL RULES:
 `;
 
 const STANDARD_ENGLISH_SECTION = `
-## Standard English Usage Rating
+## Standard English Usage
 
-Rate the teacher's use of Standard English out of 10. This is important for professional development.
+Provide a star rating out of 5 and a single qualitative paragraph of feedback on the teacher's use of Standard English.
+
+Star rating guidance:
+- 5 stars: Consistently models Standard English throughout with clear, precise language
+- 4 stars: Mostly strong Standard English with only minor or very occasional slips
+- 3 stars: Generally appropriate but with some noticeable patterns worth addressing
+- 2 stars: Several instances of non-standard usage that could impact learners' language development
+- 1 star: Frequent non-standard usage requiring focused development
 
 Listen for:
 - Non-standard grammar (e.g., "we was", "they done", "could of", "less" instead of "fewer")
@@ -146,16 +153,14 @@ Listen for:
 - Filler words and verbal tics that affect clarity
 - Regional dialect features used in formal instruction (note: dialect is not inherently wrong, but teachers should be able to model Standard English when appropriate)
 
-For EACH instance of non-standard English:
-- Provide the timestamp [MM:SS]
-- Quote what was actually said
-- Provide the corrected Standard English version
-- Brief explanation of why this matters
+Write a single qualitative paragraph that:
+- Acknowledges what the teacher did well in terms of language use
+- Highlights only meaningful patterns, key terms, or genuine slip-ups worth addressing — do not force or inflate these
+- Is written in an encouraging, coaching tone consistent with the rest of the report
+- Focuses on things the teacher can actually work on and improve
+- Does NOT include timestamps or side-by-side corrections — this should read as fluent, supportive prose
 
-A score of 10 = consistently models Standard English throughout
-A score of 1 = frequent non-standard usage that could impact learners' language development
-
-Be fair and supportive — the goal is awareness, not criticism.
+Be fair and supportive — the goal is awareness and development, not criticism.
 `;
 
 const ITTECF_LEARN_HOW_TO = `
@@ -400,7 +405,7 @@ serve(async (req) => {
     if (learnerLevel || subject) {
       learnerContext = "\n\nADDITIONAL CONTEXT:\n";
       if (learnerLevel) learnerContext += `Learner Level: ${learnerLevel}\n`;
-      if (subject) learnerContext += `Subject/Topic: ${subject}\n`;
+      if (subject) learnerContext += `Teaching focus (what was being taught in this specific recording): ${subject}\n`;
       
       if (isTrainee) {
         learnerContext += `\nCRITICAL: You MUST tailor ALL feedback specifically to the "${learnerLevel}" learner level. Consider:
@@ -504,15 +509,8 @@ Respond with valid JSON matching this exact structure:
     }
   ],
   "standardEnglish": {
-    "rating": 1-10,
-    "instances": [
-      {
-        "timestamp": "[MM:SS]",
-        "original": "What was actually said",
-        "corrected": "The Standard English version",
-        "explanation": "Brief explanation of why this matters for learners"
-      }
-    ]
+    "stars": 1-5,
+    "feedback": "A single qualitative paragraph acknowledging strengths and highlighting meaningful patterns or slip-ups in an encouraging, coaching tone."
   },
   "ittecfIndicators": [
     {

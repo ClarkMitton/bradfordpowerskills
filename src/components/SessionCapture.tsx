@@ -1,8 +1,14 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Upload, Play, Pause, Trash2, FileText, CheckCircle2, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Mic, Square, Upload, Play, Pause, Trash2, Download, FileText, CheckCircle2, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { AnalysisMode } from "@/hooks/useSessionAnalysis";
+
+export interface SessionCaptureDetails {
+  subject: string;
+}
 
 interface SessionCaptureProps {
   mode: AnalysisMode;
@@ -15,7 +21,8 @@ interface SessionCaptureProps {
       lowerAbility: File | null;
       middleAbility: File | null;
       higherAbility: File | null;
-    }
+    },
+    sessionDetails: SessionCaptureDetails
   ) => void;
 }
 
@@ -27,6 +34,9 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
   const [fileName, setFileName] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState(false);
   
+  // Session details
+  const [subject, setSubject] = useState<string>("");
+
   // Document states
   const [lessonPlan, setLessonPlan] = useState<File | null>(null);
   const [scaffolding, setScaffolding] = useState<File | null>(null);
@@ -66,7 +76,7 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
         const url = URL.createObjectURL(blob);
         setAudioBlob(blob);
         setAudioUrl(url);
-        setFileName(`recording-${new Date().toISOString().slice(0, 10)}.webm`);
+        setFileName(`powered-recording-${Date.now()}.webm`);
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -138,6 +148,21 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
     setRecordingTime(0);
   };
 
+  const downloadAudio = () => {
+    if (audioBlob && audioUrl) {
+      const link = document.createElement("a");
+      link.href = audioUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast({
+        title: "Download Started",
+        description: "Your recording is being saved to your device.",
+      });
+    }
+  };
+
   const handleDocumentUpload = (
     event: React.ChangeEvent<HTMLInputElement>,
     setter: (file: File | null) => void
@@ -159,13 +184,18 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
 
   const handleSubmit = () => {
     if (audioBlob && isReadyToSubmit()) {
-      onComplete(audioBlob, fileName, {
-        lessonPlan,
-        scaffolding,
-        lowerAbility,
-        middleAbility,
-        higherAbility,
-      });
+      onComplete(
+        audioBlob,
+        fileName,
+        {
+          lessonPlan,
+          scaffolding,
+          lowerAbility,
+          middleAbility,
+          higherAbility,
+        },
+        { subject }
+      );
     }
   };
 
@@ -301,6 +331,9 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
                     <p className="font-medium text-foreground text-sm truncate">{fileName}</p>
                     <p className="text-xs text-muted-foreground">Ready for transcription</p>
                   </div>
+                  <Button onClick={downloadAudio} variant="ghost" size="icon" className="h-8 w-8" title="Download recording">
+                    <Download className="w-4 h-4" />
+                  </Button>
                   <Button onClick={clearAudio} variant="ghost" size="icon" className="h-8 w-8">
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -371,6 +404,18 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Teaching Focus */}
+      <div className="card-elevated p-6 space-y-2">
+        <Label htmlFor="session-subject">What were you teaching in this recording?</Label>
+        <Input
+          id="session-subject"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="e.g. 'Introducing fractions using visual models' or 'Persuasive writing — opening paragraphs for KS3'"
+        />
+        <p className="text-xs text-muted-foreground">Be specific — the more detail you give, the more accurate your feedback will be.</p>
       </div>
 
       {/* Tips */}

@@ -67,7 +67,7 @@ export function WelcomeScreen({
     {
       id: "quick" as const,
       icon: Mic,
-      title: "Quick Feedback",
+      title: "Audio Only Feedback",
       description: "Get instant feedback on any teaching moment — a full lesson, a short activity, or just a segment you want to reflect on.",
       details: ["Record or upload audio", "Auto-transcription", "Delivery-focused feedback"],
       encouragement: "Perfect for everyday practice — use it anytime you want a quick reflection on your delivery.",
@@ -76,7 +76,7 @@ export function WelcomeScreen({
     {
       id: "full-review" as const,
       icon: Layers,
-      title: "15 Minute Lesson",
+      title: "Deep Dive Feedback",
       description: "Comprehensive feedback on the complete teaching cycle — from planning through delivery to student outcomes.",
       details: ["Audio recording", "Lesson plan & scaffolding", "3 pieces of student work"],
       encouragement: "Perfect for deep reflection — connect your planning, delivery, and student outcomes for powerful professional growth.",

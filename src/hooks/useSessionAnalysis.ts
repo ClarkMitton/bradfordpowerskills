@@ -5,6 +5,7 @@ import { compressVideo, formatBytes } from "@/lib/videoCompressor";
 import { usePrivacyCleanup } from "@/hooks/usePrivacyCleanup";
 import type { SelectedPhase } from "@/components/PhaseSelector";
 import type { SessionDetails } from "@/components/AudioRecorder";
+import type { SessionCaptureDetails } from "@/components/SessionCapture";
 import type { UserRole } from "@/components/WelcomeScreen";
 
 interface HighlightedName {
@@ -30,16 +31,9 @@ interface LEADPhaseFeedback {
   suggestions: string[];
 }
 
-interface StandardEnglishInstance {
-  timestamp: string;
-  original: string;
-  corrected: string;
-  explanation: string;
-}
-
 interface StandardEnglishData {
-  rating: number;
-  instances: StandardEnglishInstance[];
+  stars: number;
+  feedback: string;
 }
 
 interface ITTECFIndicator {
@@ -483,11 +477,16 @@ export function useSessionAnalysis() {
   }, [triggerAnalysis]);
 
   const handleSessionCapture = useCallback(async (
-    blob: Blob, 
-    fileName: string, 
-    documents: SessionState["documents"]
+    blob: Blob,
+    fileName: string,
+    documents: SessionState["documents"],
+    captureDetails?: SessionCaptureDetails
   ) => {
     const currentMode = state.mode;
+    const sessionDetails: SessionDetails | null = captureDetails
+      ? { learnerLevel: "", subject: captureDetails.subject, selectedCategories: [] }
+      : null;
+
     setState((prev) => ({
       ...prev,
       audioBlob: blob,
@@ -498,18 +497,19 @@ export function useSessionAnalysis() {
       transcriptionStartTime: Date.now(),
       transcriptionElapsed: 0,
       selectedPhases: ["full"],
+      sessionDetails,
     }));
 
     try {
       const transcript = await transcribeAudio(blob);
-      
+
       if (!transcript || transcript.trim().length === 0) {
         throw new Error("Transcription returned empty. Please try recording again.");
       }
-      
+
       const names = detectNames(transcript);
       const anonymizedTranscript = autoAnonymizeTranscript(transcript, names);
-      
+
       setState((prev) => ({
         ...prev,
         transcript,
@@ -518,13 +518,13 @@ export function useSessionAnalysis() {
         isTranscribing: false,
         transcriptionStartTime: null,
       }));
-      
-      toast.success("Audio transcribed and anonymized successfully");
-      
+
+      toast.success("Audio transcribed and anonymised successfully");
+
       const fullPhases: SelectedPhase[] = ["full"];
       setState((prev) => {
         setTimeout(() => {
-          triggerAnalysis(anonymizedTranscript, fullPhases, null, currentMode, documents, prev.userRole);
+          triggerAnalysis(anonymizedTranscript, fullPhases, sessionDetails, currentMode, documents, prev.userRole);
         }, 0);
         return prev;
       });

@@ -95,15 +95,6 @@ const Index = () => {
 
   const steps = getStepsForMode(state.mode);
 
-  // Unified loading state for transcription + analysis
-  const isProcessing = state.isTranscribing || (state.isAnalyzing && state.mode !== "video-analysis");
-  const processingTitle = state.isTranscribing 
-    ? "Processing Your Session" 
-    : "Generating Your Feedback";
-  const processingMessage = state.isTranscribing
-    ? "Transcribing audio, anonymising names, and preparing your personalised feedback..."
-    : "Our AI is crafting detailed, actionable teaching feedback just for you...";
-
   // Show video processing loading state
   const VideoProcessingLoader = () => {
     const getStatusText = () => {
@@ -190,8 +181,7 @@ const Index = () => {
           if (state.isTranscribing || (state.isAnalyzing && !state.feedback)) {
             return (
               <ProcessingLoader
-                title={processingTitle}
-                message={processingMessage}
+                isTranscribing={state.isTranscribing}
                 elapsed={state.isTranscribing ? state.transcriptionElapsed : undefined}
               />
             );
@@ -216,13 +206,12 @@ const Index = () => {
     if (state.mode === "deep-dive" || state.mode === "full-review") {
       switch (state.step) {
         case 1:
-          return <SessionCapture mode={state.mode} onComplete={handleSessionCapture} />;
+          return <SessionCapture mode={state.mode} onComplete={(blob, fileName, docs, details) => handleSessionCapture(blob, fileName, docs, details)} />;
         case 2:
           if (state.isTranscribing || (state.isAnalyzing && !state.feedback)) {
             return (
               <ProcessingLoader
-                title={processingTitle}
-                message={processingMessage}
+                isTranscribing={state.isTranscribing}
                 elapsed={state.isTranscribing ? state.transcriptionElapsed : undefined}
               />
             );

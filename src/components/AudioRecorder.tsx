@@ -91,7 +91,7 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
         const url = URL.createObjectURL(blob);
         setAudioBlob(blob);
         setAudioUrl(url);
-        setFileName(`recording-${new Date().toISOString().slice(0, 10)}.webm`);
+        setFileName(`powered-recording-${Date.now()}.webm`);
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -338,13 +338,14 @@ export function AudioRecorder({ onFastFeedback }: AudioRecorderProps) {
 
               {/* Subject */}
               <div className="space-y-2">
-                <Label htmlFor="subject">Subject or Topic</Label>
+                <Label htmlFor="subject">What were you teaching in this recording?</Label>
                 <Input
                   id="subject"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="e.g., Introduction to Algebra, Creative Writing..."
+                  placeholder="e.g. 'Introducing fractions using visual models' or 'Persuasive writing — opening paragraphs for KS3'"
                 />
+                <p className="text-xs text-muted-foreground">Be specific — the more detail you give, the more accurate your feedback will be.</p>
               </div>
 
               {/* Feedback Categories */}

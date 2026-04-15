@@ -1,4 +1,5 @@
-import React, { useState, forwardRef } from "react";
+﻿import React, { useState, useRef, useCallback, forwardRef } from "react";
+import { flushSync } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Download, 
@@ -83,16 +84,9 @@ interface OfstedGrade {
   caveat?: string;
 }
 
-interface StandardEnglishInstance {
-  timestamp: string;
-  original: string;
-  corrected: string;
-  explanation: string;
-}
-
 interface StandardEnglishData {
-  rating: number;
-  instances: StandardEnglishInstance[];
+  stars: number;
+  feedback: string;
 }
 
 interface ITTECFIndicator {
@@ -338,6 +332,21 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
 }, ref) => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [expandedPhases, setExpandedPhases] = useState<string[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Combine the forwarded ref with our local containerRef so we can access
+  // the DOM node for PDF capture while still exposing the ref to the parent.
+  const combinedRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref) {
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }
+    },
+    [ref]
+  );
 
   const toggleCategory = (name: string) => {
     setExpandedCategories((prev) =>
@@ -376,427 +385,64 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
     return `The AI is carefully reviewing your session. This usually takes about 30 seconds...`;
   };
 
-  const handleDownload = () => {
-    if (!feedback) return;
+  const handleDownload = async () => {
+    if (!feedback || !containerRef.current) return;
 
-    const modeText = mode === "quick" ? "Quick Feedback" : mode === "deep-dive" ? "Delivery Deep Dive" : "Full Session Review";
-    const date = new Date().toLocaleDateString('en-GB', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const container = containerRef.current;
+    const timestamp = Date.now();
+
+    // â”€â”€ Step 1: Save current open/closed states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const prevCategories = [...expandedCategories];
+    const prevPhases = [...expandedPhases];
+    const detailsElements = Array.from(container.querySelectorAll<HTMLDetailsElement>("details"));
+    const detailsStates = detailsElements.map((d) => d.open);
+
+    // â”€â”€ Step 2: Expand all React-controlled sections synchronously â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    flushSync(() => {
+      setExpandedCategories(feedback.categories.map((c) => c.name));
+      setExpandedPhases(
+        (feedback.lessonPhases || feedback.leadPhases || []).map((p) => p.phase)
+      );
     });
 
-    const htmlContent = `
-<!DOCTYPE html>
-<html lang="en-GB">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Session Analysis Report - ${date}</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      line-height: 1.6; 
-      color: #1a1a2e; 
-      background: #fff;
-      padding: 40px;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    .header { 
-      text-align: center; 
-      margin-bottom: 40px; 
-      padding-bottom: 30px;
-      border-bottom: 3px solid #6366f1;
-    }
-    .header h1 { 
-      color: #6366f1; 
-      font-size: 28px; 
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-    .header .subtitle { 
-      color: #64748b; 
-      font-size: 14px; 
-    }
-    .celebration { 
-      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); 
-      border: 1px solid #86efac;
-      border-radius: 12px; 
-      padding: 24px; 
-      margin-bottom: 30px;
-      text-align: center;
-    }
-    .celebration h2 { 
-      color: #16a34a; 
-      font-size: 18px; 
-      margin-bottom: 12px;
-    }
-    .celebration p { 
-      color: #166534; 
-      font-size: 15px;
-    }
-    .summary-box { 
-      background: #f8fafc; 
-      border-radius: 12px; 
-      padding: 24px; 
-      margin-bottom: 30px;
-    }
-    .summary-box p { 
-      font-size: 15px; 
-      color: #334155;
-      margin-bottom: 20px;
-    }
-    .highlight-grid { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 16px; 
-    }
-    .highlight-card { 
-      padding: 16px; 
-      border-radius: 8px; 
-    }
-    .highlight-card.strength { 
-      background: #f0fdf4; 
-      border: 1px solid #86efac; 
-    }
-    .highlight-card.growth { 
-      background: #fef3c7; 
-      border: 1px solid #fcd34d; 
-    }
-    .highlight-card h4 { 
-      font-size: 12px; 
-      text-transform: uppercase; 
-      letter-spacing: 0.5px;
-      margin-bottom: 8px; 
-    }
-    .highlight-card.strength h4 { color: #16a34a; }
-    .highlight-card.growth h4 { color: #d97706; }
-    .highlight-card p { 
-      font-size: 14px; 
-      color: #334155;
-    }
-    .section { 
-      margin-bottom: 30px; 
-    }
-    .section-title { 
-      font-size: 18px; 
-      font-weight: 600; 
-      color: #1a1a2e; 
-      margin-bottom: 16px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid #e2e8f0;
-    }
-    .category { 
-      background: #fff; 
-      border: 1px solid #e2e8f0; 
-      border-radius: 10px; 
-      margin-bottom: 16px;
-      overflow: hidden;
-    }
-    .category-header { 
-      padding: 16px 20px; 
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .category-name { 
-      font-size: 16px; 
-      font-weight: 600; 
-      color: #1a1a2e; 
-    }
-    .category-summary {
-      font-size: 14px;
-      color: #64748b;
-      margin-top: 8px;
-      font-style: italic;
-    }
-    .stars { 
-      color: #eab308; 
-      font-size: 16px;
-      margin-top: 4px;
-    }
-    .rating-label { 
-      font-size: 13px; 
-      color: #64748b;
-      margin-top: 2px;
-    }
-    .category-content { 
-      padding: 20px; 
-    }
-    .feedback-section { 
-      margin-bottom: 16px; 
-      padding: 14px;
-      border-radius: 8px;
-    }
-    .feedback-section:last-child { margin-bottom: 0; }
-    .feedback-section.working { background: #f0fdf4; }
-    .feedback-section.stronger { background: #fef3c7; }
-    .feedback-section.try { background: #eff6ff; }
-    .feedback-section.evidence { background: #f8fafc; }
-    .feedback-section.research { background: #faf5ff; border: 1px solid #e9d5ff; }
-    .feedback-section h5 { 
-      font-size: 13px; 
-      font-weight: 600; 
-      margin-bottom: 8px;
-    }
-    .feedback-section.working h5 { color: #16a34a; }
-    .feedback-section.stronger h5 { color: #d97706; }
-    .feedback-section.try h5 { color: #2563eb; }
-    .feedback-section.evidence h5 { color: #475569; }
-    .feedback-section.research h5 { color: #7c3aed; }
-    .feedback-section p, .feedback-section li { 
-      font-size: 14px; 
-      color: #334155;
-    }
-    .feedback-section ul {
-      padding-left: 20px;
-      margin-top: 8px;
-    }
-    .feedback-section li {
-      margin-bottom: 6px;
-    }
-    .timestamp { 
-      display: inline-block;
-      background: #dbeafe; 
-      color: #1e40af; 
-      padding: 2px 8px; 
-      border-radius: 4px; 
-      font-size: 13px;
-      font-weight: 500;
-    }
-    .lead-phase { 
-      background: #fff; 
-      border: 1px solid #e2e8f0; 
-      border-radius: 10px; 
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    .lead-phase h4 { 
-      font-size: 16px; 
-      font-weight: 600; 
-      color: #6366f1;
-      margin-bottom: 12px;
-    }
-    .lead-phase ul { 
-      padding-left: 20px; 
-      margin-bottom: 12px;
-    }
-    .lead-phase li { 
-      font-size: 14px; 
-      color: #334155;
-      margin-bottom: 6px;
-    }
-    .encouragement { 
-      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-      border-radius: 10px;
-      padding: 20px;
-      text-align: center;
-      margin-top: 30px;
-    }
-    .encouragement p { 
-      font-size: 15px; 
-      color: #4338ca;
-      font-weight: 500;
-    }
-    .footer { 
-      margin-top: 40px; 
-      padding-top: 20px;
-      border-top: 1px solid #e2e8f0;
-      text-align: center;
-    }
-    .footer p { 
-      font-size: 13px; 
-      color: #64748b;
-    }
-    @media print {
-      body { padding: 20px; }
-      .category, .lead-phase { break-inside: avoid; }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>✨ Your Session Analysis Report</h1>
-    <p class="subtitle">${modeText} • ${date}</p>
-  </div>
+    // â”€â”€ Step 3: Open all <details> elements (now in DOM after flushSync) â”€â”€â”€â”€â”€
+    const expandedDetails = Array.from(
+      container.querySelectorAll<HTMLDetailsElement>("details")
+    );
+    expandedDetails.forEach((d) => (d.open = true));
 
-  <div class="celebration">
-    <h2>🌟 Well Done on Reflecting on Your Practice!</h2>
-    <p>Taking time to review and improve your teaching shows real dedication to your students' success.</p>
-  </div>
+    // Allow one animation frame for any CSS transitions to settle
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-  ${feedback.sessionMvp ? `
-  <div class="mvp-box" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 12px; padding: 24px; margin-bottom: 30px;">
-    <div style="display: flex; align-items: flex-start; gap: 16px;">
-      <div style="font-size: 40px;">🏆</div>
-      <div>
-        <h3 style="color: #b45309; font-size: 18px; margin-bottom: 8px;">⭐ Session MVP Moment ⭐</h3>
-        <p style="font-size: 13px; color: #92400e; margin-bottom: 12px; font-weight: 600;">${feedback.sessionMvp.pedagogyHighlight}</p>
-        <p style="color: #78350f; font-size: 15px; line-height: 1.6;">${feedback.sessionMvp.moment}</p>
-      </div>
-    </div>
-  </div>
-  ` : ''}
-
-  <div class="summary-box">
-    <p>${feedback.overallSummary}</p>
-    <div class="highlight-grid">
-      <div class="highlight-card strength">
-        <h4>🏆 Top Strength</h4>
-        <p>${feedback.topStrength}</p>
-      </div>
-      <div class="highlight-card growth">
-        <h4>🎯 Priority Growth Area</h4>
-        <p>${feedback.priorityGrowthArea}</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <h3 class="section-title">⭐ Your Teaching Practice Analysis</h3>
-    ${feedback.categories.map(cat => `
-    <div class="category">
-      <div class="category-header">
-        <div class="category-name">${cat.name}</div>
-        ${typeof cat.rating === 'number' 
-          ? `<div class="stars">${'★'.repeat(cat.rating as number)}${'☆'.repeat(4 - (cat.rating as number))}</div>
-             <div class="rating-label">${starRatingLabels[cat.rating]}</div>`
-          : `<div class="rating-label" style="display:inline-block;padding:4px 12px;border-radius:50px;font-weight:600;${
-              cat.rating === 'embedding' ? 'background:#d1fae5;color:#047857;' :
-              cat.rating === 'establishing' ? 'background:#dbeafe;color:#1d4ed8;' :
-              'background:#fef3c7;color:#b45309;'
-            }">Progression Stage: ${progressionStageLabels[cat.rating as string] || cat.rating}</div>`
-        }
-        ${cat.summary ? `<div class="category-summary">${cat.summary}</div>` : ''}
-      </div>
-      <div class="category-content">
-        <div class="feedback-section working">
-          <h5>✓ What's Working Well</h5>
-          <p>${cat.whatsWorking}</p>
-          ${cat.evidenceStrengths && cat.evidenceStrengths.length > 0 ? `
-          <ul>
-            ${cat.evidenceStrengths.map(e => `<li>${e}</li>`).join('')}
-          </ul>
-          ` : ''}
-        </div>
-        <div class="feedback-section stronger">
-          <h5>→ To Make It Even Stronger</h5>
-          <p>${cat.toMakeStronger || cat.growthEdge || ""}</p>
-          ${cat.areasForDevelopment && cat.areasForDevelopment.length > 0 ? `
-          <ul>
-            ${cat.areasForDevelopment.map(a => `<li>${a}</li>`).join('')}
-          </ul>
-          ` : ''}
-          ${cat.missedOpportunities && cat.missedOpportunities.length > 0 ? `
-          <p style="margin-top: 12px; font-weight: 600; font-size: 12px; color: #92400e;">Missed Opportunities:</p>
-          <ul>
-            ${cat.missedOpportunities.map(m => `<li>${m}</li>`).join('')}
-          </ul>
-          ` : ''}
-        </div>
-        <div class="feedback-section try">
-          <h5>💡 Try This Next Time</h5>
-          <p>${cat.tryThisNext || cat.tryThis || ""}</p>
-        </div>
-        ${cat.researchSuggestion ? `
-        <div class="feedback-section research">
-          <h5>📚 Research-Informed Suggestion: ${cat.researchSuggestion.technique}</h5>
-          <p><strong>How to implement:</strong> ${cat.researchSuggestion.howToImplement}</p>
-          <p><strong>Why it works:</strong> ${cat.researchSuggestion.whyItWorks}</p>
-          <p><strong>Example:</strong> <em>"${cat.researchSuggestion.example}"</em></p>
-        </div>
-        ` : ''}
-      </div>
-    </div>
-    `).join('')}
-  </div>
-
-  ${(feedback.lessonPhases || feedback.leadPhases || []).length > 0 ? `
-  <div class="section">
-    <h3 class="section-title">📚 Lesson Phase Feedback</h3>
-    ${(feedback.lessonPhases || feedback.leadPhases || []).map(phase => `
-    <div class="lead-phase">
-      <h4>${phase.phase} - ${ratingLabels[phase.rating]}</h4>
-      <strong style="font-size: 13px; color: #64748b;">Observations:</strong>
-      <ul>
-        ${phase.observations.map(obs => `<li>${obs}</li>`).join('')}
-      </ul>
-      ${phase.suggestions.length > 0 ? `
-      <strong style="font-size: 13px; color: #64748b;">Suggestions:</strong>
-      <ul>
-        ${phase.suggestions.map(sug => `<li>${sug}</li>`).join('')}
-      </ul>
-      ` : ''}
-    </div>
-    `).join('')}
-  </div>
-  ` : ''}
-
-  ${feedback.ofstedGrade ? `
-  <div class="section">
-    <h3 class="section-title">🎓 How Would Ofsted Rate This?</h3>
-    <div style="background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-radius: 12px; padding: 24px; border: 2px solid #818cf8;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <span style="display: inline-block; padding: 12px 24px; border-radius: 50px; font-size: 18px; font-weight: bold; ${
-          feedback.ofstedGrade.grade === 'exceptional' ? 'background: #d1fae5; color: #047857; border: 2px solid #34d399;' :
-          feedback.ofstedGrade.grade === 'strong_standard' ? 'background: #dbeafe; color: #1d4ed8; border: 2px solid #60a5fa;' :
-          feedback.ofstedGrade.grade === 'expected_standard' ? 'background: #fef3c7; color: #b45309; border: 2px solid #fbbf24;' :
-          feedback.ofstedGrade.grade === 'needs_attention' ? 'background: #ffedd5; color: #c2410c; border: 2px solid #fb923c;' :
-          'background: #fee2e2; color: #b91c1c; border: 2px solid #f87171;'
-        }">
-          ${feedback.ofstedGrade.grade === 'exceptional' ? '✨ Exceptional' :
-            feedback.ofstedGrade.grade === 'strong_standard' ? '⭐ Strong Standard' :
-            feedback.ofstedGrade.grade === 'expected_standard' ? '✓ Expected Standard' :
-            feedback.ofstedGrade.grade === 'needs_attention' ? '⚠ Needs Attention' :
-            '🚨 Urgent Improvement'}
-        </span>
-      </div>
-      <p style="color: #334155; font-size: 15px; margin-bottom: 16px;">${feedback.ofstedGrade.summary}</p>
-      ${feedback.ofstedGrade.strengths && feedback.ofstedGrade.strengths.length > 0 ? `
-      <div style="background: #f0fdf4; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
-        <h5 style="color: #16a34a; font-size: 13px; font-weight: 600; margin-bottom: 8px;">✓ Observable Strengths</h5>
-        <ul style="padding-left: 20px;">
-          ${feedback.ofstedGrade.strengths.map(s => `<li style="color: #334155; font-size: 14px; margin-bottom: 4px;">${s}</li>`).join('')}
-        </ul>
-      </div>
-      ` : ''}
-      ${feedback.ofstedGrade.areasForDevelopment && feedback.ofstedGrade.areasForDevelopment.length > 0 ? `
-      <div style="background: #fef3c7; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
-        <h5 style="color: #b45309; font-size: 13px; font-weight: 600; margin-bottom: 8px;">→ Areas for Development</h5>
-        <ul style="padding-left: 20px;">
-          ${feedback.ofstedGrade.areasForDevelopment.map(a => `<li style="color: #334155; font-size: 14px; margin-bottom: 4px;">${a}</li>`).join('')}
-        </ul>
-      </div>
-      ` : ''}
-      ${feedback.ofstedGrade.caveat ? `
-      <p style="color: #64748b; font-size: 13px; font-style: italic; padding: 10px; background: #f8fafc; border-radius: 6px;">
-        <strong style="font-style: normal;">Note:</strong> ${feedback.ofstedGrade.caveat}
-      </p>
-      ` : ''}
-    </div>
-  </div>
-  ` : ''}
-
-  <div class="encouragement">
-    <p>Remember: Great teaching is a journey, not a destination. Every lesson is an opportunity to grow! 💪</p>
-  </div>
-
-  <div class="footer">
-    <p>Generated by PowerED</p>
-    <p style="margin-top: 8px; font-size: 12px; color: #94a3b8;">This report was generated using AI feedback. All student names have been anonymised for privacy.</p>
-  </div>
-</body>
-</html>
-`;
-
-    // Open in new window for easy print-to-PDF
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
+    // â”€â”€ Step 4: Capture PDF with html2pdf.js â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const html2pdf = ((await import("html2pdf.js")) as any).default;
+      await html2pdf()
+        .set({
+          margin: [10, 10, 10, 10],
+          filename: `powered-report-${timestamp}.pdf`,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        })
+        .from(container)
+        .save();
+    } finally {
+      // â”€â”€ Step 5: Restore previous open/closed states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      flushSync(() => {
+        setExpandedCategories(prevCategories);
+        setExpandedPhases(prevPhases);
+      });
+      // Restore <details> states (re-query in case the DOM changed during PDF gen)
+      const currentDetails = Array.from(
+        container.querySelectorAll<HTMLDetailsElement>("details")
+      );
+      currentDetails.forEach((d, i) => {
+        d.open = detailsStates[i] ?? false;
+      });
     }
+
   };
 
   if (isLoading) {
@@ -851,7 +497,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
   }
 
   return (
-    <div ref={ref} className="section-fade-in space-y-8">
+    <div ref={combinedRef} className="section-fade-in space-y-8">
       {/* Celebration Header */}
       <div className="text-center space-y-4 py-4">
         <div className="inline-flex items-center gap-2 text-success bg-success/10 px-4 py-2 rounded-full">
@@ -881,7 +527,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-yellow-700 flex items-center gap-2">
-                  ⭐ Session MVP Moment ⭐
+                  â­ Session MVP Moment â­
                 </h3>
                 <p className="text-sm text-yellow-600/80 font-medium">{feedback.sessionMvp.pedagogyHighlight}</p>
               </div>
@@ -909,11 +555,11 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
               feedback.ofstedGrade.grade === "needs_attention" && "bg-orange-500/20 text-orange-700 border-orange-500/40",
               feedback.ofstedGrade.grade === "urgent_improvement" && "bg-red-500/20 text-red-700 border-red-500/40"
             )}>
-              {feedback.ofstedGrade.grade === "exceptional" && "✨ Exceptional"}
-              {feedback.ofstedGrade.grade === "strong_standard" && "⭐ Strong Standard"}
-              {feedback.ofstedGrade.grade === "expected_standard" && "✓ Expected Standard"}
-              {feedback.ofstedGrade.grade === "needs_attention" && "⚠ Needs Attention"}
-              {feedback.ofstedGrade.grade === "urgent_improvement" && "🚨 Urgent Improvement"}
+              {feedback.ofstedGrade.grade === "exceptional" && "âœ¨ Exceptional"}
+              {feedback.ofstedGrade.grade === "strong_standard" && "â­ Strong Standard"}
+              {feedback.ofstedGrade.grade === "expected_standard" && "âœ“ Expected Standard"}
+              {feedback.ofstedGrade.grade === "needs_attention" && "âš  Needs Attention"}
+              {feedback.ofstedGrade.grade === "urgent_improvement" && "ðŸš¨ Urgent Improvement"}
             </div>
           </div>
         )}
@@ -992,7 +638,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                   {/* What's Working Well */}
                   <div className="p-4 bg-success/5 rounded-xl border border-success/15">
                     <h4 className="text-sm font-semibold text-success mb-3 flex items-center gap-2">
-                      <span className="text-base">✓</span> What's Working Well
+                      <span className="text-base">âœ“</span> What's Working Well
                     </h4>
                     <p className="text-foreground leading-relaxed mb-3">
                       {renderWithTooltips(category.whatsWorking)}
@@ -1018,7 +664,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                           {/* Legacy support for evidenceStrengths */}
                           {category.evidenceStrengths && category.evidenceStrengths.map((evidence, i) => (
                             <div key={`legacy-${i}`} className="text-sm text-foreground flex items-start gap-2">
-                              <span className="text-success mt-0.5">•</span>
+                              <span className="text-success mt-0.5">â€¢</span>
                               {renderFormattedText(evidence)}
                             </div>
                           ))}
@@ -1030,7 +676,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                   {/* To Make It Even Stronger */}
                   <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/15">
                     <h4 className="text-sm font-semibold text-amber-600 mb-3 flex items-center gap-2">
-                      <span className="text-base">→</span> To Make It Even Stronger
+                      <span className="text-base">â†’</span> To Make It Even Stronger
                     </h4>
                     <p className="text-foreground leading-relaxed mb-3">
                       {renderWithTooltips(category.toMakeStronger || category.growthEdge || "")}
@@ -1069,7 +715,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                         <ul className="space-y-1">
                           {category.missedOpportunities.map((missed, i) => (
                             <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                              <span className="text-amber-400">–</span>
+                              <span className="text-amber-400">â€“</span>
                               {missed}
                             </li>
                           ))}
@@ -1081,7 +727,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                   {/* Try This Next Time */}
                   <div className="p-4 bg-primary/5 rounded-xl border border-primary/15">
                     <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                      <span className="text-base">💡</span> Try This Next Time
+                      <span className="text-base">ðŸ’¡</span> Try This Next Time
                     </h4>
                     <p className="text-foreground leading-relaxed">
                       {renderWithTooltips(category.tryThisNext || category.tryThis || "")}
@@ -1116,7 +762,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                         <div className="flex items-center justify-between">
                           <h4 className="text-sm font-semibold text-purple-600 flex items-center gap-2">
                             <BookOpen className="w-4 h-4" />
-                            📚 Research-Informed Suggestion: {category.researchSuggestion.technique}
+                            ðŸ“š Research-Informed Suggestion: {category.researchSuggestion.technique}
                           </h4>
                           <ChevronDown className="w-4 h-4 text-purple-600 group-open:rotate-180 transition-transform" />
                         </div>
@@ -1199,7 +845,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                             key={i} 
                             className="text-foreground flex items-start gap-3"
                           >
-                            <span className="text-primary mt-1">•</span>
+                            <span className="text-primary mt-1">â€¢</span>
                             {renderFormattedText(obs)}
                           </li>
                         ))}
@@ -1216,7 +862,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                               key={i} 
                               className="text-foreground flex items-start gap-3"
                             >
-                              <span className="text-accent mt-1">→</span>
+                              <span className="text-accent mt-1">â†’</span>
                               {renderFormattedText(sug)}
                             </li>
                           ))}
@@ -1243,45 +889,27 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground text-lg">Standard English Usage</h3>
-                <p className="text-sm text-muted-foreground">Rating and timestamped instances</p>
+                <p className="text-sm text-muted-foreground">Language modelling in your session</p>
               </div>
-              <div className={cn(
-                "px-4 py-2 rounded-full font-bold text-lg border-2",
-                (feedback.standardEnglish?.rating ?? 0) >= 8 ? "bg-emerald-500/20 text-emerald-700 border-emerald-500/40" :
-                (feedback.standardEnglish?.rating ?? 0) >= 5 ? "bg-amber-500/20 text-amber-700 border-amber-500/40" :
-                "bg-red-500/20 text-red-700 border-red-500/40"
-              )}>
-                {feedback.standardEnglish.rating}/10
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "w-5 h-5",
+                      i <= (feedback.standardEnglish?.stars ?? 0) ? "text-yellow-500" : "text-muted-foreground/30"
+                    )}
+                    fill={i <= (feedback.standardEnglish?.stars ?? 0) ? "currentColor" : "none"}
+                  />
+                ))}
               </div>
             </div>
           </div>
-          {feedback.standardEnglish.instances && feedback.standardEnglish.instances.length > 0 && (
-            <div className="p-5 space-y-3">
-              {feedback.standardEnglish.instances.map((instance, i) => (
-                <div key={i} className="p-4 bg-secondary/30 rounded-xl border border-border space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono px-2 py-0.5 bg-blue-500/20 rounded text-blue-700">{instance.timestamp}</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="p-2 bg-red-500/5 rounded-lg border border-red-500/10">
-                      <p className="text-xs font-semibold text-red-600 mb-1">What was said:</p>
-                      <p className="text-sm text-foreground italic">"{instance.original}"</p>
-                    </div>
-                    <div className="p-2 bg-emerald-500/5 rounded-lg border border-emerald-500/10">
-                      <p className="text-xs font-semibold text-emerald-600 mb-1">Standard English:</p>
-                      <p className="text-sm text-foreground italic">"{instance.corrected}"</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{instance.explanation}</p>
-                </div>
-              ))}
-            </div>
-          )}
-          {(!feedback.standardEnglish.instances || feedback.standardEnglish.instances.length === 0) && (
-            <div className="p-5 text-center text-muted-foreground">
-              <p className="text-sm">No instances of non-standard English detected. Excellent modelling! ✨</p>
-            </div>
-          )}
+          <div className="p-5">
+            <p className="text-foreground leading-relaxed">
+              {feedback.standardEnglish.feedback}
+            </p>
+          </div>
         </div>
       )}
 
@@ -1294,7 +922,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                 <Target className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground text-lg">📋 ITT & Early Career Framework</h3>
+                <h3 className="font-semibold text-foreground text-lg">ðŸ“‹ ITT & Early Career Framework</h3>
                 <p className="text-sm text-muted-foreground">"Learn How To..." Indicators evidenced in your session</p>
               </div>
             </div>
@@ -1308,7 +936,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
                     ? "bg-emerald-500/20 text-emerald-700" 
                     : "bg-muted text-muted-foreground"
                 )}>
-                  {indicator.status === "demonstrated" ? "✓" : "○"}
+                  {indicator.status === "demonstrated" ? "âœ“" : "â—‹"}
                 </div>
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -1351,7 +979,7 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
           Remember: Great teaching is a journey, not a destination. 
         </p>
         <p className="text-muted-foreground text-sm">
-          Every lesson is an opportunity to grow. Keep up the fantastic work! 💪
+          Every lesson is an opportunity to grow. Keep up the fantastic work! ðŸ’ª
         </p>
       </div>
 
