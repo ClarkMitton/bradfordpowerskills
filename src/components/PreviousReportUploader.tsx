@@ -2,9 +2,6 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, X, ArrowRight, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import * as pdfjsLib from "pdfjs-dist";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 interface PreviousReportData {
   categories: Array<{
