@@ -45,7 +45,11 @@ Respond with valid JSON matching this exact structure. For any section where you
   "growth": "2-4 sentence paragraph OR null",
   "resolved": "2-4 sentence paragraph OR null",
   "persistent": "2-4 sentence paragraph OR null",
-  "standardEnglishTrajectory": "1-3 sentence paragraph OR null"
+  "standardEnglishTrajectory": "1-3 sentence paragraph OR null",
+  "focusForNextSession": "A single concrete actionable sentence starting with 'Next session:' — NEVER null",
+  "ittecfEvidence": [
+    { "standard": "e.g. 2 2b", "title": "Build on pupils' prior knowledge...", "sessionA": true, "sessionB": false }
+  ]
 }
 
 CRITICAL: Return ONLY valid JSON. No text before or after. No markdown code blocks. Start directly with { and end with }.`;

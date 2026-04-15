@@ -6,6 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 // ── Shared types ──────────────────────────────────────────────────────────────
 
+export interface ITTECFEvidence {
+  standard: string;
+  title: string;
+  sessionA: boolean;
+  sessionB: boolean;
+}
+
 export interface ComparisonData {
   sessionA: { mvpMoment: string };
   sessionB: { mvpMoment: string };
@@ -14,6 +21,8 @@ export interface ComparisonData {
   resolved?: string | null;
   persistent?: string | null;
   standardEnglishTrajectory?: string | null;
+  focusForNextSession?: string | null;
+  ittecfEvidence?: ITTECFEvidence[] | null;
 }
 
 interface UploadedSlot {
