@@ -414,6 +414,9 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
     // Allow one animation frame for any CSS transitions to settle
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
+    // Force solid white background so PDF export is not translucent
+    const prevBg = container.style.backgroundColor;
+    container.style.backgroundColor = "#ffffff";
     // â”€â”€ Step 4: Capture PDF with html2pdf.js â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -423,12 +426,13 @@ export const FeedbackReport = forwardRef<HTMLDivElement, FeedbackReportProps>(({
           margin: [10, 10, 10, 10],
           filename: `powered-report-${timestamp}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, logging: false },
+          html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         })
         .from(container)
         .save();
     } finally {
+      container.style.backgroundColor = prevBg;
       // â”€â”€ Step 5: Restore previous open/closed states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       flushSync(() => {
         setExpandedCategories(prevCategories);
