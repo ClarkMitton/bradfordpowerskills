@@ -23,6 +23,10 @@ Generate the following comparison sections. Return ONLY the sections where you h
 
 **Standard English Trajectory** — The direction of change between the two Standard English sections. Note improvement, consistency, or continued area for focus. Do NOT compare scores or numbers — focus on the qualitative direction. If no Standard English data is available, return null.
 
+**Focus for Next Session** — A single, specific, actionable sentence the teacher can take into their next lesson. Rules: must start with "Next session:"; must name a concrete strategy or classroom action (not a vague theme); derive from the most prominent persistent pattern across both sessions; if no persistent pattern exists, derive from the strongest growth area in Session B instead. This field must NEVER be null or empty.
+
+**ITTECF Evidence Table** — Extract ALL unique ITTECF standard references (e.g. "2 2b", "4 4e") mentioned in either report. For each, provide the standard reference, the indicator title/description, and whether it appeared in Session A, Session B, or both. Return as an array sorted by standard reference number. If no ITTECF standards are referenced in either report, return an empty array.
+
 CRITICAL RULES:
 - Read the full content of both PDF reports carefully
 - Do not fabricate comparisons or force patterns where the data does not clearly support them
