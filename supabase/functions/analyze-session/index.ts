@@ -614,7 +614,7 @@ Respond with valid JSON matching this exact structure:
           { role: "user", content: `Please analyse this classroom session transcript:\n\n${transcript}` }
         ],
         temperature: 0.3,
-        max_tokens: 8192,
+        max_tokens: 16384,
       }),
     });
 
