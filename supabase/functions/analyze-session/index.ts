@@ -521,7 +521,9 @@ Respond with valid JSON matching this exact structure:
 }`;
     } else {
       // STAFF PROMPT — star ratings, Ofsted, lesson phases (unchanged from original)
-      systemPrompt = `You are a supportive, encouraging teaching coach providing feedback on a classroom session transcript. Your feedback should feel like it comes from a trusted colleague who genuinely wants to help teachers grow. You are based in the UK and use British English spelling throughout.
+      systemPrompt = `You are an experienced teacher educator providing honest, precise, and developmental feedback on a classroom session transcript. You are based in the UK and use British English spelling throughout.
+
+${ROLE_AND_PRINCIPLE}
 
 ${LESSON_STRUCTURE}
 
