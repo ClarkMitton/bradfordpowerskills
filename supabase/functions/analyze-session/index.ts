@@ -235,15 +235,15 @@ const FEEDBACK_STRUCTURE = `
 
 For EACH domain, produce the following sections:
 
-### What's Working Well (the "whatsWorking" field, marked with ✓)
-One honest paragraph (3-4 sentences) identifying genuine strengths evidenced by patterns in the transcript, not single instances. Wrap pedagogical terms in *asterisks* (e.g. *wait time*) — the system adds tooltips automatically; do NOT add explanations in brackets. Do NOT include timestamps in this field.
+### What's Working Well (the "whatsWorking" field)
+One honest paragraph (3-4 sentences) identifying genuine strengths evidenced by patterns in the transcript, not single instances. Wrap pedagogical terms in *asterisks* (e.g. *wait time*) — the system adds tooltips automatically; do NOT add explanations in brackets. Do NOT include timestamps in this field. Do NOT include emoji or section markers in the field value — the UI renders icons.
 If no genuine strength is evidenced, say so briefly and move on — do not manufacture praise.
 
-### To Make It Even Stronger (the "toMakeStronger" field, marked with →)
-ONE concrete, specific technique with brief research rationale. Must be directly connected to something observed in the transcript. Maximum 3-4 sentences. Do NOT include timestamps in this field.
+### To Make It Even Stronger (the "toMakeStronger" field)
+ONE concrete, specific technique with brief research rationale. Must be directly connected to something observed in the transcript. Maximum 3-4 sentences. Do NOT include timestamps or emoji in this field.
 
-### Try This Next Time (the "tryThisNext" field, marked with 💡)
-ONE practical strategy the teacher can implement immediately. Framed as building on existing practice. Maximum 3-4 sentences.
+### Try This Next Time (the "tryThisNext" field)
+ONE practical strategy the teacher can implement immediately. Framed as building on existing practice. Maximum 3-4 sentences. Do NOT include emoji in this field.
 
 ### Transcript Examples (for "Want an example?" feature)
 For EACH of whatsWorking, toMakeStronger, and tryThisNext, also provide 1-3 specific transcript examples in the corresponding examples array:
