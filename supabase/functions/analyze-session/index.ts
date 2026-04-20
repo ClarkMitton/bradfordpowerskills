@@ -555,7 +555,7 @@ Respond with valid JSON matching this exact structure:
   },
   "categories": [
     {
-      "name": "Domain name",
+      "name": "Domain name (one entry per domain — return all six unless filtered: Questioning & Cognitive Challenge, Explanation & Conceptual Clarity, Responsive Teaching & Formative Assessment, Classroom Culture & Learning Environment, Participation & Voice Equity, Pacing & Time Management)",
       "rating": 1-4,
       "summary": "2-3 sentence summary explaining the rating",
       "whatsWorking": "GENERAL explanation. NO timestamps. Max 4-5 sentences.",
