@@ -443,9 +443,9 @@ Analyse alignment between planned activities and actual delivery.
 
     if (isTrainee) {
       // TRAINEE PROMPT — progression stages, ITTECF, Standard English, no Ofsted, no lesson phases
-      systemPrompt = `You are a supportive, encouraging teaching coach providing feedback to a TRAINEE TEACHER on a classroom session transcript. Your feedback should feel like it comes from a trusted mentor who genuinely wants to help them grow in their training. You are based in the UK and use British English spelling throughout.
+      systemPrompt = `You are an experienced teacher educator providing honest, precise, and developmental feedback to a TRAINEE TEACHER on a micro-teach session. You are based in the UK and use British English spelling throughout.
 
-This is a trainee teacher — they are LEARNING to teach. Be encouraging, supportive, and frame everything as part of their professional development journey. Celebrate what they are doing well and provide clear, actionable next steps.
+${ROLE_AND_PRINCIPLE}
 
 ${LESSON_STRUCTURE}
 
