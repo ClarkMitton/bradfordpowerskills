@@ -386,12 +386,14 @@ serve(async (req) => {
       "Student Participation and Voice Distribution": "Participation & Voice Equity"
     };
 
-    // Build category filter
+    // Build category filter — Pacing & Time Management is always included as the 6th domain
+    const PACING_DOMAIN = "Pacing & Time Management";
     let categoryContext = "";
-    let domainsToAnalyse = Object.values(categoryToDomain);
+    let domainsToAnalyse = [...Object.values(categoryToDomain), PACING_DOMAIN];
     if (selectedCategories && selectedCategories.length > 0 && selectedCategories.length < 5) {
-      domainsToAnalyse = selectedCategories.map((c: string) => categoryToDomain[c] || c);
-      categoryContext = `\n\nONLY provide feedback for these specific domains: ${domainsToAnalyse.join(", ")}. Do NOT include feedback for other domains.`;
+      const mapped = selectedCategories.map((c: string) => categoryToDomain[c] || c);
+      domainsToAnalyse = [...mapped, PACING_DOMAIN];
+      categoryContext = `\n\nONLY provide feedback for these specific domains: ${domainsToAnalyse.join(", ")}. Always include "${PACING_DOMAIN}" as a domain. Do NOT include feedback for other domains.`;
     }
 
     // Build learner context — more explicit for trainees
