@@ -105,62 +105,51 @@ CRITICAL RATING RULES:
 const TRAINEE_PROGRESSION_CRITERIA = `
 ## Progression Stage Criteria
 
-For each domain, assign ONE of these progression stages:
+Rate each domain on this three-point scale:
 
 ### Developing
-The approach is emerging but inconsistent or not yet fully effective.
-- Some awareness of the technique but limited or inconsistent application
-- May attempt strategies but not yet with confidence or impact
-- Significant room to grow — this is expected and normal for trainees
+Strategy is attempted but inconsistent or ineffective. Expected at early stages. Frame honestly: name what was attempted and what was missing.
+- The teacher shows awareness but execution is limited or unreliable
+- Effects on learners are not yet clear
 
 ### Establishing
-The approach is evident and mostly effective, with some opportunities to strengthen or extend it.
-- Clear pedagogical intent with generally effective execution
-- Some areas where practice could be more consistent or sophisticated
-- Good foundation that can be built upon
+Strategy is evident and mostly effective. Clear intent with room to extend. The most common stage for a competent micro-teach.
+- Multiple attempts of the strategy are present, generally landing
+- Some inconsistencies remain; not yet showing sustained sophisticated impact
 
 ### Embedding
-The approach is confident, consistent, and having clear impact on learners.
-- Multiple strong examples demonstrating consistent application
-- Techniques used with confidence and clear impact on learning
-- Practice that shows secure understanding of pedagogy
+Confident, consistent, with clear evidenced impact on learners. Requires multiple strong examples and demonstrated adaptation. Award sparingly.
+- Several strong, varied examples across the session
+- Visible adaptation in response to learners
 
 CRITICAL RULES:
-1. Be honest but supportive — trainees need accurate feedback to grow
-2. "Developing" is NOT a criticism — it's an expected stage of professional growth
-3. Focus on what they ARE doing, not just what's missing
-4. Tailor all feedback to the learner level they are teaching (Primary, KS1, KS2, etc.)
-5. Consider the trainee's stage — they are learning to teach, so expectations should reflect that
+1. Do not default to Establishing. If the evidence supports Developing, use it.
+2. Embedding requires multiple strong evidenced examples AND demonstrated adaptation. Do not award on a single instance.
+3. "Developing" is honest and developmental — not a criticism.
+4. Tailor expectations to the stated learner level.
 `;
 
 const STANDARD_ENGLISH_SECTION = `
-## Standard English Usage
+## Standard English
 
-Provide a star rating out of 5 and a single qualitative paragraph of feedback on the teacher's use of Standard English.
+Assess the teacher's use of Standard English in direct instruction on a 1-5 scale (whole integer only).
 
 IMPORTANT: You MUST return "stars" as a whole number integer between 1 and 5 inclusive — never null, never a range, never a string.
 
 Star rating guidance:
-- 5 = Consistently models Standard English throughout with clear, precise language
-- 4 = Mostly strong Standard English with only minor or very occasional slips
-- 3 = Generally appropriate but with some noticeable patterns worth addressing
-- 2 = Several instances of non-standard usage that could impact learners' language development
-- 1 = Frequent non-standard usage requiring focused development
+- 5 — Consistently accurate, appropriate register, strong language model
+- 4 — Generally accurate with minor slips that do not impede modelling
+- 3 — Some non-standard usage that a learner might internalise
+- 2 — Recurring non-standard forms or colloquialisms in direct instruction
+- 1 — Frequent non-standard usage that undermines language modelling
 
-Listen for:
-- Non-standard grammar (e.g., "we was", "they done", "could of", "less" instead of "fewer")
-- Colloquialisms that could model incorrect language for learners
-- Filler words and verbal tics that affect clarity
-- Regional dialect features used in formal instruction (note: dialect is not inherently wrong, but teachers should be able to model Standard English when appropriate)
+Listen specifically for:
+- Non-standard grammar: 'we was', 'could of', 'less' vs 'fewer', 'them books'
+- Colloquialisms in formal instruction: 'you lot', 'gonna', 'sort of', 'innit'
+- Filler words used excessively: 'um', 'like', 'basically', 'yeah?'
+- Praise repetition: if 'well done', 'good', or similar appears more than five times, name the phrase, give an approximate count, and suggest 3 alternatives (e.g. 'That's a really thoughtful answer', 'I can see you've been thinking carefully about that', 'Excellent reasoning')
 
-Write a single qualitative paragraph (the "feedback" field) that:
-- Acknowledges what the teacher did well in terms of language use
-- Highlights only meaningful patterns, key terms, or genuine slip-ups worth addressing — do not force or inflate these
-- Is written in an encouraging, coaching tone consistent with the rest of the report
-- Focuses on things the teacher can actually work on and improve
-- Does NOT include timestamps or side-by-side corrections — this should read as fluent, supportive prose
-
-Be fair and supportive — the goal is awareness and development, not criticism.
+Write one honest coaching paragraph (the "feedback" field). Name specific examples from the transcript. No timestamps, no side-by-side corrections. British English throughout.
 `;
 
 const ITTECF_LEARN_HOW_TO = `
