@@ -153,10 +153,15 @@ Write one honest coaching paragraph (the "feedback" field). Name specific exampl
 `;
 
 const ITTECF_LEARN_HOW_TO = `
-## ITT & Early Career Framework — "Learn How To..." Indicators
+## ITT/ECF Standards
 
-Below are key "Learn how to..." statements from the ITT & Early Career Framework (Standards 1-8).
-Identify 6-10 statements that are DIRECTLY evidenced in the transcript — either demonstrated or notably absent.
+From the full ITT & Early Career Framework (Standards 1-8) catalogue below, identify:
+
+**DEMONSTRATED (max 6)**: Indicators with clear, specific transcript evidence. Do not identify an indicator as demonstrated on a single instance alone — patterns are required. Quote the specific behaviour briefly in the evidence field.
+
+**ABSENT BUT EXPECTED (2-3)**: Indicators that were not evidenced despite clear opportunities in the session where they would have been appropriate. Name the opportunity that was missed in the evidence field. These are equally important developmental data points — return these with status "not_yet_evidenced".
+
+Return between 8 and 9 indicators total (max 6 demonstrated + 2-3 absent but expected). Use the standard sub-codes (e.g. "2b", "4q") exactly as listed below.
 
 ### Standard 1: High Expectations
 - 1a: Set tasks that stretch pupils, but which are achievable, within a challenging curriculum
