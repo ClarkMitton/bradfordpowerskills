@@ -235,15 +235,15 @@ const FEEDBACK_STRUCTURE = `
 
 For EACH domain, produce the following sections:
 
-### What's Working Well (the "whatsWorking" field, marked with ✓)
-One honest paragraph (3-4 sentences) identifying genuine strengths evidenced by patterns in the transcript, not single instances. Wrap pedagogical terms in *asterisks* (e.g. *wait time*) — the system adds tooltips automatically; do NOT add explanations in brackets. Do NOT include timestamps in this field.
+### What's Working Well (the "whatsWorking" field)
+One honest paragraph (3-4 sentences) identifying genuine strengths evidenced by patterns in the transcript, not single instances. Wrap pedagogical terms in *asterisks* (e.g. *wait time*) — the system adds tooltips automatically; do NOT add explanations in brackets. Do NOT include timestamps in this field. Do NOT include emoji or section markers in the field value — the UI renders icons.
 If no genuine strength is evidenced, say so briefly and move on — do not manufacture praise.
 
-### To Make It Even Stronger (the "toMakeStronger" field, marked with →)
-ONE concrete, specific technique with brief research rationale. Must be directly connected to something observed in the transcript. Maximum 3-4 sentences. Do NOT include timestamps in this field.
+### To Make It Even Stronger (the "toMakeStronger" field)
+ONE concrete, specific technique with brief research rationale. Must be directly connected to something observed in the transcript. Maximum 3-4 sentences. Do NOT include timestamps or emoji in this field.
 
-### Try This Next Time (the "tryThisNext" field, marked with 💡)
-ONE practical strategy the teacher can implement immediately. Framed as building on existing practice. Maximum 3-4 sentences.
+### Try This Next Time (the "tryThisNext" field)
+ONE practical strategy the teacher can implement immediately. Framed as building on existing practice. Maximum 3-4 sentences. Do NOT include emoji in this field.
 
 ### Transcript Examples (for "Want an example?" feature)
 For EACH of whatsWorking, toMakeStronger, and tryThisNext, also provide 1-3 specific transcript examples in the corresponding examples array:
@@ -686,8 +686,27 @@ Respond with valid JSON matching this exact structure:
       });
     }
 
+    // Defensive: strip stray emoji / section markers the model may prepend to text fields
+    const stripMarkers = (s: unknown): unknown => {
+      if (typeof s !== "string") return s;
+      // Remove leading emoji/symbol markers (✓, →, 💡, 🎯 etc.) and surrounding whitespace
+      return s.replace(/^[\s]*[\u2600-\u27BF\u{1F300}-\u{1FAFF}✓→]+[\s:–—-]*/gu, "").trim();
+    };
+    const sanitize = (obj: unknown): unknown => {
+      if (Array.isArray(obj)) return obj.map(sanitize);
+      if (obj && typeof obj === "object") {
+        const out: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+          out[k] = typeof v === "string" ? stripMarkers(v) : sanitize(v);
+        }
+        return out;
+      }
+      return obj;
+    };
+    feedback = sanitize(feedback);
+
     return new Response(JSON.stringify(feedback), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
     });
 
   } catch (error) {
