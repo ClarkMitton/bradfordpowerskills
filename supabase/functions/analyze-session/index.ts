@@ -30,52 +30,39 @@ Do NOT fabricate commentary on phases that are absent. If a phase is not evidenc
 
 
 const DOMAIN_DEFINITIONS = `
-## The Five Teaching Domains
+## The Six Teaching Domains
+
+Analyse the session across these six domains:
 
 ### Domain 1: Questioning & Cognitive Challenge
-Analyses the quality, variety, and distribution of questions. Includes:
-- Question taxonomy: Bloom's levels (recall vs. comprehension vs. analysis vs. evaluation vs. creation)
-- Distribution strategy: Who gets asked what type of question and why
-- Scaffolding techniques: Pose-pause-pounce-bounce, think-pair-share, cold calling, no-hands-up
-- Wait time: 3-5 seconds minimum after asking a question
-- Response handling: How wrong answers are treated, how correct answers are extended
-- Differentiation: Do different students get different levels of challenge/support?
+Assess: question type distribution (closed vs open, recall vs higher-order), wait time between question and response using timestamps, pose-pause-pounce-bounce technique, how the teacher handles unexpected or incorrect responses, whether the same students are questioned repeatedly.
+
+Wait time check: where a question is asked, use timestamps to assess the gap before the first response or teacher re-prompt. Flag instances under 3 seconds. Do not credit wait time as a strength unless multiple genuine pauses are evidenced.
 
 ### Domain 2: Explanation & Conceptual Clarity
-Analyses how clearly concepts are articulated. Includes:
-- Precision: Language clarity, accurate terminology
-- Examples: Use of concrete examples, non-examples, analogies
-- Scaffolding: Breaking complex ideas into manageable chunks
-- Checking understanding: Pausing to verify comprehension before proceeding
-- Misconception addressing: Proactive or reactive handling of confusion
-- Cognitive load management: Avoiding information overload
+Assess: precision of language, use of examples and non-examples, scaffolding of new vocabulary, appropriateness of vocabulary for the stated learner level.
+
+Vocabulary check: identify any complex, abstract, or subject-specific terms used in instruction. Note whether each was defined, modelled, or scaffolded at point of use. If not, name this as a missed opportunity. Flag terms that may be above the learner level without support.
 
 ### Domain 3: Responsive Teaching & Formative Assessment
-Analyses adaptation and responsiveness. Includes:
-- Active listening: Evidence of truly hearing students
-- Adaptation: Adjusting based on understanding (pace, re-explanation, scaffolding)
-- Building on ideas: Using student contributions to develop learning
-- Diagnostic questioning: Probing to understand thinking ("Why?" "How did you know?")
-- Misconception intervention: In-the-moment correction
-- Differentiated support: Varying help based on individual need
+Assess: active listening, adaptation based on student responses, diagnostic questioning, in-the-moment intervention.
+
+Note: acknowledging a student response is not the same as adapting teaching in response to it. Only credit genuine adaptation where the teacher changes direction, probes further, or addresses a misconception based on what a student said.
 
 ### Domain 4: Classroom Culture & Learning Environment
-Analyses tone and emotional climate (audio-detectable). Includes:
-- Tone: Warmth, enthusiasm, energy in voice
-- Risk-taking encouragement: Normalising mistakes/uncertainty
-- Error handling: How incorrect answers are treated
-- Enthusiasm: Energy about the content
-- Inclusive language: "We," "our thinking," student names
-- Response to uncertainty: Handling "I don't know" moments
+Assess: tone, warmth, error handling, enthusiasm, inclusive language.
+
+Praise repetition check: if a phrase such as 'well done' or 'good' appears more than five times, flag this by name and approximate count, and suggest varied alternatives. Note any missed opportunities to reframe unexpected answers constructively rather than redirecting or ignoring them.
 
 ### Domain 5: Participation & Voice Equity
-Analyses distribution of speaking opportunities. Includes:
-- Distribution: Spread of speaking opportunities
-- Participation structures: Think-pair-share, cold calling, no-hands-up strategies
-- Talk time balance: Teacher vs. student talk ratio
-- Inclusion strategies: How quieter students are brought in
-- Collaborative structures: Use of pair/group work
-- Accountability: Mechanisms ensuring everyone is ready to participate
+Assess: distribution of speaking turns across students, whether the same students dominate, use of structured participation strategies, talk-time balance.
+
+Participation data: using speaker labels in the transcript, identify how many distinct students contributed verbally. Note if responses are concentrated among a small number of students. Flag any whole-class phases where no student voices are captured — note this explicitly as an audio gap rather than silence.
+
+### Domain 6: Pacing & Time Management
+Assess: overall session rhythm, transitions between activities, stated vs actual time allocations, wait time after questions, appropriateness of pace for learner level.
+
+Timer check: where the teacher states a time limit (e.g. 'you have 20 seconds' or 'two minutes'), use the transcript timestamps to calculate the actual elapsed time. State both the stated and actual time. Flag significant discrepancies — overrun or underrun — as this is a key classroom management skill.
 `;
 
 const RATING_CRITERIA = `
