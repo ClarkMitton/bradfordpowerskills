@@ -1,36 +1,54 @@
 
 
-# Fix: Standard English not generating, ITT symbols broken, Closing phase removal
+## Plan: Replace feedback prompt with new modular blocks
 
-## Issues Found
+This is doable. The new prompt is structurally similar to the existing one — same JSON output shape, just rewritten guidance — so it slots into the existing assembly without UI changes. The key differences:
 
-1. **Standard English not generating**: The AI request has no `maxOutputTokens` set. The trainee prompt is very large (ITTECF standards, progression criteria, Standard English section, etc.) and the model is likely truncating output before reaching the `standardEnglish` and `ittecfIndicators` fields at the end of the JSON.
+1. New 6th domain (**Pacing & Time Management**) — renders automatically since `categories` is iterated.
+2. New honesty/restraint framing throughout.
+3. Tighter structural rules (audio gaps, vocabulary checks, timer checks, praise repetition counts).
+4. ITTECF restructured into "Demonstrated" vs "Absent but expected" — maps cleanly onto existing `status: demonstrated | not_yet_evidenced`.
 
-2. **ITT section bizarre symbols**: The title on line 936 contains a raw emoji `📋` that's being rendered as mojibake (`ðŸ"‹`). Same issue on line 950 (`✓` → `âœ"`) and line 993 (`💪` → garbage). This is a UTF-8 encoding issue in the source file — the characters are stored incorrectly.
+### Files to change
 
-3. **Closing phase**: Already removed from the prompt (line 18 says "Do NOT include a Closing phase"), but the lesson phases still include "Opening" which may not always be present. The prompt already says to omit absent phases, but the staff lesson phase section still renders whatever the AI returns. No code change needed for "Closing" — it's already excluded. For "Opening", the prompt already handles it ("omit it entirely... rather than fabricating commentary").
+**`supabase/functions/analyze-session/index.ts`** — single file, no UI changes needed.
 
-## Plan
+### What I'll replace
 
-### Step 1: Fix token truncation — add `maxOutputTokens` to edge function
-**File: `supabase/functions/analyze-session/index.ts` (line ~616)**
-- Add `max_tokens: 8192` to the request body JSON to ensure the full response including `standardEnglish` and `ittecfIndicators` is generated
+| Existing constant | Replacement |
+|---|---|
+| `LESSON_STRUCTURE` | New BLOCK 2 wording (snapshot framing, no Closing) |
+| `DOMAIN_DEFINITIONS` | New BLOCK 3 — **six** domains with honesty checks (wait time, vocab, praise repetition, participation gaps, timer check) |
+| `TRAINEE_PROGRESSION_CRITERIA` | New BLOCK 5 — Developing / Establishing / Embedding rewritten honestly, "Do not default to Establishing" |
+| `STANDARD_ENGLISH_SECTION` | New BLOCK 6 — explicit listening list, praise count guidance, 1–5 wording |
+| `ITTECF_LEARN_HOW_TO` | Keep the full Standards 1–8 list (BLOCK 7 references "the full ITT/ECF" — list is needed), but prepend new BLOCK 7 instructions: max 6 demonstrated, 2–3 absent but expected, patterns required |
+| `FEEDBACK_STRUCTURE` | New BLOCK 4 — adds "Transcript Examples" and "Missed Opportunities" sections explicitly |
+| `ANALYSIS_RULES` | New BLOCK 9 — adds audio gap honesty, no inferred credit, timer/vocab/praise mandates |
+| (new) `ROLE_AND_PRINCIPLE` | New BLOCK 1 — mentor framing, audio-gap honesty |
 
-### Step 2: Fix emoji/symbol encoding in FeedbackReport
-**File: `src/components/FeedbackReport.tsx`**
-- Line 936: Replace `ðŸ"‹ ITT & Early Career Framework` with plain text `ITT & Early Career Framework` (the icon is already provided by the `<Target>` lucide icon next to it)
-- Line 950: Replace `âœ"` with `✓` and `â—‹` with `○` — or better, use simple ASCII characters that won't have encoding issues: `✓` → `"✓"` using a proper Unicode escape or just the word, and `○` → `"○"`
-- Line 993: Replace the mojibake `ðŸ'ª` with a clean emoji or remove it
-- Line 848: Fix `â€¢` → proper bullet `•`
-- Line 865: Fix `â†'` → proper arrow `→`
+### What stays the same
 
-### Step 3: Reinforce "no Closing, Opening optional" in lesson phase prompt
-**File: `supabase/functions/analyze-session/index.ts`**
-- The `LESSON_STRUCTURE` already says no Closing. Update the staff JSON schema comment on line 590 to also reinforce: "Only include phases genuinely evidenced. If no opening is present, omit it."
-- Update the `phaseContext` variable (line 387) to also state "If there is no clear Opening, omit it entirely."
+- `RATING_CRITERIA` (staff star ratings) — untouched, only the trainee path is being reworked per the new blocks. Confirming below.
+- `OFSTED_RUBRIC` — untouched.
+- JSON schema shape for trainee — adding a 6th category will work because the schema is `categories: [...]` open-ended. No schema change needed.
+- Edge function plumbing, model (`google/gemini-2.5-flash`), `max_tokens: 8192`.
+- All UI components (`FeedbackReport.tsx` already iterates categories and renders `missedOpportunities`).
 
-### Technical Details
-- The `max_tokens` parameter ensures the model doesn't silently truncate the JSON output, which is the most likely cause of Standard English being empty
-- The encoding fix replaces mojibake characters with proper Unicode or ASCII equivalents
-- No structural changes to the UI or data flow
+### One thing I need to confirm
+
+The new prompt is written for "trainee teacher / micro-teach" framing throughout (mentor, progression stages, ITTECF). Should this replace **only the trainee prompt**, or also the **staff prompt**? The blocks reference progression stages (Developing/Establishing/Embedding) which are the trainee scale, not the staff 1–4 star scale.
+
+I'll proceed with: **apply new blocks to the trainee path; leave staff path (stars + Ofsted) using existing `RATING_CRITERIA` and `OFSTED_RUBRIC` but adopt the shared improvements** — new `LESSON_STRUCTURE`, new `DOMAIN_DEFINITIONS` (6 domains incl. Pacing), new `FEEDBACK_STRUCTURE`, new `ANALYSIS_RULES`, and the new BLOCK 1 role framing. This keeps both paths consistent on the parts the new prompt rewrites, while preserving the staff-specific rating/Ofsted scales.
+
+If you'd rather apply the new blocks **only to trainee** and leave staff fully untouched, say so and I'll narrow the scope.
+
+### Implementation steps
+
+1. Rewrite the seven prompt constants in `analyze-session/index.ts` per the new blocks (keep the ITTECF Standards 1–8 catalogue, prepend new selection rules).
+2. Add the new `ROLE_AND_PRINCIPLE` constant and prepend it to both `systemPrompt` builds.
+3. Update the trainee JSON schema comment to allow 6 categories (no structural change, just reflect Pacing).
+4. Keep `max_tokens: 8192` (already in place — safe for the larger prompt).
+5. Deploy `analyze-session` edge function.
+
+No UI changes required. No DB changes. No new dependencies.
 
