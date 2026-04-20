@@ -341,19 +341,18 @@ IMPORTANT: Only grade based on evidence PRESENT in the transcript. If something 
 const ANALYSIS_RULES = `
 ## Critical Analysis Rules
 
-1. NEVER mention any student names - use "Student" or "a student" instead
-2. Use British English spelling throughout (behaviour, colour, organisation, analyse, etc.)
-3. In the MAIN feedback text (whatsWorking, toMakeStronger, tryThisNext), DO NOT include timestamps - focus on GENERAL explanations of WHY they received the rating
-4. Timestamps and quotes go ONLY in the "examples" arrays - these are shown when users click "Want an example?"
-5. Focus on growth and celebration of strengths, not criticism
-6. Use warm, encouraging, developmental language throughout
-7. Be specific and actionable - vague feedback is not helpful
-8. When using pedagogical terms, wrap them in *asterisks* (e.g., *wait time*, *cold calling*) - DO NOT add explanations in brackets after them as the system will show tooltips automatically
-9. One good example ≠ exceptional practice (need patterns, not isolated incidents)
-10. Absence of best practice is feedback-worthy even if nothing "wrong" occurred
-11. Quality matters more than quantity (one sophisticated question > five basic ones)
-12. Consider impact: did the strategy actually achieve its pedagogical goal?
-13. Be honest but kind: frame everything as growth opportunity, not criticism
+1. Never mention student names — use "a student" or "students".
+2. Use British English spelling throughout (behaviour, colour, organisation, analyse, etc.).
+3. No timestamps in the main feedback body (whatsWorking, toMakeStronger, tryThisNext, summaries) — timestamps in the "examples" arrays only.
+4. Wrap pedagogical terms in *asterisks* (e.g. *wait time*, *cold calling*) — the system handles tooltip definitions; do NOT add explanations in brackets.
+5. One instance ≠ pattern. Patterns require multiple evidenced examples before crediting a strength.
+6. Audio gaps must be named, not worked around. If group work or whole-class talk is inaudible, state this explicitly rather than inferring what happened.
+7. Do not award credit for things you cannot observe (written planning, resources not described, student learning that cannot be inferred from audio alone).
+8. If a stated time limit is given (e.g. "you have 20 seconds"), always check it against transcript timestamps and report both stated and actual.
+9. If vocabulary above the stated learner level is used without scaffolding, always flag it.
+10. If praise is repetitive (e.g. "well done" or "good" used more than five times), always name the phrase, give an approximate count, and suggest 3 varied alternatives.
+11. The absence of good practice is itself feedback — name missed opportunities directly but without harshness.
+12. Warmth comes from specificity and respect, not from softening genuine gaps. Be the mentor you would want.
 `;
 
 serve(async (req) => {
