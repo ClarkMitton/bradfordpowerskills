@@ -655,8 +655,8 @@ ${containerRef.current.innerHTML}
           </div>
         </div>
         <div className="divide-y divide-border">
-          {feedback.categories.map((category) => (
-            <div key={category.name}>
+          {feedback.categories.map((category, idx) => (
+            <div key={`${category.name}-${idx}`}>
               <button
                 onClick={() => toggleCategory(category.name)}
                 className="w-full flex items-center justify-between p-5 hover:bg-secondary/30 transition-colors"
