@@ -601,22 +601,49 @@ Respond with valid JSON matching this exact structure:
 }`;
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt + "\n\n" + jsonSchema },
-          { role: "user", content: `Please analyse this classroom session transcript:\n\n${transcript}` }
-        ],
-        temperature: 0.3,
-        max_tokens: 16384,
-      }),
-    });
+    const callGateway = async () => {
+      return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt + "\n\n" + jsonSchema },
+            { role: "user", content: `Please analyse this classroom session transcript:\n\n${transcript}` }
+          ],
+          temperature: 0.3,
+          max_tokens: 16384,
+        }),
+      });
+    };
+
+    let response = await callGateway();
+    let responseText = "";
+    let aiResponse: any = null;
+
+    // Retry up to 2 times on empty/whitespace bodies (intermittent gateway issue)
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (!response.ok) break;
+      responseText = await response.text();
+      const trimmed = responseText.trim();
+      if (trimmed.length > 0) {
+        try {
+          aiResponse = JSON.parse(trimmed);
+          break;
+        } catch {
+          console.error(`Attempt ${attempt + 1}: failed to parse, body length=${responseText.length}`);
+        }
+      } else {
+        console.error(`Attempt ${attempt + 1}: empty/whitespace body from gateway`);
+      }
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        response = await callGateway();
+      }
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -639,14 +666,10 @@ Respond with valid JSON matching this exact structure:
       });
     }
 
-    const responseText = await response.text();
-    let aiResponse;
-    try {
-      aiResponse = JSON.parse(responseText);
-    } catch (e) {
-      console.error("Failed to parse AI gateway response:", responseText?.slice(0, 500));
-      return new Response(JSON.stringify({ error: "Invalid response from AI. Please try again." }), {
-        status: 500,
+    if (!aiResponse) {
+      console.error("Failed to parse AI gateway response after retries:", responseText?.slice(0, 500));
+      return new Response(JSON.stringify({ error: "The AI service returned an empty response. Please try again in a moment." }), {
+        status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
