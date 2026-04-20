@@ -686,8 +686,27 @@ Respond with valid JSON matching this exact structure:
       });
     }
 
+    // Defensive: strip stray emoji / section markers the model may prepend to text fields
+    const stripMarkers = (s: unknown): unknown => {
+      if (typeof s !== "string") return s;
+      // Remove leading emoji/symbol markers (✓, →, 💡, 🎯 etc.) and surrounding whitespace
+      return s.replace(/^[\s]*[\u2600-\u27BF\u{1F300}-\u{1FAFF}✓→]+[\s:–—-]*/gu, "").trim();
+    };
+    const sanitize = (obj: unknown): unknown => {
+      if (Array.isArray(obj)) return obj.map(sanitize);
+      if (obj && typeof obj === "object") {
+        const out: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+          out[k] = typeof v === "string" ? stripMarkers(v) : sanitize(v);
+        }
+        return out;
+      }
+      return obj;
+    };
+    feedback = sanitize(feedback);
+
     return new Response(JSON.stringify(feedback), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
     });
 
   } catch (error) {
