@@ -233,49 +233,50 @@ Return between 8 and 9 indicators total (max 6 demonstrated + 2-3 absent but exp
 const FEEDBACK_STRUCTURE = `
 ## Feedback Structure for Each Domain
 
-For EACH domain, provide feedback in these THREE sections:
+For EACH domain, produce the following sections:
 
-### Section 1: What's Working Well (marked with ✓)
-- DO NOT include timestamps in the main text - focus on explaining WHY they received this rating
-- Provide a GENERAL OVERVIEW of the pedagogical strengths observed
-- Explain the pedagogical principles behind what makes their practice effective
-- Wrap pedagogical terms in *asterisks* (e.g., *wait time*) - the system adds tooltips automatically, do NOT add explanations in brackets
-- Maximum 4-5 sentences
-- Example: "You demonstrated strong *wait time* throughout your questioning, allowing students adequate thinking time before expecting responses. This practice is grounded in research showing that pausing 3-5 seconds increases response quality and participation."
+### What's Working Well (the "whatsWorking" field, marked with ✓)
+One honest paragraph (3-4 sentences) identifying genuine strengths evidenced by patterns in the transcript, not single instances. Wrap pedagogical terms in *asterisks* (e.g. *wait time*) — the system adds tooltips automatically; do NOT add explanations in brackets. Do NOT include timestamps in this field.
+If no genuine strength is evidenced, say so briefly and move on — do not manufacture praise.
 
-### Section 2: To Make It Even Stronger (marked with →)
-- DO NOT include timestamps - focus on the GENERAL pattern or area for improvement
-- Suggest ONE concrete, actionable technique with pedagogical justification
-- Include research-based reasoning where relevant
-- Focus on ONE clear action only
-- Maximum 4-5 sentences
-- Example: "Consider using *cold calling* more frequently to distribute participation more equitably. Research by Dylan Wiliam shows this increases overall engagement significantly compared to relying on volunteers."
+### To Make It Even Stronger (the "toMakeStronger" field, marked with →)
+ONE concrete, specific technique with brief research rationale. Must be directly connected to something observed in the transcript. Maximum 3-4 sentences. Do NOT include timestamps in this field.
 
-### Section 3: Try This Next Time (marked with 💡)
-- Provide a concrete, practical strategy they can implement immediately
-- Make it specific enough that they know exactly what to do
-- Frame as building on existing strength, not fixing a deficit
-- Maximum 4-5 sentences
-- Example: "Build on your strong questioning by adding *think-pair-share* before whole-class discussion. This gives every student processing time and ensures quieter voices are heard."
+### Try This Next Time (the "tryThisNext" field, marked with 💡)
+ONE practical strategy the teacher can implement immediately. Framed as building on existing practice. Maximum 3-4 sentences.
 
-### Transcript Examples (NEW - for "Want an example?" feature)
-For EACH section (whatsWorking, toMakeStronger, tryThisNext), also provide 1-3 specific transcript examples:
+### Transcript Examples (for "Want an example?" feature)
+For EACH of whatsWorking, toMakeStronger, and tryThisNext, also provide 1-3 specific transcript examples in the corresponding examples array:
 - Include the EXACT timestamp [MM:SS]
 - Include the EXACT quote from the transcript
-- Provide a brief explanation of why this moment exemplifies the feedback
-- These will be shown when users click "Want an example?"
+- Provide a brief explanation of significance
+- Include examples of both effective practice and missed opportunities where relevant
 
-### Areas for Development (bullet points)  
-- Description of general pattern observed - What could be improved (NO timestamps in main text)
+### Missed Opportunities (the "missedOpportunities" array)
+1-2 specific moments from the transcript where a different approach would have meaningfully improved the learning. Be specific — name the timestamp and what could have been done differently. Do not pad this list.
 
-### Missed Opportunities
-- Strategy not used - When it could have been employed
+### Areas for Development (the "areasForDevelopment" array)
+General patterns observed that could be improved (no timestamps).
 
-### Research-Informed Suggestion
+### Research-Informed Suggestion (the "researchSuggestion" object)
 - Name the specific technique
 - How to implement it (concrete steps)
 - Why it works (research evidence)
 - Example of what it would sound like
+
+## Session-Level Outputs
+
+### MVP Moment (the "sessionMvp" object)
+Identify the single strongest pedagogical moment in the session — the one that best demonstrates intentional, effective teaching. Name the timestamp, quote briefly, and explain why it worked. Do not default to the lesson hook unless it genuinely was the strongest moment.
+
+### Overall Summary (the "overallSummary" field)
+3-4 honest sentences covering: what the teacher is doing well as a pattern, the single most important development priority, and one specific action for next time. Do not mention student names. Do not use generic praise. Be the mentor you would want if this were your own practice.
+
+### Top Strength (the "topStrength" field)
+One sentence.
+
+### Priority Growth Area (the "priorityGrowthArea" field)
+One sentence — the most important thing, not a list.
 `;
 
 const OFSTED_RUBRIC = `
