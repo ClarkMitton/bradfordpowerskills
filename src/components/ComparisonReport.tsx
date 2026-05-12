@@ -1,6 +1,6 @@
 import { useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, RotateCcw } from "lucide-react";
+import { Download, RotateCcw, FileDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ComparisonData, ITTECFEvidence } from "./SessionCompare";
 
@@ -170,6 +170,30 @@ ${containerRef.current.innerHTML}
     URL.revokeObjectURL(url);
   }, [result]);
 
+  const handleDownloadPdf = useCallback(async () => {
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const timestamp = Date.now();
+    const prevBg = container.style.backgroundColor;
+    container.style.backgroundColor = "#ffffff";
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const html2pdf = ((await import("html2pdf.js")) as any).default;
+      await html2pdf()
+        .set({
+          margin: [10, 10, 10, 10],
+          filename: `powered-journey-${timestamp}.pdf`,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        })
+        .from(container)
+        .save();
+    } finally {
+      container.style.backgroundColor = prevBg;
+    }
+  }, []);
+
   return (
     <div ref={containerRef} className="section-fade-in space-y-8">
       {/* Header */}
@@ -274,9 +298,13 @@ ${containerRef.current.innerHTML}
 
       {/* Action buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-        <Button onClick={handleDownloadHtml} size="lg" className="gap-2">
+        <Button onClick={handleDownloadPdf} size="lg" className="gap-2">
+          <FileDown className="w-5 h-5" />
+          Download PDF
+        </Button>
+        <Button onClick={handleDownloadHtml} size="lg" variant="secondary" className="gap-2">
           <Download className="w-5 h-5" />
-          Download Report
+          Download HTML
         </Button>
         <Button onClick={onReset} variant="outline" size="lg" className="gap-2">
           <RotateCcw className="w-5 h-5" />
