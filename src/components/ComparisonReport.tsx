@@ -175,7 +175,16 @@ ${containerRef.current.innerHTML}
     const container = containerRef.current;
     const timestamp = Date.now();
     const prevBg = container.style.backgroundColor;
+    const prevOpacity = container.style.opacity;
+    const prevAnimation = container.style.animation;
+    const prevTransform = container.style.transform;
     container.style.backgroundColor = "#ffffff";
+    // Neutralise the fade-in animation so the capture isn't translucent
+    container.style.animation = "none";
+    container.style.opacity = "1";
+    container.style.transform = "none";
+    // Allow a frame so styles apply before html2canvas snapshots
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const html2pdf = ((await import("html2pdf.js")) as any).default;
@@ -186,11 +195,15 @@ ${containerRef.current.innerHTML}
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["css", "legacy"], avoid: [".card-elevated", ".pdf-avoid-break"] },
         })
         .from(container)
         .save();
     } finally {
       container.style.backgroundColor = prevBg;
+      container.style.opacity = prevOpacity;
+      container.style.animation = prevAnimation;
+      container.style.transform = prevTransform;
     }
   }, []);
 
