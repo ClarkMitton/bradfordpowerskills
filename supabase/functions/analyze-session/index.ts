@@ -361,7 +361,7 @@ serve(async (req) => {
   }
 
   try {
-    const { transcript, selectedPhases, lessonPlan, scaffolding, studentWork, mode, learnerLevel, subject, selectedCategories, userRole } = await req.json();
+    const { transcript, selectedPhases, lessonPlan, mode, learnerLevel, subject, selectedCategories, userRole } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -427,18 +427,6 @@ Analyse alignment between planned activities and actual delivery.
 `;
     }
     
-    if (mode === "full-review") {
-      if (lessonPlan) {
-        additionalContext += `\nLesson Plan:\n${lessonPlan}\n`;
-      }
-      if (scaffolding) {
-        additionalContext += `\nScaffolding Materials:\n${scaffolding}\n`;
-      }
-      if (studentWork) {
-        additionalContext += `\nStudent Work Analysis Context:\n${studentWork}\n`;
-      }
-    }
-
     // Build the system prompt conditionally based on role
     let systemPrompt: string;
     let jsonSchema: string;

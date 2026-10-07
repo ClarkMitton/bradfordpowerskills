@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { StepIndicator } from "@/components/StepIndicator";
 import { WelcomeScreen, UserRole } from "@/components/WelcomeScreen";
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { SessionCapture } from "@/components/SessionCapture";
-import { VideoCapture } from "@/components/VideoCapture";
 import { FeedbackReport } from "@/components/FeedbackReport";
 import { SessionCompare } from "@/components/SessionCompare";
 import { ComparisonReport } from "@/components/ComparisonReport";
@@ -11,7 +10,7 @@ import { ProcessingLoader } from "@/components/ProcessingLoader";
 import { RotatingInsight } from "@/components/RotatingInsight";
 import { useSessionAnalysis } from "@/hooks/useSessionAnalysis";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, Loader2, Video, Upload, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
 import type { ComparisonData } from "@/components/SessionCompare";
 
 const getStepsForMode = (mode: string | null) => {
@@ -24,16 +23,6 @@ const getStepsForMode = (mode: string | null) => {
     case "deep-dive":
       return [
         { id: 1, label: "Capture Session", shortLabel: "Capture" },
-        { id: 2, label: "View Feedback", shortLabel: "Feedback" },
-      ];
-    case "full-review":
-      return [
-        { id: 1, label: "Capture Session", shortLabel: "Capture" },
-        { id: 2, label: "View Feedback", shortLabel: "Feedback" },
-      ];
-    case "video-analysis":
-      return [
-        { id: 1, label: "Upload Video", shortLabel: "Video" },
         { id: 2, label: "View Feedback", shortLabel: "Feedback" },
       ];
     case "compare-sessions":
@@ -58,8 +47,6 @@ const Index = () => {
     handleSessionCapture,
     handleTranscriptSubmit,
     handlePhaseSelection,
-    handleVideoCapture,
-    analyzeVideo,
     retryAnalysis,
     resetSession,
     goBack,
@@ -67,12 +54,9 @@ const Index = () => {
     setUserRole: setHookUserRole,
   } = useSessionAnalysis();
 
-  const videoAutoAnalyzedRef = useRef(false);
-
   const handleReset = () => {
     setUserRole(null);
     setComparisonResult(null);
-    videoAutoAnalyzedRef.current = false;
     resetSession();
   };
 
@@ -83,77 +67,7 @@ const Index = () => {
     }
   }, [userRole, setHookUserRole]);
 
-  // Auto-trigger video analysis when video capture completes
-  useEffect(() => {
-    if (
-      state.mode === "video-analysis" &&
-      state.step === 2 &&
-      state.videoBlob &&
-      !state.isAnalyzing &&
-      !state.feedback &&
-      !state.analysisError &&
-      !videoAutoAnalyzedRef.current
-    ) {
-      videoAutoAnalyzedRef.current = true;
-      analyzeVideo(["full"]);
-    }
-  }, [state.mode, state.step, state.videoBlob, state.isAnalyzing, state.feedback, state.analysisError, analyzeVideo]);
-
   const steps = getStepsForMode(state.mode);
-
-  // Video processing loading state
-  const VideoProcessingLoader = () => {
-    const getStatusText = () => {
-      switch (state.videoProcessingStatus) {
-        case "loading":
-          return { title: "Loading Video Processor", message: state.compressionMessage || "Loading video processor...", icon: Zap, detail: "Downloading processing engine", showProgress: false };
-        case "preparing":
-          return { title: "Preparing Video", message: state.compressionMessage || "Copying video to processor...", icon: Upload, detail: `${state.compressionProgress}% complete`, showProgress: true };
-        case "compressing":
-          return { title: "Compressing Video", message: state.compressionMessage || "Optimising for upload...", icon: Zap, detail: `${state.compressionProgress}% complete`, showProgress: true };
-        case "uploading":
-          return { title: "Uploading Video", message: state.compressionSavings || "Sending your video to our servers...", icon: Upload, detail: "This depends on your connection speed", showProgress: false };
-        case "processing":
-          return { title: "Indexing Video", message: "Processing your video content...", icon: Video, detail: "This typically takes 60–90 seconds", showProgress: false };
-        case "analyzing":
-          return { title: "Analysing Pedagogy", message: "AI is extracting teaching insights from visual and audio...", icon: Sparkles, detail: "Almost done...", showProgress: false };
-        default:
-          return { title: "Preparing Analysis", message: "Setting up video analysis...", icon: Video, detail: "Please wait", showProgress: false };
-      }
-    };
-
-    const status = getStatusText();
-    const StatusIcon = status.icon;
-    const stages = ["loading", "preparing", "compressing", "uploading", "processing", "analyzing"];
-    const currentStageIndex = stages.indexOf(state.videoProcessingStatus || "loading");
-
-    return (
-      <div className="section-fade-in flex flex-col items-center justify-center py-16 space-y-6">
-        <div className="relative">
-          <Loader2 className="w-16 h-16 text-primary animate-spin" />
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-mono px-3 py-1 rounded-full flex items-center gap-2">
-            <StatusIcon className="w-4 h-4" />
-            <span className="capitalize">{state.videoProcessingStatus || "preparing"}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 w-full max-w-xs">
-          {stages.map((stage, index) => (
-            <React.Fragment key={stage}>
-              <div className={`h-2 flex-1 rounded-full transition-colors ${index <= currentStageIndex ? "bg-primary" : "bg-muted"}`} />
-              {index < stages.length - 1 && (
-                <div className={`w-1 h-1 rounded-full ${index < currentStageIndex ? "bg-primary" : "bg-muted"}`} />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-        <div className="text-center space-y-3">
-          <h3 className="text-2xl font-heading font-semibold text-foreground">{status.title}</h3>
-          <p className="text-muted-foreground max-w-md">{status.message}</p>
-        </div>
-        <RotatingInsight />
-      </div>
-    );
-  };
 
   const renderStep = () => {
     if (state.step === 0) {
@@ -196,8 +110,8 @@ const Index = () => {
       }
     }
 
-    // Deep dive and full review modes
-    if (state.mode === "deep-dive" || state.mode === "full-review") {
+    // Deep dive mode
+    if (state.mode === "deep-dive") {
       switch (state.step) {
         case 1:
           return <SessionCapture mode={state.mode} onComplete={(blob, fileName, docs, details) => handleSessionCapture(blob, fileName, docs, details)} />;
@@ -217,31 +131,6 @@ const Index = () => {
               isLoading={state.isAnalyzing}
               onReset={handleReset}
               onRetry={retryAnalysis}
-              error={state.analysisError}
-              mode={state.mode}
-              selectedPhases={state.selectedPhases}
-              userRole={userRole}
-            />
-          );
-      }
-    }
-
-    // Video analysis mode
-    if (state.mode === "video-analysis") {
-      switch (state.step) {
-        case 1:
-          return <VideoCapture onComplete={handleVideoCapture} />;
-        case 2:
-          if (state.isAnalyzing) {
-            return <VideoProcessingLoader />;
-          }
-          return (
-            <FeedbackReport
-              feedback={state.feedback}
-              transcript=""
-              isLoading={state.isAnalyzing}
-              onReset={handleReset}
-              onRetry={() => state.selectedPhases.length > 0 && analyzeVideo(state.selectedPhases)}
               error={state.analysisError}
               mode={state.mode}
               selectedPhases={state.selectedPhases}

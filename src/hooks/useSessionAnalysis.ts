@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { compressVideo, formatBytes } from "@/lib/videoCompressor";
 import { usePrivacyCleanup } from "@/hooks/usePrivacyCleanup";
 import type { SelectedPhase } from "@/components/PhaseSelector";
 import type { SessionDetails } from "@/components/AudioRecorder";
@@ -55,7 +54,7 @@ interface FeedbackData {
   [key: string]: unknown;
 }
 
-export type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis" | "compare-sessions" | null;
+export type AnalysisMode = "quick" | "deep-dive" | "compare-sessions" | null;
 
 interface SessionState {
   step: number;
@@ -67,10 +66,6 @@ interface SessionState {
   anonymizedTranscript: string;
   documents: {
     lessonPlan: File | null;
-    scaffolding: File | null;
-    lowerAbility: File | null;
-    middleAbility: File | null;
-    higherAbility: File | null;
   };
   feedback: FeedbackData | null;
   isTranscribing: boolean;
@@ -81,16 +76,6 @@ interface SessionState {
   sessionDetails: SessionDetails | null;
   analysisError: string | null;
   userRole: UserRole | null;
-  // Video analysis state
-  videoBlob: Blob | null;
-  videoFileName: string;
-  videoStoragePath: string | null;
-  videoTaskId: string | null;
-  isVideoAnalysis: boolean;
-  videoProcessingStatus: "loading" | "preparing" | "compressing" | "uploading" | "processing" | "analyzing" | null;
-  compressionProgress: number;
-  compressionMessage: string;
-  compressionSavings: string | null;
 }
 
 const initialState: SessionState = {
@@ -103,10 +88,6 @@ const initialState: SessionState = {
   anonymizedTranscript: "",
   documents: {
     lessonPlan: null,
-    scaffolding: null,
-    lowerAbility: null,
-    middleAbility: null,
-    higherAbility: null,
   },
   feedback: null,
   isTranscribing: false,
@@ -117,16 +98,6 @@ const initialState: SessionState = {
   sessionDetails: null,
   analysisError: null,
   userRole: null,
-  // Video analysis initial state
-  videoBlob: null,
-  videoFileName: "",
-  videoStoragePath: null,
-  videoTaskId: null,
-  isVideoAnalysis: false,
-  videoProcessingStatus: null,
-  compressionProgress: 0,
-  compressionMessage: "",
-  compressionSavings: null,
 };
 
 // Mock function to detect names in transcript
@@ -259,29 +230,15 @@ const generateFeedback = async (
   userRole: UserRole | null
 ): Promise<FeedbackData> => {
   let lessonPlanText = "";
-  let scaffoldingText = "";
-  let studentWorkText = "";
-
   if (documents.lessonPlan) {
     lessonPlanText = await documents.lessonPlan.text().catch(() => "");
   }
-  if (documents.scaffolding) {
-    scaffoldingText = await documents.scaffolding.text().catch(() => "");
-  }
-
-  const studentWorkParts = [];
-  if (documents.lowerAbility) studentWorkParts.push("Lower ability student work sample provided");
-  if (documents.middleAbility) studentWorkParts.push("Middle ability student work sample provided");
-  if (documents.higherAbility) studentWorkParts.push("Higher ability student work sample provided");
-  studentWorkText = studentWorkParts.join(". ");
 
   const { data, error } = await supabase.functions.invoke("analyze-session", {
     body: {
       transcript,
       selectedPhases,
       lessonPlan: lessonPlanText,
-      scaffolding: scaffoldingText,
-      studentWork: studentWorkText,
       mode,
       learnerLevel: sessionDetails?.learnerLevel || "",
       subject: sessionDetails?.subject || "",
@@ -298,47 +255,17 @@ const generateFeedback = async (
   return data as FeedbackData;
 };
 
-// Upload video to storage and return the path
-const uploadVideoToStorage = async (file: File): Promise<string> => {
-  const timestamp = Date.now();
-  const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-  const storagePath = `${timestamp}_${sanitizedName}`;
-  
-  const { error } = await supabase.storage
-    .from("teaching-videos")
-    .upload(storagePath, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
-
-  if (error) {
-    console.error("Storage upload error:", error);
-    throw new Error("Failed to upload video: " + error.message);
-  }
-
-  return storagePath;
-};
-
 export function useSessionAnalysis() {
   const [state, setState] = useState<SessionState>(initialState);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingAbortRef = useRef<boolean>(false);
   
-  const { 
-    trackVideoStoragePath, 
-    trackBlobs, 
-    deleteVideoFromStorage,
-    performFullCleanup 
-  } = usePrivacyCleanup();
+  const { trackAudioBlob, performFullCleanup } = usePrivacyCleanup();
 
   useEffect(() => {
-    trackBlobs(state.audioBlob, state.videoBlob);
-  }, [state.audioBlob, state.videoBlob, trackBlobs]);
-
-  useEffect(() => {
-    trackVideoStoragePath(state.videoStoragePath);
-  }, [state.videoStoragePath, trackVideoStoragePath]);
+    trackAudioBlob(state.audioBlob);
+  }, [state.audioBlob, trackAudioBlob]);
 
   // Transcription timer effect
   useEffect(() => {
@@ -644,184 +571,6 @@ export function useSessionAnalysis() {
     });
   }, []);
 
-  const handleVideoCapture = useCallback(async (blob: Blob, fileName: string) => {
-    setState((prev) => ({
-      ...prev,
-      videoBlob: blob,
-      videoFileName: fileName,
-      isVideoAnalysis: true,
-      step: 2,
-      videoProcessingStatus: null,
-      selectedPhases: ["full"],
-    }));
-  }, []);
-
-  const pollVideoStatus = useCallback(async (
-    taskId: string, 
-    selectedPhases: SelectedPhase[],
-    maxAttempts = 60
-  ) => {
-    let attempts = 0;
-    pollingAbortRef.current = false;
-
-    const poll = async () => {
-      if (pollingAbortRef.current || attempts >= maxAttempts) {
-        if (attempts >= maxAttempts) {
-          setState((prev) => ({
-            ...prev,
-            isAnalyzing: false,
-            videoProcessingStatus: null,
-            analysisError: "Video processing timed out. Please try again with a shorter video.",
-          }));
-          toast.error("Video processing timed out");
-        }
-        return;
-      }
-
-      attempts++;
-
-      try {
-        const { data, error } = await supabase.functions.invoke("video-analysis-status", {
-          body: { taskId, selectedPhases },
-        });
-
-        if (error) {
-          throw new Error(error.message || "Failed to check video status");
-        }
-
-        if (data.status === "complete") {
-          if (state.videoStoragePath) {
-            console.log("[Privacy] Deleting video after successful analysis");
-            deleteVideoFromStorage(state.videoStoragePath);
-          }
-          
-          setState((prev) => ({
-            ...prev,
-            feedback: data.feedback,
-            isAnalyzing: false,
-            videoProcessingStatus: null,
-            analysisError: null,
-            videoBlob: null,
-            videoStoragePath: null,
-          }));
-          toast.success("Video analysis complete!");
-          return;
-        }
-
-        if (data.status === "failed") {
-          throw new Error(data.error || "Video processing failed");
-        }
-
-        setState((prev) => ({
-          ...prev,
-          videoProcessingStatus: data.taskStatus === "indexing" ? "analyzing" : "processing",
-        }));
-
-        pollingRef.current = setTimeout(poll, 5000);
-      } catch (error) {
-        console.error("Polling error:", error);
-        const errorMessage = error instanceof Error ? error.message : "Video analysis failed. Please try again.";
-        setState((prev) => ({
-          ...prev,
-          isAnalyzing: false,
-          videoProcessingStatus: null,
-          analysisError: errorMessage,
-        }));
-        toast.error(errorMessage);
-      }
-    };
-
-    poll();
-  }, []);
-
-  const analyzeVideo = useCallback(async (selectedPhases: SelectedPhase[]) => {
-    if (!state.videoBlob) {
-      toast.error("No video to analyze");
-      return;
-    }
-
-    setState((prev) => ({
-      ...prev,
-      selectedPhases,
-      isAnalyzing: true,
-      videoProcessingStatus: "loading",
-      compressionProgress: 0,
-      compressionMessage: "Loading video processor...",
-      compressionSavings: null,
-      step: 2,
-      analysisError: null,
-    }));
-
-    try {
-      const compressionResult = await compressVideo(
-        state.videoBlob as unknown as File,
-        (progress) => {
-          setState((prev) => ({
-            ...prev,
-            videoProcessingStatus: progress.stage,
-            compressionProgress: progress.progress,
-            compressionMessage: progress.message,
-          }));
-        }
-      );
-
-      const savings = compressionResult.originalSize > compressionResult.compressedSize
-        ? `Reduced from ${formatBytes(compressionResult.originalSize)} to ${formatBytes(compressionResult.compressedSize)}`
-        : null;
-
-      setState((prev) => ({
-        ...prev,
-        videoProcessingStatus: "uploading",
-        compressionProgress: 100,
-        compressionSavings: savings,
-      }));
-
-      const videoFile = new File([compressionResult.blob], state.videoFileName.replace(/\.\w+$/, ".mp4"), {
-        type: "video/mp4",
-      });
-      const storagePath = await uploadVideoToStorage(videoFile);
-
-      setState((prev) => ({
-        ...prev,
-        videoStoragePath: storagePath,
-        videoProcessingStatus: "processing",
-      }));
-
-      const { data, error } = await supabase.functions.invoke("start-video-analysis", {
-        body: {
-          storagePath,
-          fileName: state.videoFileName,
-          selectedPhases,
-        },
-      });
-
-      if (error) {
-        throw new Error(error.message || "Failed to start video analysis");
-      }
-
-      if (!data.taskId) {
-        throw new Error("No task ID returned from server");
-      }
-
-      setState((prev) => ({
-        ...prev,
-        videoTaskId: data.taskId,
-      }));
-
-      pollVideoStatus(data.taskId, selectedPhases);
-
-    } catch (error) {
-      console.error("Video analysis failed:", error);
-      const errorMessage = error instanceof Error ? error.message : "Video analysis failed. Please try again.";
-      toast.error(errorMessage);
-      setState((prev) => ({
-        ...prev,
-        isAnalyzing: false,
-        videoProcessingStatus: null,
-        analysisError: errorMessage,
-      }));
-    }
-  }, [state.videoBlob, state.videoFileName, pollVideoStatus]);
 
   return {
     state,
@@ -831,8 +580,6 @@ export function useSessionAnalysis() {
     handleTranscriptSubmit,
     confirmTranscript,
     handlePhaseSelection,
-    handleVideoCapture,
-    analyzeVideo,
     retryAnalysis,
     resetSession,
     goBack,

@@ -4,7 +4,7 @@ import cardFlow1 from "@/assets/card-flow-1.jpg";
 import cardFlow2 from "@/assets/card-flow-2.jpg";
 import cardFlow3 from "@/assets/card-flow-3.jpg";
 
-export type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis" | "compare-sessions";
+export type AnalysisMode = "quick" | "deep-dive" | "compare-sessions";
 export type UserRole = "trainee" | "staff";
 
 interface WelcomeScreenProps {
@@ -49,11 +49,11 @@ export function WelcomeScreen({
       image: cardFlow1,
     },
     {
-      id: "full-review" as const,
+      id: "deep-dive" as const,
       icon: Layers,
       title: "Deep Dive Feedback",
-      description: "Comprehensive feedback on the complete teaching cycle — from planning through delivery to student outcomes.",
-      details: ["Audio recording", "Lesson plan & scaffolding", "3 pieces of student work"],
+      description: "Feedback on how your delivery matched your plan — from lesson planning through to what happened in the room.",
+      details: ["Audio recording", "Lesson plan"],
       encouragement: "Perfect for deep reflection — connect your planning, delivery, and student outcomes for powerful professional growth.",
       image: cardFlow2,
     },

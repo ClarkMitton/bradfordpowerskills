@@ -17,10 +17,6 @@ interface SessionCaptureProps {
     fileName: string,
     documents: {
       lessonPlan: File | null;
-      scaffolding: File | null;
-      lowerAbility: File | null;
-      middleAbility: File | null;
-      higherAbility: File | null;
     },
     sessionDetails: SessionCaptureDetails
   ) => void;
@@ -39,10 +35,6 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
 
   // Document states
   const [lessonPlan, setLessonPlan] = useState<File | null>(null);
-  const [scaffolding, setScaffolding] = useState<File | null>(null);
-  const [lowerAbility, setLowerAbility] = useState<File | null>(null);
-  const [middleAbility, setMiddleAbility] = useState<File | null>(null);
-  const [higherAbility, setHigherAbility] = useState<File | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -176,9 +168,6 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
   const isReadyToSubmit = () => {
     if (!audioBlob) return false;
     if (!lessonPlan) return false;
-    if (mode === "full-review") {
-      return scaffolding && lowerAbility && middleAbility && higherAbility;
-    }
     return true;
   };
 
@@ -189,10 +178,6 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
         fileName,
         {
           lessonPlan,
-          scaffolding,
-          lowerAbility,
-          middleAbility,
-          higherAbility,
         },
         { subject }
       );
@@ -368,40 +353,6 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
               onUpload={(e) => handleDocumentUpload(e, setLessonPlan)}
             />
 
-            {mode === "full-review" && (
-              <>
-                <DocumentUploadCard
-                  label="Scaffolding Materials"
-                  description="Resources you used during the session"
-                  file={scaffolding}
-                  onUpload={(e) => handleDocumentUpload(e, setScaffolding)}
-                />
-
-                <div className="pt-2 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-3">Student Work Samples</p>
-                  <div className="space-y-2">
-                    <DocumentUploadCard
-                      label="Lower Ability Work"
-                      description="Sample from lower ability student"
-                      file={lowerAbility}
-                      onUpload={(e) => handleDocumentUpload(e, setLowerAbility)}
-                    />
-                    <DocumentUploadCard
-                      label="Middle Ability Work"
-                      description="Sample from middle ability student"
-                      file={middleAbility}
-                      onUpload={(e) => handleDocumentUpload(e, setMiddleAbility)}
-                    />
-                    <DocumentUploadCard
-                      label="Higher Ability Work"
-                      description="Sample from higher ability student"
-                      file={higherAbility}
-                      onUpload={(e) => handleDocumentUpload(e, setHigherAbility)}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         </div>
       </div>
@@ -425,9 +376,6 @@ export function SessionCapture({ mode, onComplete }: SessionCaptureProps) {
           <li>• Ensure a quiet environment for best transcription quality</li>
           <li>• Sessions of 8-12 minutes work best for detailed analysis</li>
           <li>• Upload the lesson plan you intended to deliver for accurate comparison</li>
-          {mode === "full-review" && (
-            <li>• Include work samples that show a range of abilities for differentiation analysis</li>
-          )}
         </ul>
       </div>
 
