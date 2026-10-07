@@ -237,8 +237,6 @@ async function processAudioForComparison(
       transcript,
       selectedPhases: ["full"],
       lessonPlan: "",
-      scaffolding: "",
-      studentWork: "",
       mode: "quick",
       learnerLevel: "",
       subject: "",

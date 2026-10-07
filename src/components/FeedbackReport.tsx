@@ -112,7 +112,7 @@ interface FeedbackData {
   [key: string]: unknown;
 }
 
-type AnalysisMode = "quick" | "deep-dive" | "full-review" | "video-analysis";
+type AnalysisMode = "quick" | "deep-dive";
 type UserRole = "trainee" | "staff";
 
 interface FeedbackReportProps {
